@@ -1,5 +1,48 @@
 use super::Paper;
 
+const FIELDS: &str = "title,abstract,year,citationCount,authors,url,publicationDate,externalIds,fieldsOfStudy,openAccessPdf,venue";
+
+/// Search Semantic Scholar API and return parsed papers.
+pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let url = format!(
+        "{}/graph/v1/paper/search?query={}&limit={}&fields={}",
+        base_url, query, max_results, FIELDS
+    );
+
+    let api_key = std::env::var("SEMANTIC_SCHOLAR_API_KEY").ok();
+
+    let mut last_err = String::new();
+    for attempt in 0..3 {
+        if attempt > 0 {
+            std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
+        }
+        let mut req = ureq::get(&url);
+        if let Some(ref key) = api_key {
+            req = req.header("x-api-key", key);
+        }
+        match req.call() {
+            Ok(resp) => {
+                let body = resp
+                    .into_body()
+                    .read_to_string()
+                    .map_err(|e| format!("Failed to read response: {}", e))?;
+                return parse_search_response(&body);
+            }
+            Err(ureq::Error::StatusCode(429)) => {
+                last_err = "rate limited (429)".to_string();
+                continue;
+            }
+            Err(ureq::Error::StatusCode(code)) if code >= 500 => {
+                return Err(format!("Server error: {}", code));
+            }
+            Err(e) => {
+                return Err(format!("HTTP error: {}", e));
+            }
+        }
+    }
+    Err(last_err)
+}
+
 /// Parse Semantic Scholar JSON search response into a list of Papers.
 pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
     let root: serde_json::Value =
@@ -131,5 +174,83 @@ mod tests {
     fn parse_empty_data_returns_empty_list() {
         let papers = parse_search_response(r#"{"data": []}"#).unwrap();
         assert!(papers.is_empty());
+    }
+
+    #[test]
+    fn search_returns_papers() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let papers = search(&server.url(), "test", 3).unwrap();
+        assert!(!papers.is_empty());
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_path_contains_paper_search() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("paper/search".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_contains_query_param() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("query=test".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_contains_limit() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("limit=3".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_sends_api_key_header_when_set() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .match_header("x-api-key", "test-key-123")
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        unsafe { std::env::set_var("SEMANTIC_SCHOLAR_API_KEY", "test-key-123") };
+        let _ = search(&server.url(), "test", 3);
+        unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
+        mock.assert();
+    }
+
+    #[test]
+    fn search_works_without_api_key() {
+        unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let result = search(&server.url(), "test", 3);
+        assert!(result.is_ok());
+        mock.assert();
     }
 }
