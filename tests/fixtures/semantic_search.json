@@ -1,0 +1,74 @@
+{
+  "total": 12143225,
+  "offset": 0,
+  "next": 3,
+  "data": [
+    {
+      "paperId": "a56bf7ee9a56d8f84079684339a953c2df9ce76b",
+      "externalIds": {
+        "MAG": "3146366485",
+        "DBLP": "journals/ijon/NiuZY21",
+        "DOI": "10.1016/J.NEUCOM.2021.03.091",
+        "CorpusId": 233562906
+      },
+      "url": "https://www.semanticscholar.org/paper/a56bf7ee9a56d8f84079684339a953c2df9ce76b",
+      "title": "A review on the attention mechanism of deep learning",
+      "venue": "Neurocomputing",
+      "year": 2021,
+      "citationCount": 2865,
+      "isOpenAccess": false,
+      "openAccessPdf": null,
+      "fieldsOfStudy": ["Computer Science"],
+      "authors": [
+        {"authorId": "4427645", "name": "Zhaoyang Niu"},
+        {"authorId": "2421012", "name": "G. Zhong"},
+        {"authorId": "145429878", "name": "Hui Yu"}
+      ],
+      "abstract": null
+    },
+    {
+      "paperId": "0e17997cdc00e7011743c8e376f06701a9d91755",
+      "externalIds": {
+        "DBLP": "journals/inffus/LiW24",
+        "ArXiv": "2406.10581",
+        "DOI": "10.1016/j.inffus.2023.102147",
+        "CorpusId": 265251042
+      },
+      "url": "https://www.semanticscholar.org/paper/0e17997cdc00e7011743c8e376f06701a9d91755",
+      "title": "CrossFuse: A novel cross attention mechanism based infrared and visible image fusion approach",
+      "venue": "Information Fusion",
+      "year": 2024,
+      "citationCount": 336,
+      "isOpenAccess": false,
+      "openAccessPdf": null,
+      "fieldsOfStudy": ["Computer Science"],
+      "authors": [
+        {"authorId": "2155494585", "name": "Hui Li"},
+        {"authorId": "2142461480", "name": "Xiao-Jun Wu"}
+      ],
+      "abstract": "Multimodal visual information fusion aims to integrate the multi-sensor data into a single image which contains more complementary information and less redundant features."
+    },
+    {
+      "paperId": "68c25a2dcb4df9632996fdcb078ff3bed8300a9c",
+      "externalIds": {
+        "DBLP": "journals/corr/abs-2201-12987",
+        "ArXiv": "2201.12987",
+        "CorpusId": 246430773
+      },
+      "url": "https://www.semanticscholar.org/paper/68c25a2dcb4df9632996fdcb078ff3bed8300a9c",
+      "title": "Interpretable and Generalizable Graph Learning via Stochastic Attention Mechanism",
+      "venue": "International Conference on Machine Learning",
+      "year": 2022,
+      "citationCount": 280,
+      "isOpenAccess": false,
+      "openAccessPdf": null,
+      "fieldsOfStudy": ["Computer Science"],
+      "authors": [
+        {"authorId": "2151793768", "name": "Siqi Miao"},
+        {"authorId": "2156102035", "name": "Miaoyuan Liu"},
+        {"authorId": "1561672016", "name": "Pan Li"}
+      ],
+      "abstract": "Interpretable graph learning is in need as many scientific applications depend on learning models to collect insights from graph-structured data."
+    }
+  ]
+}
