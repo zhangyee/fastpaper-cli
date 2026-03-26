@@ -26,8 +26,28 @@ fn main() {
             std::process::exit(1);
         }
         cli::Commands::Sources(_args) => {
-            eprintln!("sources: not yet implemented");
-            std::process::exit(1);
+            println!("Source          search  download  read");
+            println!("──────────────────────────────────────");
+            println!("arxiv          ✓       ✓         ✓");
+            println!("biorxiv        ✓       ✓         ✓");
+            println!("medrxiv        ✓       ✓         ✓");
+            println!("ssrn           ✓       ✓         ✓");
+            println!("pubmed         ✓       ✗         ✗");
+            println!("pmc            ✓       ✓         ✓");
+            println!("europepmc      ✓       ✓         ✓");
+            println!("scholar        ✓       ✗         ✗");
+            println!("semantic       ✓       ✓         ✓");
+            println!("base           ✓       ✓         ✓");
+            println!("citeseerx      ✓       ✓         ✓");
+            println!("crossref       ✓       ✗         ✗");
+            println!("openalex       ✓       ✗         ✗");
+            println!("dblp           ✓       ✗         ✗");
+            println!("core           ✓       ✓         ✓");
+            println!("openaire       ✓       ✗         ✗");
+            println!("doaj           ✓       ✓         ✓");
+            println!("unpaywall      ✓       ✗         ✗");
+            println!("zenodo         ✓       ✓         ✓");
+            println!("hal            ✓       ✓         ✓");
         }
         cli::Commands::Skill { action: _ } => {
             eprintln!("skill: not yet implemented");
