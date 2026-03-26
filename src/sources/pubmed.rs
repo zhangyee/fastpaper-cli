@@ -3,6 +3,78 @@ use quick_xml::Reader;
 
 use super::Paper;
 
+const ESEARCH_URL: &str = "/entrez/eutils/esearch.fcgi";
+const EFETCH_URL: &str = "/entrez/eutils/efetch.fcgi";
+
+/// Search PubMed: esearch for IDs, then efetch for details.
+pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let api_key = std::env::var("NCBI_API_KEY").ok();
+
+    // Step 1: esearch to get PMID list
+    let mut esearch_url = format!(
+        "{}{}?db=pubmed&term={}&retmax={}&retmode=json&tool=fastpaper&email=yee.zhang@gmail.com",
+        base_url, ESEARCH_URL, query, max_results
+    );
+    if let Some(ref key) = api_key {
+        esearch_url.push_str(&format!("&api_key={}", key));
+    }
+
+    let esearch_body = http_get(&esearch_url)?;
+    let esearch_json: serde_json::Value =
+        serde_json::from_str(&esearch_body).map_err(|e| format!("JSON parse error: {}", e))?;
+
+    let ids: Vec<&str> = esearch_json["esearchresult"]["idlist"]
+        .as_array()
+        .map(|arr| arr.iter().filter_map(|v| v.as_str()).collect())
+        .unwrap_or_default();
+
+    if ids.is_empty() {
+        return Ok(vec![]);
+    }
+
+    // Step 2: efetch to get article details
+    let mut efetch_url = format!(
+        "{}{}?db=pubmed&id={}&retmode=xml&tool=fastpaper&email=yee.zhang@gmail.com",
+        base_url,
+        EFETCH_URL,
+        ids.join(",")
+    );
+    if let Some(ref key) = api_key {
+        efetch_url.push_str(&format!("&api_key={}", key));
+    }
+
+    let efetch_body = http_get(&efetch_url)?;
+    parse_efetch_response(&efetch_body)
+}
+
+fn http_get(url: &str) -> Result<String, String> {
+    let mut last_err = String::new();
+    for attempt in 0..3 {
+        if attempt > 0 {
+            std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
+        }
+        match ureq::get(url).call() {
+            Ok(resp) => {
+                return resp
+                    .into_body()
+                    .read_to_string()
+                    .map_err(|e| format!("Failed to read response: {}", e));
+            }
+            Err(ureq::Error::StatusCode(429)) => {
+                last_err = "rate limited (429)".to_string();
+                continue;
+            }
+            Err(ureq::Error::StatusCode(code)) if code >= 500 => {
+                return Err(format!("Server error: {}", code));
+            }
+            Err(e) => {
+                return Err(format!("HTTP error: {}", e));
+            }
+        }
+    }
+    Err(last_err)
+}
+
 /// Parse PubMed efetch XML response into a list of Papers.
 pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
     let mut reader = Reader::from_str(xml);
@@ -238,5 +310,100 @@ mod tests {
         for p in &papers {
             assert!(p.pdf_url.is_none(), "pubmed should not have pdf_url");
         }
+    }
+
+    const ESEARCH_FIXTURE: &str = include_str!("../../tests/fixtures/pubmed_esearch.json");
+
+    #[test]
+    fn search_calls_esearch_then_efetch() {
+        let mut server = mockito::Server::new();
+        let esearch_mock = server
+            .mock("GET", mockito::Matcher::Regex("esearch".to_string()))
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .create();
+        let efetch_mock = server
+            .mock("GET", mockito::Matcher::Regex("efetch".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let papers = search(&server.url(), "test", 3).unwrap();
+        assert!(!papers.is_empty());
+        esearch_mock.assert();
+        efetch_mock.assert();
+    }
+
+    #[test]
+    fn search_esearch_contains_db_pubmed() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("db=pubmed".to_string()))
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .expect_at_least(1)
+            .create();
+        // efetch also has db=pubmed, so just mock any other request too
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_esearch_contains_retmax() {
+        let mut server = mockito::Server::new();
+        let esearch_mock = server
+            .mock("GET", mockito::Matcher::Regex("retmax=3".to_string()))
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .create();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        esearch_mock.assert();
+    }
+
+    #[test]
+    fn search_with_api_key() {
+        unsafe { std::env::set_var("NCBI_API_KEY", "test-ncbi-key") };
+        let mut server = mockito::Server::new();
+        // Both esearch and efetch should contain api_key
+        server
+            .mock("GET", mockito::Matcher::Regex("esearch.*api_key=test-ncbi-key".to_string()))
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .create();
+        server
+            .mock("GET", mockito::Matcher::Regex("efetch.*api_key=test-ncbi-key".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let result = search(&server.url(), "test", 3);
+        unsafe { std::env::remove_var("NCBI_API_KEY") };
+        assert!(result.is_ok(), "search should succeed with api key: {:?}", result.err());
+    }
+
+    #[test]
+    fn search_works_without_api_key() {
+        unsafe { std::env::remove_var("NCBI_API_KEY") };
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("esearch".to_string()))
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .create();
+        server
+            .mock("GET", mockito::Matcher::Regex("efetch".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let result = search(&server.url(), "test", 3);
+        assert!(result.is_ok());
     }
 }
