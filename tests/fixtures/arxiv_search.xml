@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/1nd5XqiUmH+gBQ6T27M+Ll5eSBk</id>
+  <title>arXiv Query: search_query=all:attention OR all:mechanism&amp;id_list=&amp;start=0&amp;max_results=3</title>
+  <updated>2026-03-26T07:27:39Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=all:attention+OR+all:mechanism&amp;start=0&amp;max_results=3&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>3</opensearch:itemsPerPage>
+  <opensearch:totalResults>314000</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2002.00741v1</id>
+    <title>Déjà vu: A Contextualized Temporal Attention Mechanism for Sequential Recommendation</title>
+    <updated>2020-01-29T20:27:42Z</updated>
+    <link href="https://arxiv.org/abs/2002.00741v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2002.00741v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Predicting users' preferences based on their sequential behaviors in history is challenging and crucial for modern recommender systems. Most existing sequential recommendation algorithms focus on transitional structure among the sequential actions, but largely ignore the temporal and context information, when modeling the influence of a historical event to current prediction.
+  In this paper, we argue that the influence from the past events on a user's current action should vary over the course of time and under different context. Thus, we propose a Contextualized Temporal Attention Mechanism that learns to weigh historical actions' influence on not only what action it is, but also when and how the action took place. More specifically, to dynamically calibrate the relative input dependence from the self-attention mechanism, we deploy multiple parameterized kernel functions to learn various temporal dynamics, and then use the context information to determine which of these reweighing kernels to follow for each input. In empirical evaluations on two large public recommendation datasets, our model consistently outperformed an extensive set of state-of-the-art sequential recommendation methods.</summary>
+    <category term="cs.IR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2020-01-29T20:27:42Z</published>
+    <arxiv:comment>Key Words: Sequential Recommendation, Self-attention mechanism, Temporal Recommendation</arxiv:comment>
+    <arxiv:primary_category term="cs.IR"/>
+    <author>
+      <name>Jibang Wu</name>
+    </author>
+    <author>
+      <name>Renqin Cai</name>
+    </author>
+    <author>
+      <name>Hongning Wang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/1102.2017v2</id>
+    <title>Synthesis of Mechanism for single- and hybrid-tasks using Differential Evolution</title>
+    <updated>2011-06-18T03:29:35Z</updated>
+    <link href="https://arxiv.org/abs/1102.2017v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/1102.2017v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The optimal dimensional synthesis for planar mechanisms using differential evolution (DE) is demonstrated. Four examples are included: in the first case, the synthesis of a mechanism for hybrid-tasks, considering path generation, function generation, and motion generation, is carried out. The second and third cases pertain to path generation, with and without prescribed timing. Finally, the synthesis of an Ackerman mechanism is reported. Order defect problem is solved by manipulating individuals instead of penalizing or discretizing the search space for the parameters. A technique that consists in applying a transformation in order to satisfy the Grashof and crank conditions to generate an initial elitist population is introduced. As a result, the evolutionary algorithm increases its efficiency.</summary>
+    <category term="cs.CE" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2011-02-10T00:50:54Z</published>
+    <arxiv:comment>Final version accepted in Mechanism and Machine Theory</arxiv:comment>
+    <arxiv:primary_category term="cs.CE"/>
+    <arxiv:journal_ref>Mechanism and Machine Theory 46 (2011) 1335--1349</arxiv:journal_ref>
+    <author>
+      <name>F. Penunuri</name>
+    </author>
+    <author>
+      <name>R. Peon-Escalante</name>
+    </author>
+    <author>
+      <name>C. Villanueva</name>
+    </author>
+    <author>
+      <name>D. Pech-Oy</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/1112.2954v2</id>
+    <title>Synthesis of Spherical 4R Mechanism for Path Generation using Differential Evolution</title>
+    <updated>2012-04-03T22:48:55Z</updated>
+    <link href="https://arxiv.org/abs/1112.2954v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/1112.2954v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The problem of path generation for the spherical 4R mechanism is solved using the Differential Evolution algorithm (DE). Formulas for the spherical geodesics are employed in order to obtain the parametric equation for the generated trajectory. Direct optimization of the objective function gives the solution to the path generation task without prescribed timing. Therefore, there is no need to separate this task into two stages to make the optimization. Moreover, the order defect problem can be solved without difficulty by means of manipulations of the individuals in the DE algorithm. Two examples of optimum synthesis showing the simplicity and effectiveness of this approach are included.</summary>
+    <category term="cs.CE" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2011-12-13T16:48:05Z</published>
+    <arxiv:comment>Submitted to Mechanism and Machine Theory</arxiv:comment>
+    <arxiv:primary_category term="cs.CE"/>
+    <arxiv:journal_ref>Mechanism and Machine Theory 57 (2012) 62-70</arxiv:journal_ref>
+    <author>
+      <name>F. Penunuri</name>
+    </author>
+    <author>
+      <name>R. Peon-Escalante</name>
+    </author>
+    <author>
+      <name>C. Villanueva</name>
+    </author>
+    <author>
+      <name>Carlos A. Cruz-Villar</name>
+    </author>
+    <arxiv:doi>10.1016/j.mechmachtheory.2012.07.003</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1016/j.mechmachtheory.2012.07.003" title="doi"/>
+  </entry>
+</feed>
