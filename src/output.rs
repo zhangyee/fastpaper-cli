@@ -25,6 +25,24 @@ fn csv_escape(field: &str) -> String {
     }
 }
 
+/// Format papers as BibTeX entries.
+pub fn to_bibtex(papers: &[Paper]) -> String {
+    let mut out = String::new();
+    for p in papers {
+        out.push_str(&format!("@article{{{},\n", p.id));
+        out.push_str(&format!("  title = {{{}}},\n", p.title));
+        out.push_str(&format!("  author = {{{}}},\n", p.authors.join(" and ")));
+        if let Some(year) = p.year {
+            out.push_str(&format!("  year = {{{}}},\n", year));
+        }
+        if let Some(ref doi) = p.doi {
+            out.push_str(&format!("  doi = {{{}}},\n", doi));
+        }
+        out.push_str("}\n");
+    }
+    out
+}
+
 /// Format papers as a JSON search result string.
 pub fn to_json(papers: &[Paper]) -> String {
     let result = serde_json::json!({
@@ -135,5 +153,49 @@ mod tests {
         let lines: Vec<&str> = csv.lines().collect();
         assert_eq!(lines.len(), 1);
         assert_eq!(lines[0], "id,title,authors,year,doi,url");
+    }
+
+    #[test]
+    fn to_bibtex_contains_article_tag() {
+        let bib = to_bibtex(&[sample_paper()]);
+        assert!(bib.contains("@article{"));
+    }
+
+    #[test]
+    fn to_bibtex_contains_title() {
+        let bib = to_bibtex(&[sample_paper()]);
+        assert!(bib.contains("title = {Attention Is All You Need}"));
+    }
+
+    #[test]
+    fn to_bibtex_contains_author() {
+        let bib = to_bibtex(&[sample_paper()]);
+        assert!(bib.contains("author = {Alice Smith and Bob Jones}"));
+    }
+
+    #[test]
+    fn to_bibtex_contains_year() {
+        let bib = to_bibtex(&[sample_paper()]);
+        assert!(bib.contains("year = {2023}"));
+    }
+
+    #[test]
+    fn to_bibtex_contains_doi() {
+        let bib = to_bibtex(&[sample_paper()]);
+        assert!(bib.contains("doi = {10.48550/arXiv.2301.08745}"));
+    }
+
+    #[test]
+    fn to_bibtex_no_doi_when_missing() {
+        let mut paper = sample_paper();
+        paper.doi = None;
+        let bib = to_bibtex(&[paper]);
+        assert!(!bib.contains("doi ="));
+    }
+
+    #[test]
+    fn to_bibtex_empty_returns_empty_string() {
+        let bib = to_bibtex(&[]);
+        assert!(bib.is_empty());
     }
 }
