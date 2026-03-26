@@ -1,1 +1,1301 @@
-{"status":"ok","message-type":"work-list","message-version":"1.0.0","message":{"facets":{},"total-results":869991,"items":[{"indexed":{"date-parts":[[2026,2,28]],"date-time":"2026-02-28T09:32:25Z","timestamp":1772271145270,"version":"3.50.1"},"reference-count":0,"publisher":"PeerJ","content-domain":{"domain":[],"crossmark-restriction":false},"DOI":"10.7717\/peerjcs.2224\/fig-3","type":"component","created":{"date-parts":[[2024,8,22]],"date-time":"2024-08-22T07:01:35Z","timestamp":1724310095000},"source":"Crossref","is-referenced-by-count":0,"title":["Figure 3: The GAM attention mechanism includes two submodules: channel attention and spatial attention."],"prefix":"10.7717","member":"4443","deposited":{"date-parts":[[2024,8,22]],"date-time":"2024-08-22T07:01:59Z","timestamp":1724310119000},"score":19.279676,"resource":{"primary":{"URL":"https:\/\/peerj.com\/articles\/cs-2224\/fig-3"}},"issued":{"date-parts":[[null]]},"references-count":0,"URL":"https:\/\/doi.org\/10.7717\/peerjcs.2224\/fig-3","relation":{"is-component-of":[{"id-type":"doi","id":"10.7717\/peerj-cs.2224","asserted-by":"object"}]}},{"indexed":{"date-parts":[[2026,2,28]],"date-time":"2026-02-28T09:33:57Z","timestamp":1772271237531,"version":"3.50.1"},"reference-count":0,"publisher":"PeerJ","content-domain":{"domain":[],"crossmark-restriction":false},"DOI":"10.7717\/peerj-cs.3037\/fig-4","type":"component","created":{"date-parts":[[2025,7,28]],"date-time":"2025-07-28T08:36:22Z","timestamp":1753691782000},"source":"Crossref","is-referenced-by-count":0,"title":["Figure 4: Attention mechanism."],"prefix":"10.7717","member":"4443","deposited":{"date-parts":[[2025,7,28]],"date-time":"2025-07-28T08:36:23Z","timestamp":1753691783000},"score":19.125454,"resource":{"primary":{"URL":"https:\/\/peerj.com\/articles\/cs-3037\/fig-4"}},"issued":{"date-parts":[[null]]},"references-count":0,"URL":"https:\/\/doi.org\/10.7717\/peerj-cs.3037\/fig-4","relation":{"is-component-of":[{"id-type":"doi","id":"10.7717\/peerj-cs.3037","asserted-by":"object"}]}},{"indexed":{"date-parts":[[2026,2,28]],"date-time":"2026-02-28T09:37:53Z","timestamp":1772271473113,"version":"3.50.1"},"reference-count":0,"publisher":"PeerJ","content-domain":{"domain":[],"crossmark-restriction":false},"DOI":"10.7717\/peerjcs.948\/fig-2","type":"component","created":{"date-parts":[[2022,4,11]],"date-time":"2022-04-11T03:54:26Z","timestamp":1649649266000},"source":"Crossref","is-referenced-by-count":0,"title":["Figure 2: Attention mechanism."],"prefix":"10.7717","member":"4443","deposited":{"date-parts":[[2022,4,11]],"date-time":"2022-04-11T03:54:31Z","timestamp":1649649271000},"score":19.053825,"resource":{"primary":{"URL":"https:\/\/peerj.com\/articles\/cs-948\/fig-2"}},"issued":{"date-parts":[[null]]},"references-count":0,"URL":"https:\/\/doi.org\/10.7717\/peerjcs.948\/fig-2","relation":{"is-component-of":[{"id-type":"doi","id":"10.7717\/peerj-cs.948","asserted-by":"object"}]}}],"items-per-page":3,"query":{"start-index":0,"search-terms":"attention mechanism"}}}
+{
+    "status": "ok",
+    "message-type": "work-list",
+    "message-version": "1.0.0",
+    "message": {
+        "facets": {},
+        "total-results": 668843,
+        "items": [
+            {
+                "indexed": {
+                    "date-parts": [
+                        [
+                            2025,
+                            7,
+                            30
+                        ]
+                    ],
+                    "date-time": "2025-07-30T16:40:52Z",
+                    "timestamp": 1753893652471,
+                    "version": "3.41.2"
+                },
+                "reference-count": 0,
+                "publisher": "International Journal for Multidisciplinary Research (IJFMR)",
+                "issue": "4",
+                "content-domain": {
+                    "domain": [],
+                    "crossmark-restriction": false
+                },
+                "short-container-title": [
+                    "IJFMR"
+                ],
+                "abstract": "<jats:p>With a lot of meetings and classes for employees and students moving online through video conferencing tools during the pandemic, a lot of emphasis and research has been put into tools and technologies to capture engagement and attention of employees and students. This paper presents an enhanced face-tracking attention mechanism designed to specifically monitor and analyze this in various settings. By leveraging computer vision techniques and machine learning algorithms, this architecture can detect facial features, track eye movements, and interpret attention patterns in real-time. The proposed mechanism offers administrators valuable insights into engagement levels, enabling them to adapt marketing, governing or teaching strategies accordingly. Experimental results demonstrate the effectiveness of our approach, achieving high accuracy in attention detection across diverse environments. This technology has significant implications for improving attention and engagement outcomes through personalized learning experiences and targeted interventions.</jats:p>",
+                "DOI": "10.36948/ijfmr.2021.v03i04.42911",
+                "type": "journal-article",
+                "created": {
+                    "date-parts": [
+                        [
+                            2025,
+                            4,
+                            23
+                        ]
+                    ],
+                    "date-time": "2025-04-23T10:02:54Z",
+                    "timestamp": 1745402574000
+                },
+                "source": "Crossref",
+                "is-referenced-by-count": 0,
+                "title": [
+                    "Face Attention Tracker: A Self-Attention Mechanism for Monitoring Human Engagement"
+                ],
+                "prefix": "10.36948",
+                "volume": "3",
+                "author": [
+                    {
+                        "given": "Jwalin",
+                        "family": "Thaker",
+                        "sequence": "first",
+                        "affiliation": []
+                    }
+                ],
+                "member": "23064",
+                "published-online": {
+                    "date-parts": [
+                        [
+                            2021,
+                            7,
+                            8
+                        ]
+                    ]
+                },
+                "container-title": [
+                    "International Journal For Multidisciplinary Research"
+                ],
+                "link": [
+                    {
+                        "URL": "https://www.ijfmr.com/papers/2021/4/42911.pdf",
+                        "content-type": "unspecified",
+                        "content-version": "vor",
+                        "intended-application": "similarity-checking"
+                    }
+                ],
+                "deposited": {
+                    "date-parts": [
+                        [
+                            2025,
+                            4,
+                            23
+                        ]
+                    ],
+                    "date-time": "2025-04-23T10:02:55Z",
+                    "timestamp": 1745402575000
+                },
+                "score": 16.508495,
+                "resource": {
+                    "primary": {
+                        "URL": "https://www.ijfmr.com/research-paper.php?id=42911"
+                    }
+                },
+                "issued": {
+                    "date-parts": [
+                        [
+                            2021,
+                            7,
+                            8
+                        ]
+                    ]
+                },
+                "references-count": 0,
+                "journal-issue": {
+                    "issue": "4",
+                    "published-online": {
+                        "date-parts": [
+                            [
+                                2021
+                            ]
+                        ]
+                    }
+                },
+                "URL": "https://doi.org/10.36948/ijfmr.2021.v03i04.42911",
+                "ISSN": [
+                    "2582-2160"
+                ],
+                "issn-type": [
+                    {
+                        "type": "electronic",
+                        "value": "2582-2160"
+                    }
+                ],
+                "published": {
+                    "date-parts": [
+                        [
+                            2021,
+                            7,
+                            8
+                        ]
+                    ]
+                },
+                "article-number": "42911"
+            },
+            {
+                "indexed": {
+                    "date-parts": [
+                        [
+                            2026,
+                            2,
+                            21
+                        ]
+                    ],
+                    "date-time": "2026-02-21T19:05:02Z",
+                    "timestamp": 1771700702934,
+                    "version": "3.50.1"
+                },
+                "reference-count": 36,
+                "publisher": "MDPI AG",
+                "issue": "24",
+                "license": [
+                    {
+                        "start": {
+                            "date-parts": [
+                                [
+                                    2024,
+                                    12,
+                                    22
+                                ]
+                            ],
+                            "date-time": "2024-12-22T00:00:00Z",
+                            "timestamp": 1734825600000
+                        },
+                        "content-version": "vor",
+                        "delay-in-days": 0,
+                        "URL": "https://creativecommons.org/licenses/by/4.0/"
+                    }
+                ],
+                "content-domain": {
+                    "domain": [],
+                    "crossmark-restriction": false
+                },
+                "short-container-title": [
+                    "Sensors"
+                ],
+                "abstract": "<jats:p>The attention mechanism is essential to convolutional neural network (CNN) vision backbones used for sensing and imaging systems. Conventional attention modules are designed heuristically, relying heavily on empirical tuning. To tackle the challenge of designing attention mechanisms, this paper proposes a novel probabilistic attention mechanism. The key idea is to estimate the probabilistic distribution of activation maps within CNNs and construct probabilistic attention maps based on the correlation between attention weights and the estimated probabilistic distribution. The proposed approach consists of two main components: (i) the calculation of the probabilistic attention map and (ii) its integration into existing CNN architectures. In the first stage, the activation values generated at each CNN layer are modeled by using a Laplace distribution, which assigns probability values to each activation, representing its relative importance. Next, the probabilistic attention map is applied to the feature maps via element-wise multiplication and is seamlessly integrated as a plug-and-play module into existing CNN architectures. The experimental results show that the proposed probabilistic attention mechanism effectively boosts image classification accuracy performance across various CNN backbone models, outperforming both baseline and other attention mechanisms.</jats:p>",
+                "DOI": "10.3390/s24248187",
+                "type": "journal-article",
+                "created": {
+                    "date-parts": [
+                        [
+                            2024,
+                            12,
+                            23
+                        ]
+                    ],
+                    "date-time": "2024-12-23T10:58:55Z",
+                    "timestamp": 1734951535000
+                },
+                "page": "8187",
+                "update-policy": "https://doi.org/10.3390/mdpi_crossmark_policy",
+                "source": "Crossref",
+                "is-referenced-by-count": 14,
+                "title": [
+                    "Probabilistic Attention Map: A Probabilistic Attention Mechanism for Convolutional Neural Networks"
+                ],
+                "prefix": "10.3390",
+                "volume": "24",
+                "author": [
+                    {
+                        "given": "Yifeng",
+                        "family": "Liu",
+                        "sequence": "first",
+                        "affiliation": [
+                            {
+                                "name": "NUS-ISS, National University of Singapore, Singapore 119615, Singapore"
+                            }
+                        ]
+                    },
+                    {
+                        "ORCID": "https://orcid.org/0000-0002-4084-6911",
+                        "authenticated-orcid": false,
+                        "given": "Jing",
+                        "family": "Tian",
+                        "sequence": "additional",
+                        "affiliation": [
+                            {
+                                "name": "NUS-ISS, National University of Singapore, Singapore 119615, Singapore"
+                            }
+                        ]
+                    }
+                ],
+                "member": "1968",
+                "published-online": {
+                    "date-parts": [
+                        [
+                            2024,
+                            12,
+                            22
+                        ]
+                    ]
+                },
+                "reference": [
+                    {
+                        "key": "ref_1",
+                        "unstructured": "Torralba, A., Isola, P., and Freeman, W.T. (2024). Foundations of Computer Vision, MIT Press."
+                    },
+                    {
+                        "key": "ref_2",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "105095",
+                        "DOI": "10.1016/j.autcon.2023.105095",
+                        "article-title": "Automated classification of \u201ccluttered\u201d construction housekeeping images through supervised and self-supervised feature representation learning",
+                        "volume": "156",
+                        "author": "Lim",
+                        "year": "2023",
+                        "journal-title": "Autom. Constr."
+                    },
+                    {
+                        "key": "ref_3",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Haouassi, S., and Wu, D. (2024). An Efficient Attentional Image Dehazing Deep Network Using Two Color Space. Sensors, 24.",
+                        "DOI": "10.3390/s24020687"
+                    },
+                    {
+                        "key": "ref_4",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Deng, J., Dong, W., Socher, R., Li, L.J., Li, K., and Fei-Fei, L. (2009, January 20\u201325). ImageNet: A large-scale hierarchical image database. Proceedings of the 2009 IEEE Conference on Computer Vision and Pattern Recognition, Miami, FL, USA.",
+                        "DOI": "10.1109/CVPR.2009.5206848"
+                    },
+                    {
+                        "key": "ref_5",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "80624",
+                        "DOI": "10.1109/ACCESS.2023.3299877",
+                        "article-title": "Attention-Based Multimodal Deep Learning on Vision-Language Data: Models, Datasets, Tasks, Evaluation Metrics and Applications",
+                        "volume": "11",
+                        "author": "Bose",
+                        "year": "2023",
+                        "journal-title": "IEEE Access"
+                    },
+                    {
+                        "key": "ref_6",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "19907",
+                        "DOI": "10.1109/TITS.2022.3186613",
+                        "article-title": "Attention for Vision-Based Assistive and Automated Driving: A Review of Algorithms and Datasets",
+                        "volume": "23",
+                        "author": "Kotseruba",
+                        "year": "2022",
+                        "journal-title": "IEEE Trans. Intell. Transp. Syst."
+                    },
+                    {
+                        "key": "ref_7",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "331",
+                        "DOI": "10.1007/s41095-022-0271-y",
+                        "article-title": "Attention mechanisms in computer vision: A survey",
+                        "volume": "8",
+                        "author": "Guo",
+                        "year": "2022",
+                        "journal-title": "Comput. Vis. Media"
+                    },
+                    {
+                        "key": "ref_8",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "102417",
+                        "DOI": "10.1016/j.inffus.2024.102417",
+                        "article-title": "Visual attention methods in deep learning: An in-depth survey",
+                        "volume": "108",
+                        "author": "Hassanin",
+                        "year": "2024",
+                        "journal-title": "Inf. Fusion"
+                    },
+                    {
+                        "key": "ref_9",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Xie, T., Zhang, Z., Tian, J., and Ma, L. (2022). Focal DETR: Target-Aware Token Design for Transformer-Based Object Detection. Sensors, 22.",
+                        "DOI": "10.3390/s22228686"
+                    },
+                    {
+                        "key": "ref_10",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Lai, B., Zhang, Z., Tian, J., and Ma, L. (2022, January 1\u20134). Dual attention-guided state controller mechanism for Text-to-Image generation. Proceedings of the IEEE Region 10 Conference, Hong Kong, China.",
+                        "DOI": "10.1109/TENCON55691.2022.9978127"
+                    },
+                    {
+                        "key": "ref_11",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Lai, B., Ma, L., and Tian, J. (2022, January 4\u20138). Gated cross word-visual attention-driven generative adversarial networks for text-to-image synthesis. Proceedings of the 16th Asian Conference on Computer Vision, Macao, China.",
+                        "DOI": "10.1007/978-3-031-26293-7_6"
+                    },
+                    {
+                        "key": "ref_12",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Xie, T., Tian, J., and Ma, L. (2022). A vision-based hand hygiene monitoring approach using self-attention convolutional neural network. Biomed. Signal Process. Control, 76.",
+                        "DOI": "10.1016/j.bspc.2022.103651"
+                    },
+                    {
+                        "key": "ref_13",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Hu, J., Shen, L., and Sun, G. (2018, January 18\u201323). Squeeze-and-Excitation Networks. Proceedings of the 2018 IEEE/CVF Conference on Computer Vision and Pattern Recognition, Salt Lake City, UT, USA.",
+                        "DOI": "10.1109/CVPR.2018.00745"
+                    },
+                    {
+                        "key": "ref_14",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Lee, H., Kim, H.E., and Nam, H. (November, January 27). SRM: A Style-Based Recalibration Module for Convolutional Neural Networks. Proceedings of the 2019 IEEE/CVF International Conference on Computer Vision (ICCV), Seoul, Republic of Korea.",
+                        "DOI": "10.1109/ICCV.2019.00194"
+                    },
+                    {
+                        "key": "ref_15",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Yang, Z., Zhu, L., Wu, Y., and Yang, Y. (2020, January 13\u201319). Gated Channel Transformation for Visual Recognition. Proceedings of the 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), Seattle, WA, USA.",
+                        "DOI": "10.1109/CVPR42600.2020.01181"
+                    },
+                    {
+                        "key": "ref_16",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Wang, Q., Wu, B., Zhu, P., Li, P., Zuo, W., and Hu, Q. (2020, January 13\u201319). ECA-Net: Efficient Channel Attention for Deep Convolutional Neural Networks. Proceedings of the 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), Seattle, WA, USA.",
+                        "DOI": "10.1109/CVPR42600.2020.01155"
+                    },
+                    {
+                        "key": "ref_17",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Zhang, H., Zu, K., Lu, J., Zou, Y., and Meng, D. (2023, January 4\u20138). EPSANet: An Efficient Pyramid Squeeze Attention Block on Convolutional Neural Network. Proceedings of the Asian Conference on Computer Vision, Macao, China.",
+                        "DOI": "10.1007/978-3-031-26313-2_33"
+                    },
+                    {
+                        "key": "ref_18",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "1366",
+                        "DOI": "10.1109/TMM.2021.3063916",
+                        "article-title": "COLA-Net: Collaborative Attention Network for Image Restoration",
+                        "volume": "24",
+                        "author": "Mou",
+                        "year": "2022",
+                        "journal-title": "IEEE Trans. Multimed."
+                    },
+                    {
+                        "key": "ref_19",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "6881",
+                        "DOI": "10.1109/TPAMI.2020.3047209",
+                        "article-title": "Global Context Networks",
+                        "volume": "45",
+                        "author": "Cao",
+                        "year": "2023",
+                        "journal-title": "IEEE Trans. Pattern Anal. Mach. Intell."
+                    },
+                    {
+                        "key": "ref_20",
+                        "unstructured": "Jaderberg, M., Simonyan, K., Zisserman, A., and Kavukcuoglu, K. (2015, January 7\u201312). Spatial transformer networks. Proceedings of the Proceedings Information Conference on Neural Information Processing Systems, Montreal, QC, Canada."
+                    },
+                    {
+                        "key": "ref_21",
+                        "unstructured": "Hu, J., Shen, L., Albanie, S., Sun, G., and Vedaldi, A. (2018, January 3\u20138). Gather-excite: Exploiting feature context in convolutional neural networks. Proceedings of the Proceedings Information Conference on Neural Information Processing Systems, Montreal, QC, Canada."
+                    },
+                    {
+                        "key": "ref_22",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Woo, S., Park, J., Lee, J.Y., and Kweon, I.S. (2018, January 8\u201314). CBAM: Convolutional block attention module. Proceedings of the 15th European Conference, Munich, Germany.",
+                        "DOI": "10.1007/978-3-030-01234-2_1"
+                    },
+                    {
+                        "key": "ref_23",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Fu, J., Liu, J., Tian, H., Li, Y., Bao, Y., Fang, Z., and Lu, H. (2019, January 15\u201320). Dual Attention Network for Scene Segmentation. Proceedings of the 2019 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), Long Beach, CA, USA.",
+                        "DOI": "10.1109/CVPR.2019.00326"
+                    },
+                    {
+                        "key": "ref_24",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Zhao, H., Kong, X., He, J., Qiao, Y., and Dong, C. (2020, January 23\u201328). Efficient Image Super-Resolution Using Pixel Attention. Proceedings of the European Conference on Computer Vision, Glasgow, UK.",
+                        "DOI": "10.1007/978-3-030-67070-2_3"
+                    },
+                    {
+                        "key": "ref_25",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "7120",
+                        "DOI": "10.1109/TCSVT.2022.3169842",
+                        "article-title": "Attention in Attention: Modeling Context Correlation for Efficient Video Classification",
+                        "volume": "32",
+                        "author": "Hao",
+                        "year": "2022",
+                        "journal-title": "IEEE Trans. Circuits Syst. Video Technol."
+                    },
+                    {
+                        "key": "ref_26",
+                        "first-page": "8230",
+                        "article-title": "GPCA: A Probabilistic Framework for Gaussian Process Embedded Channel Attention",
+                        "volume": "44",
+                        "author": "Xie",
+                        "year": "2022",
+                        "journal-title": "IEEE Trans. Pattern Anal. Mach. Intell."
+                    },
+                    {
+                        "key": "ref_27",
+                        "unstructured": "Yang, L., Zhang, R.Y., Li, L., and Xie, X. (2021, January 18\u201324). SimAM: A Simple, Parameter-Free Attention Module for Convolutional Neural Networks. Proceedings of the 38th International Conference on Machine Learning, Virtual."
+                    },
+                    {
+                        "key": "ref_28",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Xie, J., and Zhang, J. (2023, January 8\u201310). Less Is More Important: An Attention Module Guided by Probability Density Function for Convolutional Neural Networks. Proceedings of the AAAI Conference on Artificial Intelligence, Montr\u00e9al, QC, Canada.",
+                        "DOI": "10.1609/aaai.v37i3.25397"
+                    },
+                    {
+                        "key": "ref_29",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "87",
+                        "DOI": "10.1109/TPAMI.2022.3152247",
+                        "article-title": "A Survey on Vision Transformer",
+                        "volume": "45",
+                        "author": "Han",
+                        "year": "2023",
+                        "journal-title": "IEEE Trans. Pattern Anal. Mach. Intell."
+                    },
+                    {
+                        "key": "ref_30",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "128697",
+                        "DOI": "10.1016/j.neucom.2024.128697",
+                        "article-title": "A generic shared attention mechanism for various backbone neural networks",
+                        "volume": "611",
+                        "author": "Huang",
+                        "year": "2025",
+                        "journal-title": "Neurocomputing"
+                    },
+                    {
+                        "key": "ref_31",
+                        "unstructured": "Ioannides, G., Chadha, A., and Elkins, A. (2024). Density Adaptive Attention is All You Need: Robust Parameter-Efficient Fine-Tuning Across Multiple Modalities. arXiv."
+                    },
+                    {
+                        "key": "ref_32",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Li, J., Li, Z., and Wen, Y. (2024, January 20\u201327). EAN: An Efficient Attention Module Guided by Normalization for Deep Neural Networks. Proceedings of the AAAI Conference on Artificial Intelligence, Vancouver, BC, Canada.",
+                        "DOI": "10.1609/aaai.v38i4.28093"
+                    },
+                    {
+                        "key": "ref_33",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Houska, T., Kraft, P., Chamorro-Chavez, A., and Breuer, L. (2015). SPOTting Model Parameters Using a Ready-Made Python Package. PLoS ONE, 10.",
+                        "DOI": "10.1371/journal.pone.0145180"
+                    },
+                    {
+                        "key": "ref_34",
+                        "unstructured": "Krizhevsky, A., and Hinton, G. (2024, December 20). Learning Multiple Layers of Features from Tiny Images. 2009. Available online: https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf."
+                    },
+                    {
+                        "key": "ref_35",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "He, K., Zhang, X., Ren, S., and Sun, J. (2016, January 27\u201330). Deep Residual Learning for Image Recognition. Proceedings of the 2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR), Las Vegas, NV, USA.",
+                        "DOI": "10.1109/CVPR.2016.90"
+                    },
+                    {
+                        "key": "ref_36",
+                        "doi-asserted-by": "crossref",
+                        "unstructured": "Sandler, M., Howard, A., Zhu, M., Zhmoginov, A., and Chen, L.C. (2018, January 18\u201323). MobileNetV2: Inverted Residuals and Linear Bottlenecks. Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, Los Alamitos, CA, USA.",
+                        "DOI": "10.1109/CVPR.2018.00474"
+                    }
+                ],
+                "container-title": [
+                    "Sensors"
+                ],
+                "language": "en",
+                "link": [
+                    {
+                        "URL": "https://www.mdpi.com/1424-8220/24/24/8187/pdf",
+                        "content-type": "unspecified",
+                        "content-version": "vor",
+                        "intended-application": "similarity-checking"
+                    }
+                ],
+                "deposited": {
+                    "date-parts": [
+                        [
+                            2025,
+                            10,
+                            10
+                        ]
+                    ],
+                    "date-time": "2025-10-10T16:57:46Z",
+                    "timestamp": 1760115466000
+                },
+                "score": 16.436909,
+                "resource": {
+                    "primary": {
+                        "URL": "https://www.mdpi.com/1424-8220/24/24/8187"
+                    }
+                },
+                "issued": {
+                    "date-parts": [
+                        [
+                            2024,
+                            12,
+                            22
+                        ]
+                    ]
+                },
+                "references-count": 36,
+                "journal-issue": {
+                    "issue": "24",
+                    "published-online": {
+                        "date-parts": [
+                            [
+                                2024,
+                                12
+                            ]
+                        ]
+                    }
+                },
+                "alternative-id": [
+                    "s24248187"
+                ],
+                "URL": "https://doi.org/10.3390/s24248187",
+                "ISSN": [
+                    "1424-8220"
+                ],
+                "issn-type": [
+                    {
+                        "value": "1424-8220",
+                        "type": "electronic"
+                    }
+                ],
+                "published": {
+                    "date-parts": [
+                        [
+                            2024,
+                            12,
+                            22
+                        ]
+                    ]
+                }
+            },
+            {
+                "indexed": {
+                    "date-parts": [
+                        [
+                            2026,
+                            2,
+                            14
+                        ]
+                    ],
+                    "date-time": "2026-02-14T06:00:03Z",
+                    "timestamp": 1771048803687,
+                    "version": "3.50.1"
+                },
+                "reference-count": 46,
+                "publisher": "Elsevier BV",
+                "license": [
+                    {
+                        "start": {
+                            "date-parts": [
+                                [
+                                    2024,
+                                    3,
+                                    1
+                                ]
+                            ],
+                            "date-time": "2024-03-01T00:00:00Z",
+                            "timestamp": 1709251200000
+                        },
+                        "content-version": "tdm",
+                        "delay-in-days": 0,
+                        "URL": "https://www.elsevier.com/tdm/userlicense/1.0/"
+                    },
+                    {
+                        "start": {
+                            "date-parts": [
+                                [
+                                    2024,
+                                    3,
+                                    1
+                                ]
+                            ],
+                            "date-time": "2024-03-01T00:00:00Z",
+                            "timestamp": 1709251200000
+                        },
+                        "content-version": "tdm",
+                        "delay-in-days": 0,
+                        "URL": "https://www.elsevier.com/legal/tdmrep-license"
+                    },
+                    {
+                        "start": {
+                            "date-parts": [
+                                [
+                                    2024,
+                                    3,
+                                    1
+                                ]
+                            ],
+                            "date-time": "2024-03-01T00:00:00Z",
+                            "timestamp": 1709251200000
+                        },
+                        "content-version": "stm-asf",
+                        "delay-in-days": 0,
+                        "URL": "https://doi.org/10.15223/policy-017"
+                    },
+                    {
+                        "start": {
+                            "date-parts": [
+                                [
+                                    2024,
+                                    3,
+                                    1
+                                ]
+                            ],
+                            "date-time": "2024-03-01T00:00:00Z",
+                            "timestamp": 1709251200000
+                        },
+                        "content-version": "stm-asf",
+                        "delay-in-days": 0,
+                        "URL": "https://doi.org/10.15223/policy-037"
+                    },
+                    {
+                        "start": {
+                            "date-parts": [
+                                [
+                                    2024,
+                                    3,
+                                    1
+                                ]
+                            ],
+                            "date-time": "2024-03-01T00:00:00Z",
+                            "timestamp": 1709251200000
+                        },
+                        "content-version": "stm-asf",
+                        "delay-in-days": 0,
+                        "URL": "https://doi.org/10.15223/policy-012"
+                    },
+                    {
+                        "start": {
+                            "date-parts": [
+                                [
+                                    2024,
+                                    3,
+                                    1
+                                ]
+                            ],
+                            "date-time": "2024-03-01T00:00:00Z",
+                            "timestamp": 1709251200000
+                        },
+                        "content-version": "stm-asf",
+                        "delay-in-days": 0,
+                        "URL": "https://doi.org/10.15223/policy-029"
+                    },
+                    {
+                        "start": {
+                            "date-parts": [
+                                [
+                                    2024,
+                                    3,
+                                    1
+                                ]
+                            ],
+                            "date-time": "2024-03-01T00:00:00Z",
+                            "timestamp": 1709251200000
+                        },
+                        "content-version": "stm-asf",
+                        "delay-in-days": 0,
+                        "URL": "https://doi.org/10.15223/policy-004"
+                    }
+                ],
+                "content-domain": {
+                    "domain": [
+                        "elsevier.com",
+                        "sciencedirect.com"
+                    ],
+                    "crossmark-restriction": true
+                },
+                "short-container-title": [
+                    "Expert Systems with Applications"
+                ],
+                "published-print": {
+                    "date-parts": [
+                        [
+                            2024,
+                            3
+                        ]
+                    ]
+                },
+                "DOI": "10.1016/j.eswa.2023.122038",
+                "type": "journal-article",
+                "created": {
+                    "date-parts": [
+                        [
+                            2023,
+                            10,
+                            10
+                        ]
+                    ],
+                    "date-time": "2023-10-10T13:52:14Z",
+                    "timestamp": 1696945934000
+                },
+                "page": "122038",
+                "update-policy": "https://doi.org/10.1016/elsevier_cm_policy",
+                "source": "Crossref",
+                "is-referenced-by-count": 8,
+                "special_numbering": "PC",
+                "title": [
+                    "Visible-infrared image matching based on parameter-free attention mechanism and target-aware graph attention mechanism"
+                ],
+                "prefix": "10.1016",
+                "volume": "238",
+                "author": [
+                    {
+                        "ORCID": "https://orcid.org/0000-0002-1442-5603",
+                        "authenticated-orcid": false,
+                        "given": "Wuxin",
+                        "family": "Li",
+                        "sequence": "first",
+                        "affiliation": []
+                    },
+                    {
+                        "given": "Qian",
+                        "family": "Chen",
+                        "sequence": "additional",
+                        "affiliation": []
+                    },
+                    {
+                        "given": "Guohua",
+                        "family": "Gu",
+                        "sequence": "additional",
+                        "affiliation": []
+                    },
+                    {
+                        "ORCID": "https://orcid.org/0000-0003-0464-464X",
+                        "authenticated-orcid": false,
+                        "given": "Xiubao",
+                        "family": "Sui",
+                        "sequence": "additional",
+                        "affiliation": []
+                    }
+                ],
+                "member": "78",
+                "reference": [
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b1",
+                        "series-title": "2016 IEEE conference on computer vision and pattern recognition (CVPR)",
+                        "first-page": "3539",
+                        "article-title": "Learning to match aerial images with deep attentive architectures",
+                        "author": "Altwaijry",
+                        "year": "2016"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b2",
+                        "series-title": "Computer vision - ECCV 2016 workshops, PT II",
+                        "first-page": "850",
+                        "article-title": "Fully-convolutional siamese networks for object tracking",
+                        "volume": "vol. 9914",
+                        "author": "Bertinetto",
+                        "year": "2016"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b3",
+                        "series-title": "Advances in computer vision, CVC, Vol 1",
+                        "first-page": "39",
+                        "article-title": "Weakly supervised deep metric learning for template matching",
+                        "volume": "vol. 943",
+                        "author": "Buniatyan",
+                        "year": "2020"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b4",
+                        "series-title": "2018 IEEE/RSJ international conference on intelligent robots and systems (IROS)",
+                        "first-page": "2336",
+                        "article-title": "Robust object recognition through symbiotic deep learning in mobile robots",
+                        "author": "Carlueho",
+                        "year": "2018"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b5",
+                        "series-title": "2020 IEEE/CVF conference on computer vision and pattern recognition (CVPR)",
+                        "first-page": "6667",
+                        "article-title": "Siamese box adaptive network for visual tracking",
+                        "author": "Chen",
+                        "year": "2020"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b6",
+                        "series-title": "30th IEEE conference on computer vision and pattern recognition (CVPR 2017)",
+                        "first-page": "6931",
+                        "article-title": "ECO: Efficient convolution operators for tracking",
+                        "author": "Danelljan",
+                        "year": "2017"
+                    },
+                    {
+                        "issue": "8",
+                        "key": "10.1016/j.eswa.2023.122038_b7",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "1561",
+                        "DOI": "10.1109/TPAMI.2016.2609928",
+                        "article-title": "Discriminative scale space tracking",
+                        "volume": "39",
+                        "author": "Danelljan",
+                        "year": "2017",
+                        "journal-title": "IEEE Transactions on Pattern Analysis and Machine Intelligence"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b8",
+                        "first-page": "1",
+                        "article-title": "Statistical comparisons of classifiers over multiple data sets",
+                        "volume": "7",
+                        "author": "Demsar",
+                        "year": "2006",
+                        "journal-title": "Journal of Machine Learning Research"
+                    },
+                    {
+                        "issue": "4",
+                        "key": "10.1016/j.eswa.2023.122038_b9",
+                        "doi-asserted-by": "crossref",
+                        "DOI": "10.3390/rs11040430",
+                        "article-title": "Local deep descriptor for remote sensing image feature matching",
+                        "volume": "11",
+                        "author": "Dong",
+                        "year": "2019",
+                        "journal-title": "Remote Sensing"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b10",
+                        "series-title": "Advances in neural information processing systems 31 (NIPS 2018)",
+                        "article-title": "DropBlock: A regularization method for convolutional networks",
+                        "volume": "vol. 31",
+                        "author": "Ghiasi",
+                        "year": "2018"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b11",
+                        "series-title": "2021 IEEE/CVF conference on computer vision and pattern recognition (CVPR)",
+                        "first-page": "9538",
+                        "article-title": "Graph attention tracking [Conference Paper]",
+                        "author": "Guo",
+                        "year": "2021"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b12",
+                        "series-title": "2020 IEEE/CVF conference on computer vision and pattern recognition (CVPR)",
+                        "first-page": "6268",
+                        "article-title": "SiamCAR: Siamese fully convolutional classification and regression for visual tracking",
+                        "author": "Guo",
+                        "year": "2020"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b13",
+                        "series-title": "2015 IEEE conference on computer vision and pattern recognition (CVPR)",
+                        "first-page": "3279",
+                        "article-title": "MatchNet: Unifying feature and metric learning for patch-based matching",
+                        "author": "Han",
+                        "year": "2015"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b14",
+                        "series-title": "2015 IEEE conference on computer vision and pattern recognition (CVPR)",
+                        "first-page": "5353",
+                        "article-title": "Convolutional neural networks at constrained time cost",
+                        "author": "He",
+                        "year": "2015"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b15",
+                        "series-title": "Improving neural networks by preventing co-adaptation of feature detectors",
+                        "author": "Hinton",
+                        "year": "2012"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b16",
+                        "series-title": "2018 IEEE/CVF conference on computer vision and pattern recognition (CVPR)",
+                        "first-page": "7132",
+                        "article-title": "Squeeze-and-excitation networks",
+                        "author": "Hu",
+                        "year": "2018"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b17",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "166",
+                        "DOI": "10.1016/j.isprsjprs.2020.09.012",
+                        "article-title": "A deep learning framework for matching of SAR and optical imagery",
+                        "volume": "169",
+                        "author": "Hughes",
+                        "year": "2020",
+                        "journal-title": "ISPRS Journal of Photogrammetry and Remote Sensing"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b18",
+                        "series-title": "Neural information processing (ICONIP 2019), PT II",
+                        "first-page": "210",
+                        "article-title": "Cross-view image retrieval - ground to aerial image retrieval through deep learning",
+                        "volume": "vol. 11954",
+                        "author": "Khurshid",
+                        "year": "2019"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b19",
+                        "series-title": "2019 IEEE/CVF international conference on computer vision workshops (ICCVW)",
+                        "first-page": "2206",
+                        "article-title": "The seventh visual object tracking VOT2019 challenge results",
+                        "author": "Kristanl",
+                        "year": "2019"
+                    },
+                    {
+                        "issue": "7",
+                        "key": "10.1016/j.eswa.2023.122038_b20",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "7734",
+                        "DOI": "10.1007/s10489-021-02841-1",
+                        "article-title": "Object matching between visible and infrared images using a Siamese network",
+                        "volume": "52",
+                        "author": "Li",
+                        "year": "2022",
+                        "journal-title": "Applied Intelligence"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b21",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "392",
+                        "DOI": "10.1109/TIP.2021.3130533",
+                        "article-title": "LasHeR: A large-scale high-diversity benchmark for RGBT tracking",
+                        "volume": "31",
+                        "author": "Li",
+                        "year": "2022",
+                        "journal-title": "IEEE Transactions on Image Processing"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b22",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "448",
+                        "DOI": "10.1109/JSTARS.2021.3134676",
+                        "article-title": "Feature matching and position matching between optical and SAR with local deep feature descriptor",
+                        "volume": "15",
+                        "author": "Liao",
+                        "year": "2022",
+                        "journal-title": "IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b23",
+                        "series-title": "2022 IEEE/CVF conference on computer vision and pattern recognition (CVPR 2022)",
+                        "first-page": "5792",
+                        "article-title": "Target-aware dual adversarial learning and a multi-scenario multi-modality benchmark to fuse infrared and visible for object detection",
+                        "author": "Liu",
+                        "year": "2022"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b24",
+                        "doi-asserted-by": "crossref",
+                        "DOI": "10.1016/j.patcog.2022.108960",
+                        "article-title": "An end-to-end supervised domain adaptation framework for cross-domain change detection",
+                        "volume": "132",
+                        "author": "Liu",
+                        "year": "2022",
+                        "journal-title": "Pattern Recognition"
+                    },
+                    {
+                        "issue": "10",
+                        "key": "10.1016/j.eswa.2023.122038_b25",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "761",
+                        "DOI": "10.1016/j.imavis.2004.02.006",
+                        "article-title": "Robust wide-baseline stereo from maximally stable extremal regions",
+                        "volume": "22",
+                        "author": "Matas",
+                        "year": "2004",
+                        "journal-title": "Image and Vision Computing"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b26",
+                        "series-title": "Computer vision - ACCV 2016 workshops, PT III",
+                        "first-page": "638",
+                        "article-title": "Image patch matching using convolutional descriptors with euclidean distance",
+                        "volume": "vol. 10118",
+                        "author": "Melekhov",
+                        "year": "2017"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b27",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "3465",
+                        "DOI": "10.1109/TIP.2023.3281171",
+                        "article-title": "Image patch-matching with graph-based learning in street scenes",
+                        "volume": "32",
+                        "author": "She",
+                        "year": "2023",
+                        "journal-title": "IEEE Transactions on Image Processing"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b28",
+                        "series-title": "2016 IEEE conference on computer vision and pattern recognition (CVPR)",
+                        "first-page": "2818",
+                        "article-title": "Rethinking the inception architecture for computer vision",
+                        "author": "Szegedy",
+                        "year": "2016"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b29",
+                        "series-title": "2018 IEEE/CVF conference on computer vision and pattern recognition (CVPR)",
+                        "first-page": "4874",
+                        "article-title": "High-speed tracking with multi-kernel correlation filters",
+                        "author": "Tang",
+                        "year": "2018"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b30",
+                        "series-title": "30th IEEE conference on computer vision and pattern recognition (CVPR 2017)",
+                        "first-page": "6128",
+                        "article-title": "L2-net: Deep learning of discriminative patch descriptor in euclidean space",
+                        "author": "Tian",
+                        "year": "2017"
+                    },
+                    {
+                        "issue": "A",
+                        "key": "10.1016/j.eswa.2023.122038_b31",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "148",
+                        "DOI": "10.1016/j.isprsjprs.2017.12.012",
+                        "article-title": "A deep learning framework for remote sensing image registration",
+                        "volume": "145",
+                        "author": "Wang",
+                        "year": "2018",
+                        "journal-title": "ISPRS Journal of Photogrammetry and Remote Sensing"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b32",
+                        "series-title": "2019 IEEE/CVF conference on computer vision and pattern recognition (CVPR). Proceedings",
+                        "first-page": "1328",
+                        "article-title": "Fast online object tracking and segmentation: A unifying approach",
+                        "author": "Wang",
+                        "year": "2019"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b33",
+                        "series-title": "2018 IEEE/CVF conference on computer vision and pattern recognition (CVPR)",
+                        "first-page": "4844",
+                        "article-title": "Multi-cue correlation filters for robust visual tracking",
+                        "author": "Wang",
+                        "year": "2018"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b34",
+                        "series-title": "Proceedings of the European conference on computer vision (ECCV)",
+                        "first-page": "3",
+                        "article-title": "CBAM: Convolutional block attention module",
+                        "volume": "vol. 11211",
+                        "author": "Woo",
+                        "year": "2018"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b35",
+                        "article-title": "A siamese template matching method for SAR and optical image",
+                        "volume": "19",
+                        "author": "Wu",
+                        "year": "2022",
+                        "journal-title": "IEEE Geoscience and Remote Sensing Letters"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b36",
+                        "doi-asserted-by": "crossref",
+                        "DOI": "10.1016/j.dsp.2020.102821",
+                        "article-title": "Multi-focus image fusion using learning based matting with sum of the Gaussian-based modified Laplacian",
+                        "volume": "106",
+                        "author": "Xu",
+                        "year": "2020",
+                        "journal-title": "Digital Signal Processing"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b37",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "378",
+                        "DOI": "10.1016/j.ins.2020.09.066",
+                        "article-title": "A novel multi-scale fusion framework for detail-preserving low-light image enhancement",
+                        "volume": "548",
+                        "author": "Xu",
+                        "year": "2021",
+                        "journal-title": "Information Sciences"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b38",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "248",
+                        "DOI": "10.1016/j.neunet.2021.10.022",
+                        "article-title": "FCL-Net: Towards accurate edge detection via Fine-scale Corrective Learning",
+                        "volume": "145",
+                        "author": "Xuan",
+                        "year": "2022",
+                        "journal-title": "Neural Networks"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b39",
+                        "series-title": "Proceedings of the 38th international conference on machine learning",
+                        "first-page": "11863",
+                        "article-title": "SimAM: A simple, parameter-free attention module for convolutional neural networks",
+                        "volume": "vol. 139",
+                        "author": "Yang",
+                        "year": "2021"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b40",
+                        "series-title": "2015 IEEE conference on computer vision and pattern recognition (CVPR)",
+                        "first-page": "4353",
+                        "article-title": "Learning to compare image patches via convolutional neural networks",
+                        "author": "Zagoruyko",
+                        "year": "2015"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b41",
+                        "article-title": "Optical and SAR image matching using pixelwise deep dense features",
+                        "volume": "19",
+                        "author": "Zhang",
+                        "year": "2022",
+                        "journal-title": "IEEE Geoscience and Remote Sensing Letters"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b42",
+                        "series-title": "Thirty-fourth aaai conference on artificial intelligence, the thirty-second innovative applications of artificial intelligence conference and the tenth aaai symposium on educational advances in artificial intelligence",
+                        "first-page": "12993",
+                        "article-title": "Distance-IoU loss: Faster and better learning for bounding box regression",
+                        "volume": "vol. 34",
+                        "author": "Zheng",
+                        "year": "2020"
+                    },
+                    {
+                        "issue": "5, SI",
+                        "key": "10.1016/j.eswa.2023.122038_b43",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "3665",
+                        "DOI": "10.1007/s00521-021-06064-w",
+                        "article-title": "Joint image and feature adaptative attention-aware networks for cross-modality semantic segmentation",
+                        "volume": "35",
+                        "author": "Zhong",
+                        "year": "2023",
+                        "journal-title": "Neural Computing & Applications"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b44",
+                        "series-title": "Machine learning",
+                        "author": "Zhou",
+                        "year": "2016"
+                    },
+                    {
+                        "issue": "9",
+                        "key": "10.1016/j.eswa.2023.122038_b45",
+                        "doi-asserted-by": "crossref",
+                        "first-page": "2853",
+                        "DOI": "10.1109/TNNLS.2018.2888757",
+                        "article-title": "A novel neural network for remote sensing image matching",
+                        "volume": "30",
+                        "author": "Zhu",
+                        "year": "2019",
+                        "journal-title": "IEEE Transactions on Neural Networks and Learning Systems"
+                    },
+                    {
+                        "key": "10.1016/j.eswa.2023.122038_b46",
+                        "series-title": "Computer vision - ECCV 2018, PT IX",
+                        "first-page": "103",
+                        "article-title": "Distractor-aware siamese networks for visual object tracking",
+                        "volume": "vol. 11213",
+                        "author": "Zhu",
+                        "year": "2018"
+                    }
+                ],
+                "container-title": [
+                    "Expert Systems with Applications"
+                ],
+                "language": "en",
+                "link": [
+                    {
+                        "URL": "https://api.elsevier.com/content/article/PII:S095741742302540X?httpAccept=text/xml",
+                        "content-type": "text/xml",
+                        "content-version": "vor",
+                        "intended-application": "text-mining"
+                    },
+                    {
+                        "URL": "https://api.elsevier.com/content/article/PII:S095741742302540X?httpAccept=text/plain",
+                        "content-type": "text/plain",
+                        "content-version": "vor",
+                        "intended-application": "text-mining"
+                    }
+                ],
+                "deposited": {
+                    "date-parts": [
+                        [
+                            2025,
+                            10,
+                            17
+                        ]
+                    ],
+                    "date-time": "2025-10-17T06:54:35Z",
+                    "timestamp": 1760684075000
+                },
+                "score": 16.315464,
+                "resource": {
+                    "primary": {
+                        "URL": "https://linkinghub.elsevier.com/retrieve/pii/S095741742302540X"
+                    }
+                },
+                "issued": {
+                    "date-parts": [
+                        [
+                            2024,
+                            3
+                        ]
+                    ]
+                },
+                "references-count": 46,
+                "alternative-id": [
+                    "S095741742302540X"
+                ],
+                "URL": "https://doi.org/10.1016/j.eswa.2023.122038",
+                "ISSN": [
+                    "0957-4174"
+                ],
+                "issn-type": [
+                    {
+                        "value": "0957-4174",
+                        "type": "print"
+                    }
+                ],
+                "published": {
+                    "date-parts": [
+                        [
+                            2024,
+                            3
+                        ]
+                    ]
+                },
+                "assertion": [
+                    {
+                        "value": "Elsevier",
+                        "name": "publisher",
+                        "label": "This article is maintained by"
+                    },
+                    {
+                        "value": "Visible-infrared image matching based on parameter-free attention mechanism and target-aware graph attention mechanism",
+                        "name": "articletitle",
+                        "label": "Article Title"
+                    },
+                    {
+                        "value": "Expert Systems with Applications",
+                        "name": "journaltitle",
+                        "label": "Journal Title"
+                    },
+                    {
+                        "value": "https://doi.org/10.1016/j.eswa.2023.122038",
+                        "name": "articlelink",
+                        "label": "CrossRef DOI link to publisher maintained version"
+                    },
+                    {
+                        "value": "article",
+                        "name": "content_type",
+                        "label": "Content Type"
+                    },
+                    {
+                        "value": "\u00a9 2023 Elsevier Ltd. All rights reserved.",
+                        "name": "copyright",
+                        "label": "Copyright"
+                    }
+                ],
+                "article-number": "122038"
+            }
+        ],
+        "items-per-page": 3,
+        "query": {
+            "start-index": 0,
+            "search-terms": "attention mechanism"
+        }
+    }
+}
