@@ -1,0 +1,265 @@
+use quick_xml::events::Event;
+use quick_xml::Reader;
+
+use super::Paper;
+
+/// Parse arXiv Atom/XML search response into a list of Papers.
+pub fn parse_search_response(xml: &str) -> Result<Vec<Paper>, String> {
+    let mut reader = Reader::from_str(xml);
+    let mut papers = Vec::new();
+    let mut buf = Vec::new();
+
+    // State for current entry being parsed
+    let mut in_entry = false;
+    let mut current_tag = String::new();
+    let mut id = String::new();
+    let mut title = String::new();
+    let mut summary = String::new();
+    let mut authors: Vec<String> = Vec::new();
+    let mut published = String::new();
+    let mut pdf_url: Option<String> = None;
+    let mut doi: Option<String> = None;
+    let mut fields: Vec<String> = Vec::new();
+    let mut in_author = false;
+    let mut author_name = String::new();
+
+    loop {
+        match reader.read_event_into(&mut buf) {
+            Ok(Event::Start(ref e)) | Ok(Event::Empty(ref e)) => {
+                let name = e.name();
+                let local = local_name(name.as_ref());
+                match local {
+                    "entry" => {
+                        in_entry = true;
+                        id.clear();
+                        title.clear();
+                        summary.clear();
+                        authors.clear();
+                        published.clear();
+                        pdf_url = None;
+                        doi = None;
+                        fields.clear();
+                    }
+                    "author" if in_entry => {
+                        in_author = true;
+                        author_name.clear();
+                    }
+                    "link" if in_entry => {
+                        let mut href = None;
+                        let mut link_type = None;
+                        let mut link_title = None;
+                        for attr in e.attributes().flatten() {
+                            match attr.key.as_ref() {
+                                b"href" => href = Some(String::from_utf8_lossy(&attr.value).to_string()),
+                                b"type" => link_type = Some(String::from_utf8_lossy(&attr.value).to_string()),
+                                b"title" => link_title = Some(String::from_utf8_lossy(&attr.value).to_string()),
+                                _ => {}
+                            }
+                        }
+                        if link_type.as_deref() == Some("application/pdf") {
+                            pdf_url = href.clone();
+                        }
+                        if link_title.as_deref() == Some("doi") {
+                            if let Some(ref h) = href {
+                                // Extract DOI from doi.org URL
+                                doi = doi.or_else(|| {
+                                    h.strip_prefix("https://doi.org/")
+                                        .or_else(|| h.strip_prefix("http://doi.org/"))
+                                        .map(|s| s.to_string())
+                                });
+                            }
+                        }
+                    }
+                    "category" if in_entry => {
+                        for attr in e.attributes().flatten() {
+                            if attr.key.as_ref() == b"term" {
+                                fields.push(String::from_utf8_lossy(&attr.value).to_string());
+                            }
+                        }
+                    }
+                    "doi" if in_entry => {
+                        current_tag = "doi".to_string();
+                    }
+                    _ if in_entry => {
+                        current_tag = local.to_string();
+                    }
+                    _ => {}
+                }
+            }
+            Ok(Event::Text(ref e)) => {
+                if in_entry {
+                    let text = e.unescape().unwrap_or_default().to_string();
+                    if in_author && current_tag == "name" {
+                        author_name.push_str(&text);
+                    } else {
+                        match current_tag.as_str() {
+                            "id" => id.push_str(&text),
+                            "title" => title.push_str(&text),
+                            "summary" => summary.push_str(&text),
+                            "published" => published.push_str(&text),
+                            "doi" => {
+                                doi = Some(text);
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+            Ok(Event::End(ref e)) => {
+                let name = e.name();
+                let local = local_name(name.as_ref());
+                match local {
+                    "entry" => {
+                        // Extract arXiv ID from URL: last path segment, strip version
+                        let arxiv_id = id
+                            .rsplit('/')
+                            .next()
+                            .unwrap_or(&id)
+                            .to_string();
+                        // Strip version suffix for the id
+                        let clean_id = if let Some(pos) = arxiv_id.rfind('v') {
+                            if arxiv_id[pos + 1..].chars().all(|c| c.is_ascii_digit()) {
+                                arxiv_id[..pos].to_string()
+                            } else {
+                                arxiv_id.clone()
+                            }
+                        } else {
+                            arxiv_id.clone()
+                        };
+
+                        let year = published.get(..4).and_then(|y| y.parse::<u16>().ok());
+
+                        papers.push(Paper {
+                            id: clean_id,
+                            title: title.trim().to_string(),
+                            authors: authors.clone(),
+                            abstract_text: if summary.trim().is_empty() {
+                                None
+                            } else {
+                                Some(summary.trim().to_string())
+                            },
+                            year,
+                            doi: doi.clone(),
+                            url: Some(id.clone()),
+                            pdf_url: pdf_url.clone(),
+                            venue: Some("arXiv preprint".to_string()),
+                            citations: None,
+                            fields: fields.clone(),
+                            open_access: Some(true),
+                            source: "arxiv".to_string(),
+                        });
+                        in_entry = false;
+                    }
+                    "author" if in_entry => {
+                        if !author_name.trim().is_empty() {
+                            authors.push(author_name.trim().to_string());
+                        }
+                        in_author = false;
+                    }
+                    _ => {}
+                }
+                current_tag.clear();
+            }
+            Ok(Event::Eof) => break,
+            Err(e) => return Err(format!("XML parse error: {}", e)),
+            _ => {}
+        }
+        buf.clear();
+    }
+
+    Ok(papers)
+}
+
+/// Extract local name from a possibly namespaced XML tag.
+fn local_name(name: &[u8]) -> &str {
+    let s = std::str::from_utf8(name).unwrap_or("");
+    s.rsplit(':').next().unwrap_or(s)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const FIXTURE: &str = include_str!("../../tests/fixtures/arxiv_search.xml");
+
+    #[test]
+    fn parse_returns_ok() {
+        let result = parse_search_response(FIXTURE);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn parse_papers_not_empty() {
+        let papers = parse_search_response(FIXTURE).unwrap();
+        assert!(!papers.is_empty());
+    }
+
+    #[test]
+    fn parse_titles_not_empty() {
+        let papers = parse_search_response(FIXTURE).unwrap();
+        for p in &papers {
+            assert!(!p.title.is_empty(), "paper {} has empty title", p.id);
+        }
+    }
+
+    #[test]
+    fn parse_source_is_arxiv() {
+        let papers = parse_search_response(FIXTURE).unwrap();
+        for p in &papers {
+            assert_eq!(p.source, "arxiv");
+        }
+    }
+
+    #[test]
+    fn parse_has_authors() {
+        let papers = parse_search_response(FIXTURE).unwrap();
+        for p in &papers {
+            assert!(!p.authors.is_empty(), "paper {} has no authors", p.id);
+        }
+    }
+
+    #[test]
+    fn parse_url_contains_arxiv() {
+        let papers = parse_search_response(FIXTURE).unwrap();
+        for p in &papers {
+            let url = p.url.as_ref().expect("paper should have url");
+            assert!(url.contains("arxiv.org"), "url {} doesn't contain arxiv.org", url);
+        }
+    }
+
+    #[test]
+    fn parse_id_is_arxiv_format() {
+        let papers = parse_search_response(FIXTURE).unwrap();
+        for p in &papers {
+            assert!(
+                p.id.contains('.') || p.id.contains('/'),
+                "id {} doesn't look like arXiv ID",
+                p.id
+            );
+        }
+    }
+
+    #[test]
+    fn parse_empty_feed_returns_empty_list() {
+        let papers = parse_search_response("<feed></feed>").unwrap();
+        assert!(papers.is_empty());
+    }
+
+    #[test]
+    fn parse_doi_not_empty_when_present() {
+        let papers = parse_search_response(FIXTURE).unwrap();
+        let with_doi: Vec<_> = papers.iter().filter(|p| p.doi.is_some()).collect();
+        for p in &with_doi {
+            assert!(!p.doi.as_ref().unwrap().is_empty(), "paper {} has empty doi", p.id);
+        }
+    }
+
+    #[test]
+    fn parse_abstract_not_none_when_present() {
+        let papers = parse_search_response(FIXTURE).unwrap();
+        // Our fixture has summaries for all entries
+        for p in &papers {
+            assert!(p.abstract_text.is_some(), "paper {} missing abstract", p.id);
+        }
+    }
+}

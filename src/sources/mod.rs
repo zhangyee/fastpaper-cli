@@ -1,3 +1,5 @@
+pub mod arxiv;
+
 use serde::Serialize;
 
 /// A paper returned from any source.
