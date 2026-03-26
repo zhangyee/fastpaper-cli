@@ -260,6 +260,76 @@ pub enum Source {
     Local,
 }
 
+impl Source {
+    pub fn supports_search(&self) -> bool {
+        !matches!(self, Source::Local)
+    }
+
+    pub fn supports_download(&self) -> bool {
+        matches!(
+            self,
+            Source::Arxiv
+                | Source::Biorxiv
+                | Source::Medrxiv
+                | Source::Ssrn
+                | Source::Pmc
+                | Source::Europepmc
+                | Source::Semantic
+                | Source::Base
+                | Source::Citeseerx
+                | Source::Core
+                | Source::Doaj
+                | Source::Zenodo
+                | Source::Hal
+                | Source::Local
+        )
+    }
+
+    pub fn supports_read(&self) -> bool {
+        self.supports_download()
+    }
+
+    pub fn name(&self) -> &'static str {
+        match self {
+            Source::Arxiv => "arxiv",
+            Source::Biorxiv => "biorxiv",
+            Source::Medrxiv => "medrxiv",
+            Source::Ssrn => "ssrn",
+            Source::Pubmed => "pubmed",
+            Source::Pmc => "pmc",
+            Source::Europepmc => "europepmc",
+            Source::Scholar => "scholar",
+            Source::Semantic => "semantic",
+            Source::Base => "base",
+            Source::Citeseerx => "citeseerx",
+            Source::Crossref => "crossref",
+            Source::Openalex => "openalex",
+            Source::Dblp => "dblp",
+            Source::Core => "core",
+            Source::Openaire => "openaire",
+            Source::Doaj => "doaj",
+            Source::Unpaywall => "unpaywall",
+            Source::Zenodo => "zenodo",
+            Source::Hal => "hal",
+            Source::Local => "local",
+        }
+    }
+
+    pub fn download_hint(&self) -> Option<&'static str> {
+        match self {
+            Source::Pubmed => Some("Try: fastpaper download pmc <PMC_ID>"),
+            Source::Scholar => Some("Google Scholar does not provide PDFs directly"),
+            Source::Crossref | Source::Openalex | Source::Dblp => {
+                Some("This source only provides metadata. Try: fastpaper get <ID> --resolve")
+            }
+            Source::Openaire | Source::Unpaywall => {
+                Some("This source only provides metadata. Try: fastpaper get <ID> --resolve")
+            }
+            _ => None,
+        }
+    }
+}
+
 #[derive(ValueEnum, Clone, Debug)]
 pub enum OutputFormat {
     Table,

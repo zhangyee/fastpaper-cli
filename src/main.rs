@@ -9,15 +9,39 @@ fn main() {
     let cli = cli::Cli::parse();
 
     match &cli.command {
-        cli::Commands::Search(_args) => {
+        cli::Commands::Search(args) => {
+            if !args.source.supports_search() {
+                eprintln!(
+                    "Error: source '{}' does not support 'search'.",
+                    args.source.name()
+                );
+                std::process::exit(1);
+            }
             eprintln!("search: not yet implemented");
             std::process::exit(1);
         }
-        cli::Commands::Download(_args) => {
+        cli::Commands::Download(args) => {
+            if !args.source.supports_download() {
+                eprintln!(
+                    "Error: source '{}' does not support 'download'.",
+                    args.source.name()
+                );
+                if let Some(hint) = args.source.download_hint() {
+                    eprintln!("Hint: {}", hint);
+                }
+                std::process::exit(1);
+            }
             eprintln!("download: not yet implemented");
             std::process::exit(1);
         }
-        cli::Commands::Read(_args) => {
+        cli::Commands::Read(args) => {
+            if !args.source.supports_read() {
+                eprintln!(
+                    "Error: source '{}' does not support 'read'.",
+                    args.source.name()
+                );
+                std::process::exit(1);
+            }
             eprintln!("read: not yet implemented");
             std::process::exit(1);
         }
