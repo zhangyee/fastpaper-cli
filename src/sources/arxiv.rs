@@ -3,6 +3,42 @@ use quick_xml::Reader;
 
 use super::Paper;
 
+/// Search arXiv API and return parsed papers.
+pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let url = format!(
+        "{}/api/query?search_query=all:{}&start=0&max_results={}",
+        base_url, query, max_results
+    );
+
+    let mut last_err = String::new();
+    for attempt in 0..3 {
+        if attempt > 0 {
+            std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
+        }
+        let response = ureq::get(&url).call();
+        match response {
+            Ok(resp) => {
+                let body = resp
+                    .into_body()
+                    .read_to_string()
+                    .map_err(|e| format!("Failed to read response: {}", e))?;
+                return parse_search_response(&body);
+            }
+            Err(ureq::Error::StatusCode(429)) => {
+                last_err = "rate limited (429)".to_string();
+                continue;
+            }
+            Err(ureq::Error::StatusCode(code)) if code >= 500 => {
+                return Err(format!("Server error: {}", code));
+            }
+            Err(e) => {
+                return Err(format!("HTTP error: {}", e));
+            }
+        }
+    }
+    Err(last_err)
+}
+
 /// Parse arXiv Atom/XML search response into a list of Papers.
 pub fn parse_search_response(xml: &str) -> Result<Vec<Paper>, String> {
     let mut reader = Reader::from_str(xml);
@@ -88,7 +124,7 @@ pub fn parse_search_response(xml: &str) -> Result<Vec<Paper>, String> {
             }
             Ok(Event::Text(ref e)) => {
                 if in_entry {
-                    let text = e.unescape().unwrap_or_default().to_string();
+                    let text = e.decode().unwrap_or_default().to_string();
                     if in_author && current_tag == "name" {
                         author_name.push_str(&text);
                     } else {
@@ -261,5 +297,81 @@ mod tests {
         for p in &papers {
             assert!(p.abstract_text.is_some(), "paper {} missing abstract", p.id);
         }
+    }
+
+    #[test]
+    fn search_returns_papers() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let papers = search(&server.url(), "test", 3).unwrap();
+        assert!(!papers.is_empty());
+        mock.assert();
+    }
+
+    #[test]
+    fn search_returns_correct_count() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let papers = search(&server.url(), "test", 3).unwrap();
+        assert_eq!(papers.len(), 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_contains_search_query() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("search_query".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "attention", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_contains_max_results() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("max_results=3".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_500_returns_err() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(500)
+            .create();
+        let result = search(&server.url(), "test", 3);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("500"));
+        mock.assert();
+    }
+
+    #[test]
+    fn search_429_retries() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(429)
+            .expect_at_least(2)
+            .create();
+        let result = search(&server.url(), "test", 3);
+        assert!(result.is_err());
+        mock.assert();
     }
 }
