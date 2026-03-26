@@ -43,6 +43,32 @@ pub fn to_bibtex(papers: &[Paper]) -> String {
     out
 }
 
+/// Format papers as a human-readable table.
+pub fn to_table(papers: &[Paper]) -> String {
+    if papers.is_empty() {
+        return "No results found".to_string();
+    }
+    let mut out = String::new();
+    for (i, p) in papers.iter().enumerate() {
+        if i > 0 {
+            out.push('\n');
+        }
+        out.push_str(&format!("[{}] {}", p.id, p.title));
+        let mut meta = Vec::new();
+        if let Some(year) = p.year {
+            meta.push(year.to_string());
+        }
+        if !p.authors.is_empty() {
+            meta.push(p.authors.join(", "));
+        }
+        if !meta.is_empty() {
+            out.push_str(&format!("\n    {}", meta.join(" | ")));
+        }
+    }
+    out.push('\n');
+    out
+}
+
 /// Format papers as a JSON search result string.
 pub fn to_json(papers: &[Paper]) -> String {
     let result = serde_json::json!({
@@ -197,5 +223,39 @@ mod tests {
     fn to_bibtex_empty_returns_empty_string() {
         let bib = to_bibtex(&[]);
         assert!(bib.is_empty());
+    }
+
+    #[test]
+    fn to_table_contains_title() {
+        let table = to_table(&[sample_paper()]);
+        assert!(table.contains("Attention Is All You Need"));
+    }
+
+    #[test]
+    fn to_table_contains_id() {
+        let table = to_table(&[sample_paper()]);
+        assert!(table.contains("2301.08745"));
+    }
+
+    #[test]
+    fn to_table_contains_year() {
+        let table = to_table(&[sample_paper()]);
+        assert!(table.contains("2023"));
+    }
+
+    #[test]
+    fn to_table_multiple_papers_on_separate_lines() {
+        let mut p2 = sample_paper();
+        p2.id = "2312.00001".to_string();
+        p2.title = "Second Paper".to_string();
+        let table = to_table(&[sample_paper(), p2]);
+        assert!(table.contains("Attention Is All You Need"));
+        assert!(table.contains("Second Paper"));
+    }
+
+    #[test]
+    fn to_table_empty_shows_no_results() {
+        let table = to_table(&[]);
+        assert_eq!(table, "No results found");
     }
 }
