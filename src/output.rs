@@ -1,5 +1,30 @@
 use crate::sources::Paper;
 
+/// Format papers as CSV.
+pub fn to_csv(papers: &[Paper]) -> String {
+    let mut out = String::from("id,title,authors,year,doi,url\n");
+    for p in papers {
+        out.push_str(&format!(
+            "{},{},{},{},{},{}\n",
+            csv_escape(&p.id),
+            csv_escape(&p.title),
+            csv_escape(&p.authors.join(";")),
+            p.year.map(|y| y.to_string()).unwrap_or_default(),
+            csv_escape(p.doi.as_deref().unwrap_or("")),
+            csv_escape(p.url.as_deref().unwrap_or("")),
+        ));
+    }
+    out
+}
+
+fn csv_escape(field: &str) -> String {
+    if field.contains(',') || field.contains('"') || field.contains('\n') {
+        format!("\"{}\"", field.replace('"', "\"\""))
+    } else {
+        field.to_string()
+    }
+}
+
 /// Format papers as a JSON search result string.
 pub fn to_json(papers: &[Paper]) -> String {
     let result = serde_json::json!({
@@ -72,5 +97,43 @@ mod tests {
         let v: serde_json::Value = serde_json::from_str(&json).unwrap();
         let results = v["results"].as_array().expect("results should be array");
         assert!(results.is_empty());
+    }
+
+    #[test]
+    fn to_csv_first_line_is_header() {
+        let csv = to_csv(&[sample_paper()]);
+        let first_line = csv.lines().next().unwrap();
+        assert_eq!(first_line, "id,title,authors,year,doi,url");
+    }
+
+    #[test]
+    fn to_csv_second_line_contains_id() {
+        let csv = to_csv(&[sample_paper()]);
+        let second_line = csv.lines().nth(1).unwrap();
+        assert!(second_line.starts_with("2301.08745,"));
+    }
+
+    #[test]
+    fn to_csv_authors_joined_by_semicolon() {
+        let csv = to_csv(&[sample_paper()]);
+        let second_line = csv.lines().nth(1).unwrap();
+        assert!(second_line.contains("Alice Smith;Bob Jones"));
+    }
+
+    #[test]
+    fn to_csv_quotes_field_with_comma() {
+        let mut paper = sample_paper();
+        paper.title = "Attention, Transformers, and You".to_string();
+        let csv = to_csv(&[paper]);
+        let second_line = csv.lines().nth(1).unwrap();
+        assert!(second_line.contains("\"Attention, Transformers, and You\""));
+    }
+
+    #[test]
+    fn to_csv_empty_returns_header_only() {
+        let csv = to_csv(&[]);
+        let lines: Vec<&str> = csv.lines().collect();
+        assert_eq!(lines.len(), 1);
+        assert_eq!(lines[0], "id,title,authors,year,doi,url");
     }
 }
