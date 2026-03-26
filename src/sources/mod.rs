@@ -1,4 +1,5 @@
 pub mod arxiv;
+pub mod semantic;
 
 use serde::Serialize;
 
