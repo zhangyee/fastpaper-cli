@@ -6,6 +6,10 @@ authors = ["Yee Zhang <yee.zhang@gmail.com>"]
 license = "GPL-3.0"
 description = "CLI tool for searching, downloading and reading academic papers"
 
+[lib]
+name = "fastpaper"
+path = "src/lib.rs"
+
 [[bin]]
 name = "fastpaper"
 path = "src/main.rs"
