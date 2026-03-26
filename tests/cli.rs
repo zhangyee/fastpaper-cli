@@ -74,3 +74,48 @@ fn download_arxiv_no_capability_error() {
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(!stderr.contains("does not support"));
 }
+
+#[test]
+fn get_unknown_identifier_fails() {
+    cmd()
+        .args(["get", "blahblah"])
+        .assert()
+        .failure()
+        .stderr(contains("Unrecognized identifier format"));
+}
+
+#[test]
+fn get_arxiv_id_routes_to_arxiv() {
+    // arXiv get not implemented yet, but should recognize the ID
+    let output = cmd()
+        .args(["get", "2301.08745"])
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("arXiv"), "should route to arXiv, got: {}", stderr);
+    assert!(!stderr.contains("Unrecognized"));
+}
+
+#[test]
+fn get_pmc_id_routes_to_pmc() {
+    let output = cmd()
+        .args(["get", "PMC7318926"])
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("pmc"), "should route to pmc, got: {}", stderr);
+    assert!(!stderr.contains("Unrecognized"));
+}
+
+#[test]
+fn get_format_json_flag_accepted() {
+    // --format json should be accepted as a valid flag (even if source not implemented)
+    let output = cmd()
+        .args(["get", "2301.08745", "--format", "json"])
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    // Should route to arXiv, not complain about invalid format
+    assert!(!stderr.contains("Unrecognized"));
+    assert!(!stderr.contains("invalid"));
+}
