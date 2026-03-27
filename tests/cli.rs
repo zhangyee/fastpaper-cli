@@ -435,3 +435,32 @@ fn env_unpaywall_with_email_works() {
         .assert()
         .success();
 }
+
+// ── completions integration tests ───────────────
+
+#[test]
+fn completions_zsh_exits_0_contains_compdef() {
+    cmd()
+        .args(["completions", "zsh"])
+        .assert()
+        .success()
+        .stdout(contains("compdef"));
+}
+
+#[test]
+fn completions_bash_exits_0_contains_complete() {
+    cmd()
+        .args(["completions", "bash"])
+        .assert()
+        .success()
+        .stdout(contains("complete"));
+}
+
+#[test]
+fn completions_fish_exits_0_contains_fastpaper() {
+    cmd()
+        .args(["completions", "fish"])
+        .assert()
+        .success()
+        .stdout(contains("fastpaper"));
+}
