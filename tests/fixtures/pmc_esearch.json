@@ -1,0 +1,27 @@
+{
+    "header": {
+        "type": "esearch",
+        "version": "0.3"
+    },
+    "esearchresult": {
+        "count": "1894053",
+        "retmax": "3",
+        "retstart": "0",
+        "idlist": [
+            "13014283",
+            "13016435",
+            "13015887"
+        ],
+        "translationset": [
+            {
+                "from": "attention",
+                "to": "\"attention\"[MeSH Terms] OR \"attention\"[All Fields] OR \"attentions\"[All Fields] OR \"attention's\"[All Fields] OR \"attentional\"[All Fields] OR \"attentive\"[All Fields] OR \"attentively\"[All Fields] OR \"attentiveness\"[All Fields]"
+            },
+            {
+                "from": "mechanism",
+                "to": "\"mechanism\"[All Fields] OR \"mechanisms\"[All Fields]"
+            }
+        ],
+        "querytranslation": "(\"attention\"[MeSH Terms] OR \"attention\"[All Fields] OR \"attentions\"[All Fields] OR \"attention s\"[All Fields] OR \"attentional\"[All Fields] OR \"attentive\"[All Fields] OR \"attentively\"[All Fields] OR \"attentiveness\"[All Fields]) AND (\"mechanism\"[All Fields] OR \"mechanisms\"[All Fields])"
+    }
+}
