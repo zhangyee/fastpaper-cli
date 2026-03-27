@@ -1,4 +1,5 @@
 pub mod arxiv;
+pub mod biorxiv;
 pub mod core;
 pub mod crossref;
 pub mod dblp;
