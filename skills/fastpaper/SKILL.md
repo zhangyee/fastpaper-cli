@@ -73,3 +73,4 @@ Each process is independent; failures don't affect other sources.
 - Codex: `.codex/skills/fastpaper/SKILL.md`
 - Cursor: `.cursor/skills/fastpaper/SKILL.md`
 - Gemini: `.gemini/skills/fastpaper/SKILL.md`
+- Qwen: `.qwen/skills/fastpaper/SKILL.md`

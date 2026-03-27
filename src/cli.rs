@@ -363,4 +363,5 @@ pub enum AgentTarget {
     Codex,
     Cursor,
     Gemini,
+    Qwen,
 }

@@ -494,6 +494,81 @@ fn skill_export_agent_claude_contains_path() {
         .stdout(contains(".claude/skills"));
 }
 
+#[test]
+fn skill_install_creates_source_and_symlink() {
+    let dir = temp_dir();
+    cmd()
+        .args(["skill", "install", "--agent", "claude"])
+        .env("HOME", dir.to_str().unwrap())
+        .assert()
+        .success();
+    // Source file exists at .agents/skills/fastpaper/SKILL.md
+    let source_path = dir.join(".agents/skills/fastpaper/SKILL.md");
+    assert!(source_path.exists(), "source SKILL.md should exist at {:?}", source_path);
+    // Symlink exists at .claude/skills/fastpaper/SKILL.md
+    let link_path = dir.join(".claude/skills/fastpaper/SKILL.md");
+    assert!(link_path.exists(), "symlink should exist at {:?}", link_path);
+    assert!(link_path.symlink_metadata().unwrap().is_symlink(), "should be a symlink");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn skill_install_content_matches_show() {
+    let dir = temp_dir();
+    cmd()
+        .args(["skill", "install", "--agent", "claude"])
+        .env("HOME", dir.to_str().unwrap())
+        .assert()
+        .success();
+    // Reading through symlink should give same content as `skill show`
+    let installed = std::fs::read_to_string(dir.join(".claude/skills/fastpaper/SKILL.md")).unwrap();
+    let show_output = cmd()
+        .args(["skill", "show"])
+        .output()
+        .unwrap();
+    let show_content = String::from_utf8_lossy(&show_output.stdout);
+    assert_eq!(installed, show_content.as_ref());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn skill_install_stderr_shows_path() {
+    let dir = temp_dir();
+    cmd()
+        .args(["skill", "install", "--agent", "claude"])
+        .env("HOME", dir.to_str().unwrap())
+        .assert()
+        .success()
+        .stderr(contains(".agents/skills/fastpaper/SKILL.md"))
+        .stderr(contains(".claude/skills/fastpaper/SKILL.md"));
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn skill_install_qwen_creates_symlink() {
+    let dir = temp_dir();
+    cmd()
+        .args(["skill", "install", "--agent", "qwen"])
+        .env("HOME", dir.to_str().unwrap())
+        .assert()
+        .success();
+    let source_path = dir.join(".agents/skills/fastpaper/SKILL.md");
+    assert!(source_path.exists());
+    let link_path = dir.join(".qwen/skills/fastpaper/SKILL.md");
+    assert!(link_path.exists());
+    assert!(link_path.symlink_metadata().unwrap().is_symlink());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn skill_install_no_agent_exits_nonzero() {
+    cmd()
+        .args(["skill", "install"])
+        .assert()
+        .failure()
+        .stderr(contains("--agent"));
+}
+
 // ── search command integration tests ────────────
 
 #[test]
