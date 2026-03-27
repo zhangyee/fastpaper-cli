@@ -19,8 +19,113 @@ fn main() {
                 );
                 std::process::exit(1);
             }
-            eprintln!("search: not yet implemented");
-            std::process::exit(1);
+            let result = match args.source {
+                cli::Source::Arxiv => {
+                    let base_url = std::env::var("FASTPAPER_ARXIV_URL")
+                        .unwrap_or_else(|_| "https://export.arxiv.org".to_string());
+                    sources::arxiv::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Semantic => {
+                    let base_url = std::env::var("FASTPAPER_SEMANTIC_URL")
+                        .unwrap_or_else(|_| "https://api.semanticscholar.org".to_string());
+                    sources::semantic::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Crossref => {
+                    let base_url = std::env::var("FASTPAPER_CROSSREF_URL")
+                        .unwrap_or_else(|_| "https://api.crossref.org".to_string());
+                    sources::crossref::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Openalex => {
+                    let base_url = std::env::var("FASTPAPER_OPENALEX_URL")
+                        .unwrap_or_else(|_| "https://api.openalex.org".to_string());
+                    sources::openalex::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Pubmed => {
+                    let base_url = std::env::var("FASTPAPER_PUBMED_URL")
+                        .unwrap_or_else(|_| "https://eutils.ncbi.nlm.nih.gov".to_string());
+                    sources::pubmed::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Pmc => {
+                    let base_url = std::env::var("FASTPAPER_PMC_URL")
+                        .unwrap_or_else(|_| "https://eutils.ncbi.nlm.nih.gov".to_string());
+                    sources::pmc::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Europepmc => {
+                    let base_url = std::env::var("FASTPAPER_EUROPEPMC_URL")
+                        .unwrap_or_else(|_| "https://www.ebi.ac.uk".to_string());
+                    sources::europepmc::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Dblp => {
+                    let base_url = std::env::var("FASTPAPER_DBLP_URL")
+                        .unwrap_or_else(|_| "https://dblp.org".to_string());
+                    sources::dblp::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Core => {
+                    let base_url = std::env::var("FASTPAPER_CORE_URL")
+                        .unwrap_or_else(|_| "https://api.core.ac.uk".to_string());
+                    sources::core::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Openaire => {
+                    let base_url = std::env::var("FASTPAPER_OPENAIRE_URL")
+                        .unwrap_or_else(|_| "https://api.openaire.eu".to_string());
+                    sources::openaire::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Doaj => {
+                    let base_url = std::env::var("FASTPAPER_DOAJ_URL")
+                        .unwrap_or_else(|_| "https://doaj.org".to_string());
+                    sources::doaj::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Zenodo => {
+                    let base_url = std::env::var("FASTPAPER_ZENODO_URL")
+                        .unwrap_or_else(|_| "https://zenodo.org".to_string());
+                    sources::zenodo::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Hal => {
+                    let base_url = std::env::var("FASTPAPER_HAL_URL")
+                        .unwrap_or_else(|_| "https://api.archives-ouvertes.fr".to_string());
+                    sources::hal::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Biorxiv => {
+                    let base_url = std::env::var("FASTPAPER_BIORXIV_URL")
+                        .unwrap_or_else(|_| "https://api.biorxiv.org".to_string());
+                    sources::biorxiv::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Medrxiv => {
+                    let base_url = std::env::var("FASTPAPER_MEDRXIV_URL")
+                        .unwrap_or_else(|_| "https://api.biorxiv.org".to_string());
+                    sources::medrxiv::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Scholar => {
+                    let base_url = std::env::var("FASTPAPER_SCHOLAR_URL")
+                        .unwrap_or_else(|_| "https://scholar.google.com".to_string());
+                    sources::scholar::search(&base_url, &args.query, args.limit)
+                }
+                cli::Source::Unpaywall => {
+                    let base_url = std::env::var("FASTPAPER_UNPAYWALL_URL")
+                        .unwrap_or_else(|_| "https://api.unpaywall.org".to_string());
+                    sources::unpaywall::lookup_doi(&base_url, &args.query)
+                        .map(|paper| vec![paper])
+                }
+                cli::Source::Local => {
+                    eprintln!("Error: 'local' source does not support search.");
+                    std::process::exit(1);
+                }
+            };
+            match result {
+                Ok(papers) => {
+                    let out = match cli.global.format {
+                        cli::OutputFormat::Json => output::to_json(&papers),
+                        cli::OutputFormat::Csv => output::to_csv(&papers),
+                        cli::OutputFormat::Bibtex => output::to_bibtex(&papers),
+                        _ => output::to_table(&papers),
+                    };
+                    print!("{}", out);
+                }
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    std::process::exit(1);
+                }
+            }
         }
         cli::Commands::Download(args) => {
             if !args.source.supports_download() {

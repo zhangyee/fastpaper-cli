@@ -365,3 +365,73 @@ fn read_local_pdf_output_to_file() {
     assert!(!content.trim().is_empty(), "output file should not be empty");
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+// ── env var integration tests ───────────────────
+
+#[test]
+fn env_download_dir_overrides_default() {
+    let fake_pdf = b"%PDF-1.4 fake";
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fake_pdf.as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "arxiv", "2301.08745"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .env("FASTPAPER_DOWNLOAD_DIR", dir.to_str().unwrap())
+        .assert()
+        .success();
+    assert!(
+        dir.join("2301.08745.pdf").exists(),
+        "should save to FASTPAPER_DOWNLOAD_DIR"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn env_semantic_api_key_sends_header() {
+    let fixture = include_str!("fixtures/semantic_search.json");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .match_header("x-api-key", "test-key-abc")
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    cmd()
+        .args(["search", "semantic", "attention", "--format", "json"])
+        .env("FASTPAPER_SEMANTIC_URL", server.url())
+        .env("SEMANTIC_SCHOLAR_API_KEY", "test-key-abc")
+        .assert()
+        .success();
+}
+
+#[test]
+fn env_unpaywall_missing_email_exits_nonzero() {
+    cmd()
+        .args(["search", "unpaywall", "10.1038/nature12373"])
+        .env_remove("UNPAYWALL_EMAIL")
+        .assert()
+        .failure()
+        .stderr(contains("UNPAYWALL_EMAIL"));
+}
+
+#[test]
+fn env_unpaywall_with_email_works() {
+    let fixture = include_str!("fixtures/unpaywall_lookup.json");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    cmd()
+        .args(["search", "unpaywall", "10.1038/nature12373", "--format", "json"])
+        .env("FASTPAPER_UNPAYWALL_URL", server.url())
+        .env("UNPAYWALL_EMAIL", "test@test.com")
+        .assert()
+        .success();
+}
