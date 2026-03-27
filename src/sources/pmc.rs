@@ -3,6 +3,78 @@ use quick_xml::Reader;
 
 use super::Paper;
 
+const ESEARCH_URL: &str = "/entrez/eutils/esearch.fcgi";
+const EFETCH_URL: &str = "/entrez/eutils/efetch.fcgi";
+
+/// Search PMC: esearch for IDs, then efetch for details.
+pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let api_key = std::env::var("NCBI_API_KEY").ok();
+
+    // Step 1: esearch
+    let mut esearch_url = format!(
+        "{}{}?db=pmc&term={}&retmax={}&retmode=json&tool=fastpaper&email=yee.zhang@gmail.com",
+        base_url, ESEARCH_URL, query, max_results
+    );
+    if let Some(ref key) = api_key {
+        esearch_url.push_str(&format!("&api_key={}", key));
+    }
+
+    let esearch_body = http_get(&esearch_url)?;
+    let esearch_json: serde_json::Value =
+        serde_json::from_str(&esearch_body).map_err(|e| format!("JSON parse error: {}", e))?;
+
+    let ids: Vec<&str> = esearch_json["esearchresult"]["idlist"]
+        .as_array()
+        .map(|arr| arr.iter().filter_map(|v| v.as_str()).collect())
+        .unwrap_or_default();
+
+    if ids.is_empty() {
+        return Ok(vec![]);
+    }
+
+    // Step 2: efetch
+    let mut efetch_url = format!(
+        "{}{}?db=pmc&id={}&rettype=xml&tool=fastpaper&email=yee.zhang@gmail.com",
+        base_url,
+        EFETCH_URL,
+        ids.join(",")
+    );
+    if let Some(ref key) = api_key {
+        efetch_url.push_str(&format!("&api_key={}", key));
+    }
+
+    let efetch_body = http_get(&efetch_url)?;
+    parse_efetch_response(&efetch_body)
+}
+
+fn http_get(url: &str) -> Result<String, String> {
+    let mut last_err = String::new();
+    for attempt in 0..3 {
+        if attempt > 0 {
+            std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
+        }
+        match ureq::get(url).call() {
+            Ok(resp) => {
+                return resp
+                    .into_body()
+                    .read_to_string()
+                    .map_err(|e| format!("Failed to read response: {}", e));
+            }
+            Err(ureq::Error::StatusCode(429)) => {
+                last_err = "rate limited (429)".to_string();
+                continue;
+            }
+            Err(ureq::Error::StatusCode(code)) if code >= 500 => {
+                return Err(format!("Server error: {}", code));
+            }
+            Err(e) => {
+                return Err(format!("HTTP error: {}", e));
+            }
+        }
+    }
+    Err(last_err)
+}
+
 /// Parse PMC efetch XML response into a list of Papers.
 pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
     let mut reader = Reader::from_str(xml);
@@ -248,5 +320,100 @@ mod tests {
         for p in &with_abstract {
             assert!(p.abstract_text.as_ref().unwrap().len() > 10);
         }
+    }
+
+    const ESEARCH_FIXTURE: &str = include_str!("../../tests/fixtures/pmc_esearch.json");
+
+    #[test]
+    fn search_calls_esearch_then_efetch() {
+        let mut server = mockito::Server::new();
+        let esearch_mock = server
+            .mock("GET", mockito::Matcher::Regex("esearch".to_string()))
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .create();
+        let efetch_mock = server
+            .mock("GET", mockito::Matcher::Regex("efetch".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let papers = search(&server.url(), "test", 3).unwrap();
+        assert!(!papers.is_empty());
+        esearch_mock.assert();
+        efetch_mock.assert();
+    }
+
+    #[test]
+    fn search_esearch_contains_db_pmc() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("esearch.*db=pmc".to_string()))
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .create();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_efetch_contains_rettype_xml() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("esearch".to_string()))
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .create();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("efetch.*rettype=xml".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_with_api_key() {
+        unsafe { std::env::set_var("NCBI_API_KEY", "pmc-test-key") };
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("esearch.*api_key=pmc-test-key".to_string()))
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .create();
+        server
+            .mock("GET", mockito::Matcher::Regex("efetch.*api_key=pmc-test-key".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let result = search(&server.url(), "test", 3);
+        unsafe { std::env::remove_var("NCBI_API_KEY") };
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn search_empty_ids_skips_efetch() {
+        let empty_esearch = r#"{"esearchresult":{"idlist":[]}}"#;
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("esearch".to_string()))
+            .with_status(200)
+            .with_body(empty_esearch)
+            .create();
+        // efetch should NOT be called
+        let efetch_mock = server
+            .mock("GET", mockito::Matcher::Regex("efetch".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .expect(0)
+            .create();
+        let papers = search(&server.url(), "nonexistent", 3).unwrap();
+        assert!(papers.is_empty());
+        efetch_mock.assert();
     }
 }
