@@ -1,5 +1,40 @@
 use super::Paper;
 
+/// Search Zenodo API.
+pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let url = format!(
+        "{}/records?q={}&size={}&type=publication",
+        base_url, query, max_results
+    );
+
+    let mut last_err = String::new();
+    for attempt in 0..3 {
+        if attempt > 0 {
+            std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
+        }
+        match ureq::get(&url).call() {
+            Ok(resp) => {
+                let body = resp
+                    .into_body()
+                    .read_to_string()
+                    .map_err(|e| format!("Failed to read response: {}", e))?;
+                return parse_search_response(&body);
+            }
+            Err(ureq::Error::StatusCode(429)) => {
+                last_err = "rate limited (429)".to_string();
+                continue;
+            }
+            Err(ureq::Error::StatusCode(code)) if code >= 500 => {
+                return Err(format!("Server error: {}", code));
+            }
+            Err(e) => {
+                return Err(format!("HTTP error: {}", e));
+            }
+        }
+    }
+    Err(last_err)
+}
+
 /// Parse Zenodo JSON search response into a list of Papers.
 pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
     let root: serde_json::Value =
@@ -156,5 +191,54 @@ mod tests {
         for p in &papers {
             assert!(p.open_access.is_some(), "paper {} missing open_access", p.id);
         }
+    }
+
+    #[test]
+    fn search_returns_papers() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let papers = search(&server.url(), "test", 3).unwrap();
+        assert!(!papers.is_empty());
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_path() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("/records".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_contains_size() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("size=3".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_contains_type_publication() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("type=publication".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
     }
 }
