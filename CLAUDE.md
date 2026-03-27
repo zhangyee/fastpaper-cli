@@ -10,6 +10,9 @@ fastpaper — Rust CLI，学术论文搜索/下载/阅读工具。
 - API 响应 fixture 放在 tests/fixtures/
 - 真实 API 测试放在 tests/ 里标记 #[ignore]
 
+## 工具
+- 解析 JSON 用 jq（已安装），不要用 python
+
 ## 关键类型
 - Paper struct: id, title, authors, abstract, year, doi, url, pdf_url, source
 - Source enum: Arxiv, Pubmed, Pmc, Semantic, Crossref, ...

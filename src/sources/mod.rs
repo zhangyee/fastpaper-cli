@@ -10,6 +10,7 @@ pub mod pmc;
 pub mod pubmed;
 pub mod semantic;
 pub mod unpaywall;
+pub mod zenodo;
 
 use serde::Serialize;
 

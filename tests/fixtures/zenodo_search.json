@@ -1,0 +1,721 @@
+{
+    "hits": {
+        "hits": [
+            {
+                "created": "2024-02-12T13:33:18.199167+00:00",
+                "modified": "2024-07-07T07:12:36.797221+00:00",
+                "id": 10635481,
+                "conceptrecid": "10635480",
+                "doi": "10.5281/zenodo.10635481",
+                "conceptdoi": "10.5281/zenodo.10635480",
+                "doi_url": "https://doi.org/10.5281/zenodo.10635481",
+                "metadata": {
+                    "title": "News Recommendation with Attention Mechanism",
+                    "doi": "10.5281/zenodo.10635481",
+                    "publication_date": "2024-02-12",
+                    "description": "<p>This paper explores the area of news recommendation, a key component of online information sharing. Initially, we provide a clear introduction to news recommendation, defining the core problem and summarizing current methods and notable recent algorithms. We then present our work on implementing the NRAM (News Recommendation with Attention Mechanism), an attention-based approach for news recommendation, and assess its effectiveness. Our evaluation shows that NRAM has the potential to significantly improve how news content is personalized for users on digital news platforms.</p>",
+                    "access_right": "open",
+                    "creators": [
+                        {
+                            "name": "Liu, Tianrui",
+                            "affiliation": "University of California San Diego"
+                        },
+                        {
+                            "name": "Xu, Changxin",
+                            "affiliation": "Northern Arizona University"
+                        },
+                        {
+                            "name": "Qiao, Yuxin",
+                            "affiliation": "Universidad Internacional Isabel I de Castilla"
+                        },
+                        {
+                            "name": "Jiang, Chufeng",
+                            "affiliation": "The University of Texas at Austin"
+                        },
+                        {
+                            "name": "Chen, Weisheng",
+                            "affiliation": "Xinhua College of Sun Yat-sen University"
+                        }
+                    ],
+                    "keywords": [
+                        "News Recommendation",
+                        "Natural Language Processing",
+                        "Machine Learning",
+                        "Attention"
+                    ],
+                    "references": [
+                        "[1] Bahdanau, Dzmitry, Kyunghyun Cho, and Yoshua Bengio. \"Neural machine translation by jointly learning to align and translate.\" arXiv preprint arXiv:1409.0473 (2014).",
+                        "[2] Vaswani, Ashish, et al. \"Attention is all you need.\" Advances in neural information processing systems 30 (2017).",
+                        "[3] Wu, Chuhan, et al. \"Personalized news recommendation: Methods and challenges.\" ACM Transactions on Information Systems 41.1 (2023): 1-50.",
+                        "[4] Wu, Fangzhao, et al. \"Mind: A large-scale dataset for news recommendation.\" Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics. 2020.",
+                        "[5] Guo, Cheng, et al. \"THE ROLE OF MACHINE LEARNING IN ENHANCING COMPUTER VISION PROCESSING.\" \u0410\u041a\u0422\u0423\u0410\u041b\u042c\u041d\u042b\u0415 \u0412\u041e\u041f\u0420\u041e\u0421\u042b \u0421\u041e\u0412\u0420\u0415\u041c\u0415\u041d\u041d\u042b\u0425 \u041d\u0410\u0423\u0427\u041d\u042b\u0425 \u0418\u0421\u0421\u041b\u0415\u0414\u041e\u0412\u0410\u041d\u0418\u0419. 2023.",
+                        "[6] Cheng, Heng-Tze, et al. \"Wide & deep learning for recommender systems.\" Proceedings of the 1st workshop on deep learning for recommender systems. 2016.",
+                        "[7] Yi, Xinyang, et al. \"Sampling-bias-corrected neural modeling for large corpus item recommendations.\" Proceedings of the 13th ACM Conference on Recommender Systems. 2019.",
+                        "[8] Wang, Hongwei, et al. \"DKN: Deep knowledge-aware network for news recommendation.\" Proceedings of the 2018 world wide web conference. 2018.",
+                        "[9] Paszke, Adam, et al. \"Pytorch: An imperative style, high-performance deep learning library.\" Advances in neural information processing systems 32 (2019).",
+                        "[10] Zhao, Yufan, et al. \"AN EXAMINATION OF TRANSFORMER: PROGRESS AND APPLICATION IN THE FIELD OF COMPUTER VISION.\" \u0421\u041e\u0412\u0420\u0415\u041c\u0415\u041d\u041d\u0410\u042f \u041d\u0410\u0423\u041a\u0410: \u0410\u041a\u0422\u0423\u0410\u041b\u042c\u041d\u042b\u0415 \u0412\u041e\u041f\u0420\u041e\u0421\u042b, \u0414\u041e\u0421\u0422\u0418\u0416\u0415\u041d\u0418\u042f \u0418 \u0418\u041d\u041d\u041e\u0412\u0410\u0426\u0418\u0418. 2023.",
+                        "[11] Devlin, Jacob, et al. \"Bert: Pre-training of deep bidirectional transformers for language understanding.\" arXiv preprint arXiv:1810.04805 (2018).",
+                        "[12] Pennington, Jeffrey, Richard Socher, and Christopher D. Manning. \"Glove: Global vectors for word representation.\" Proceedings of the 2014 conference on empirical methods in natural language processing (EMNLP). 2014.",
+                        "[13] Qiao, Yuxin, et al. \"APPLICATION OF MACHINE LEARNING IN FINANCIAL RISK EARLY WARNING AND REGIONAL PREVENTION AND CONTROL: A SYSTEMATIC ANALYSIS BASED ON SHAP.\" WORLD TRENDS, REALITIES AND ACCOMPANYING PROBLEMS OF DEVELOPMENT 331 (2023).",
+                        "[14] YUXIN, QIAO, and N. FANGHAO. \"COOPERATIVE GENERATIVE ADVERSARIAL NETWORKS: A DEEP DIVE INTO COLLABORATIVE INNOVATION IN GANS.\" \u0421\u041e\u0412\u0420\u0415\u041c\u0415\u041d\u041d\u042b\u0415 \u041d\u0410\u0423\u0427\u041d\u042b\u0415 \u0418\u0421\u0421\u041b\u0415\u0414\u041e\u0412\u0410\u041d\u0418\u042f: \u0410\u041a\u0422\u0423\u0410\u041b\u042c\u041d\u042b\u0415 \u0412\u041e\u041f\u0420\u041e\u0421\u042b 28 (2023).",
+                        "[15] Ni, Fanghao, Hengyi Zang, and Yuxin Qiao. \"SMARTFIX: LEVERAGING MACHINE LEARNING FOR PROACTIVE EQUIPMENT MAINTENANCE IN INDUSTRY 4.0.\" The 2nd International scientific and practical conference \"Innovations in education: prospects and challenges of today\"(January 16-19, 2024) Sofia, Bulgaria. International Science Group. 2024. 389 p.. 2024.",
+                        "[16] Qiao, Yuxin, et al. \"AUTOMATIC RECOGNITION OF STATIC PHENOMENA IN RETOUCHED IMAGES: A NOVEL APPROACH.\" The 1st International scientific and practical conference \"Advanced technologies for the implementation of new ideas\"(January 09-12, 2024) Brussels, Belgium. International Science Group. 2024. 349 p.. 2024.",
+                        "[17] QIAO, YUXIN, and FANGHAO NI. \"RESEARCH ON THE INTERDISCIPLINARY APPLICATION OF COMPUTER VISION TECHNOLOGY IN INTELLIGENT AGRICULTURAL MACHINERY.\" \u0410\u041a\u0422\u0423\u0410\u041b\u042c\u041d\u042b\u0415 \u0412\u041e\u041f\u0420\u041e\u0421\u042b \u041e\u0411\u0429\u0415\u0421\u0422\u0412\u0410, \u041d\u0410\u0423\u041a\u0418 \u0418 \u041e\u0411\u0420\u0410\u0417\u041e\u0412\u0410\u041d\u0418\u042f 3 (2023): 34.",
+                        "[18] Xu, Changxin, et al. \"DEEP LEARNING IN PHOTOVOLTAIC POWER GENERATION FORECASTING: CNN-LSTM HYBRID NEURAL NETWORK EXPLORATION AND RESEARCH.\" The 3rd International scientific and practical conference \"Technologies in education in schools and universities\"(January 23-26, 2024) Athens, Greece. International Science Group. 2024. 363 p.. 2024.",
+                        "[19] Zhou, Hong, et al. \"Improvement of Deep Learning Model for Gastrointestinal Tract Segmentation Surgery.\" Frontiers in Computing and Intelligent Systems 6.1 (2023): 103-106.",
+                        "[20] Xiong, Jize, et al. \"Decoding Sentiments: Enhancing COVID-19 Tweet Analysis through BERT-RCNN Fusion.\" Journal of Theory and Practice of Engineering Science 4.01 (2024): 86-93.",
+                        "[21] Zhibin, Z. O. U., S. O. N. G. Liping, and Cheng Xuan. \"Labeled box-particle CPHD filter for multiple extended targets tracking.\" Journal of Systems Engineering and Electronics 30.1 (2019): 57-67.",
+                        "[22] Zou, Zhibin, et al. \"Scisrs: Signal cancellation using intelligent surfaces for radio astronomy services.\" GLOBECOM 2022-2022 IEEE Global Communications Conference. IEEE, 2022.",
+                        "[23] Zou, Zhibin, et al. \"Unified characterization and precoding for non-stationary channels.\" ICC 2022-IEEE International Conference on Communications. IEEE, 2022.",
+                        "[24] Zou, Zhibin, et al. \"Joint spatio-temporal precoding for practical non-stationary wireless channels.\" IEEE Transactions on Communications 71.4 (2023): 2396-2409.",
+                        "[25] Zou, Zhibin, Iresha Amarasekara, and Aveek Dutta. \"Learning to Decompose Asymmetric Channel Kernels for Generalized Eigenwave Multiplexing.\"",
+                        "[26] Dong, Xinqi, et al. \"The Prediction Trend of Enterprise Financial Risk based on Machine Learning ARIMA Model.\" Journal of Theory and Practice of Engineering Science 4.01 (2024): 65-71.",
+                        "[27] Zang, Hengyi, et al. \"Evaluating the Social Impact of AI in Manufacturing: A Methodological Framework for Ethical Production.\" Academic Journal of Sociology and Management 2.1 (2024): 21-25.",
+                        "[28] Ye, Zhang, and Du Yukun. \"MULTI-LEVEL FEATURE INTERACTION IN DUAL-MODAL OBJECT TRACKING: AN ADAPTIVE FUSION APPROACH.\" \u041d\u0410\u0423\u0427\u041d\u042b\u0415 \u0418\u0421\u0421\u041b\u0415\u0414\u041e\u0412\u0410\u041d\u0418\u042f 3 (2023): 31.",
+                        "[29] Zhang, Ye, et al. \"DeepGI: An Automated Approach for Gastrointestinal Tract Segmentation in MRI Scans.\" arXiv preprint arXiv:2401.15354 (2024).",
+                        "[30] Ma, Danqing, et al. \"Implementation of computer vision technology based on artificial intelligence for medical image analysis.\" International Journal of Computer Science and Information Technology 1.1 (2023): 69-76."
+                    ],
+                    "language": "eng",
+                    "resource_type": {
+                        "title": "Journal article",
+                        "type": "publication",
+                        "subtype": "article"
+                    },
+                    "journal": {
+                        "issue": "1",
+                        "pages": "21-26",
+                        "title": "Journal of Industrial Engineering and Applied Science",
+                        "volume": "2"
+                    },
+                    "alternate_identifiers": [
+                        {
+                            "identifier": "https://www.suaspress.org/ojs/index.php/JIEAS/article/view/v2n1a04"
+                        }
+                    ],
+                    "license": {
+                        "id": "cc-by-4.0"
+                    },
+                    "relations": {
+                        "version": [
+                            {
+                                "index": 0,
+                                "is_last": true,
+                                "parent": {
+                                    "pid_type": "recid",
+                                    "pid_value": "10635480"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "title": "News Recommendation with Attention Mechanism",
+                "links": {
+                    "self": "https://zenodo.org/api/records/10635481",
+                    "self_html": "https://zenodo.org/records/10635481",
+                    "preview_html": "https://zenodo.org/records/10635481?preview=1",
+                    "doi": "https://doi.org/10.5281/zenodo.10635481",
+                    "self_doi": "https://doi.org/10.5281/zenodo.10635481",
+                    "self_doi_html": "https://zenodo.org/doi/10.5281/zenodo.10635481",
+                    "reserve_doi": "https://zenodo.org/api/records/10635481/draft/pids/doi",
+                    "parent": "https://zenodo.org/api/records/10635480",
+                    "parent_html": "https://zenodo.org/records/10635480",
+                    "parent_doi": "https://doi.org/10.5281/zenodo.10635480",
+                    "parent_doi_html": "https://zenodo.org/doi/10.5281/zenodo.10635480",
+                    "self_iiif_manifest": "https://zenodo.org/api/iiif/record:10635481/manifest",
+                    "self_iiif_sequence": "https://zenodo.org/api/iiif/record:10635481/sequence/default",
+                    "files": "https://zenodo.org/api/records/10635481/files",
+                    "media_files": "https://zenodo.org/api/records/10635481/media-files",
+                    "thumbnails": {
+                        "10": "https://zenodo.org/api/iiif/record:10635481:v2n1a04.pdf/full/%5E10,/0/default.jpg",
+                        "50": "https://zenodo.org/api/iiif/record:10635481:v2n1a04.pdf/full/%5E50,/0/default.jpg",
+                        "100": "https://zenodo.org/api/iiif/record:10635481:v2n1a04.pdf/full/%5E100,/0/default.jpg",
+                        "250": "https://zenodo.org/api/iiif/record:10635481:v2n1a04.pdf/full/%5E250,/0/default.jpg",
+                        "750": "https://zenodo.org/api/iiif/record:10635481:v2n1a04.pdf/full/%5E750,/0/default.jpg",
+                        "1200": "https://zenodo.org/api/iiif/record:10635481:v2n1a04.pdf/full/%5E1200,/0/default.jpg"
+                    },
+                    "archive": "https://zenodo.org/api/records/10635481/files-archive",
+                    "archive_media": "https://zenodo.org/api/records/10635481/media-files-archive",
+                    "latest": "https://zenodo.org/api/records/10635481/versions/latest",
+                    "latest_html": "https://zenodo.org/records/10635481/latest",
+                    "versions": "https://zenodo.org/api/records/10635481/versions",
+                    "draft": "https://zenodo.org/api/records/10635481/draft",
+                    "access_links": "https://zenodo.org/api/records/10635481/access/links",
+                    "access_grants": "https://zenodo.org/api/records/10635481/access/grants",
+                    "access_users": "https://zenodo.org/api/records/10635481/access/users",
+                    "access_request": "https://zenodo.org/api/records/10635481/access/request",
+                    "access": "https://zenodo.org/api/records/10635481/access",
+                    "communities": "https://zenodo.org/api/records/10635481/communities",
+                    "communities-suggestions": "https://zenodo.org/api/records/10635481/communities-suggestions",
+                    "request_deletion": "https://zenodo.org/api/records/10635481/request-deletion",
+                    "file_modification": "https://zenodo.org/api/records/10635481/file-modification",
+                    "requests": "https://zenodo.org/api/records/10635481/requests"
+                },
+                "updated": "2024-07-07T07:12:36.797221+00:00",
+                "recid": "10635481",
+                "revision": 6,
+                "files": [
+                    {
+                        "id": "fc7e6843-0b3d-4587-b62a-f968476954bb",
+                        "key": "v2n1a04.pdf",
+                        "size": 472363,
+                        "checksum": "md5:cd464ba5808b8e0e2ac5994824820cb4",
+                        "links": {
+                            "self": "https://zenodo.org/api/records/10635481/files/v2n1a04.pdf/content"
+                        }
+                    }
+                ],
+                "swh": null,
+                "owners": [
+                    {
+                        "id": "608326"
+                    }
+                ],
+                "status": "published",
+                "stats": {
+                    "downloads": 302,
+                    "unique_downloads": 268,
+                    "views": 307,
+                    "unique_views": 291,
+                    "version_downloads": 302,
+                    "version_unique_downloads": 268,
+                    "version_unique_views": 291,
+                    "version_views": 307
+                },
+                "state": "done",
+                "submitted": true
+            },
+            {
+                "created": "2022-12-09T06:44:54.153095+00:00",
+                "modified": "2024-07-15T14:54:59.592035+00:00",
+                "id": 7417343,
+                "conceptrecid": "7417342",
+                "doi": "10.5281/zenodo.7417343",
+                "conceptdoi": "10.5281/zenodo.7417342",
+                "doi_url": "https://doi.org/10.5281/zenodo.7417343",
+                "metadata": {
+                    "title": "Interindividual Variations in Associative Visual Learning: Exploration, Description, and Partition of Response Characteristics",
+                    "doi": "10.5281/zenodo.7417343",
+                    "publication_date": "2022-12-09",
+                    "description": "<p>This repository contains the raw data, and the procedure for performing analyses of the data as presented in the paper with SPSS and R</p>",
+                    "access_right": "open",
+                    "creators": [
+                        {
+                            "name": "Catherine Brandner",
+                            "affiliation": "Brain Electrophysiology Attention Movement Laboratory - Institute of Psychology, Faculty SSP - University of Lausanne"
+                        },
+                        {
+                            "name": "Elsa Raynal",
+                            "affiliation": "Brain Electrophysiology Attention Movement Laboratory - Institute of Psychology, Faculty SSP - University of Lausanne"
+                        },
+                        {
+                            "name": "Paolo Ruggeri",
+                            "affiliation": "Brain Electrophysiology Attention Movement Laboratory - Faculty SSP - University of Lausanne"
+                        }
+                    ],
+                    "resource_type": {
+                        "title": "Journal article",
+                        "type": "publication",
+                        "subtype": "article"
+                    },
+                    "license": {
+                        "id": "cc-by-4.0"
+                    },
+                    "relations": {
+                        "version": [
+                            {
+                                "index": 0,
+                                "is_last": true,
+                                "parent": {
+                                    "pid_type": "recid",
+                                    "pid_value": "7417342"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "title": "Interindividual Variations in Associative Visual Learning: Exploration, Description, and Partition of Response Characteristics",
+                "links": {
+                    "self": "https://zenodo.org/api/records/7417343",
+                    "self_html": "https://zenodo.org/records/7417343",
+                    "preview_html": "https://zenodo.org/records/7417343?preview=1",
+                    "doi": "https://doi.org/10.5281/zenodo.7417343",
+                    "self_doi": "https://doi.org/10.5281/zenodo.7417343",
+                    "self_doi_html": "https://zenodo.org/doi/10.5281/zenodo.7417343",
+                    "reserve_doi": "https://zenodo.org/api/records/7417343/draft/pids/doi",
+                    "parent": "https://zenodo.org/api/records/7417342",
+                    "parent_html": "https://zenodo.org/records/7417342",
+                    "parent_doi": "https://doi.org/10.5281/zenodo.7417342",
+                    "parent_doi_html": "https://zenodo.org/doi/10.5281/zenodo.7417342",
+                    "self_iiif_manifest": "https://zenodo.org/api/iiif/record:7417343/manifest",
+                    "self_iiif_sequence": "https://zenodo.org/api/iiif/record:7417343/sequence/default",
+                    "files": "https://zenodo.org/api/records/7417343/files",
+                    "media_files": "https://zenodo.org/api/records/7417343/media-files",
+                    "thumbnails": {
+                        "10": "https://zenodo.org/api/iiif/record:7417343:SPSS_Syntaxes%5DR_code.pdf/full/%5E10,/0/default.jpg",
+                        "50": "https://zenodo.org/api/iiif/record:7417343:SPSS_Syntaxes%5DR_code.pdf/full/%5E50,/0/default.jpg",
+                        "100": "https://zenodo.org/api/iiif/record:7417343:SPSS_Syntaxes%5DR_code.pdf/full/%5E100,/0/default.jpg",
+                        "250": "https://zenodo.org/api/iiif/record:7417343:SPSS_Syntaxes%5DR_code.pdf/full/%5E250,/0/default.jpg",
+                        "750": "https://zenodo.org/api/iiif/record:7417343:SPSS_Syntaxes%5DR_code.pdf/full/%5E750,/0/default.jpg",
+                        "1200": "https://zenodo.org/api/iiif/record:7417343:SPSS_Syntaxes%5DR_code.pdf/full/%5E1200,/0/default.jpg"
+                    },
+                    "archive": "https://zenodo.org/api/records/7417343/files-archive",
+                    "archive_media": "https://zenodo.org/api/records/7417343/media-files-archive",
+                    "latest": "https://zenodo.org/api/records/7417343/versions/latest",
+                    "latest_html": "https://zenodo.org/records/7417343/latest",
+                    "versions": "https://zenodo.org/api/records/7417343/versions",
+                    "draft": "https://zenodo.org/api/records/7417343/draft",
+                    "access_links": "https://zenodo.org/api/records/7417343/access/links",
+                    "access_grants": "https://zenodo.org/api/records/7417343/access/grants",
+                    "access_users": "https://zenodo.org/api/records/7417343/access/users",
+                    "access_request": "https://zenodo.org/api/records/7417343/access/request",
+                    "access": "https://zenodo.org/api/records/7417343/access",
+                    "communities": "https://zenodo.org/api/records/7417343/communities",
+                    "communities-suggestions": "https://zenodo.org/api/records/7417343/communities-suggestions",
+                    "request_deletion": "https://zenodo.org/api/records/7417343/request-deletion",
+                    "file_modification": "https://zenodo.org/api/records/7417343/file-modification",
+                    "requests": "https://zenodo.org/api/records/7417343/requests"
+                },
+                "updated": "2024-07-15T14:54:59.592035+00:00",
+                "recid": "7417343",
+                "revision": 5,
+                "files": [
+                    {
+                        "id": "a7cc9afd-18ac-443c-a541-1d03c8bb369d",
+                        "key": "2_72_trial_Blocks_SPSS.csv",
+                        "size": 2875,
+                        "checksum": "md5:3bae8fe4a8ffdb7b8c8d88769eb50400",
+                        "links": {
+                            "self": "https://zenodo.org/api/records/7417343/files/2_72_trial_Blocks_SPSS.csv/content"
+                        }
+                    },
+                    {
+                        "id": "7f58ae3e-94b4-4c31-ac31-e08083afdc02",
+                        "key": "SDT_coding.csv",
+                        "size": 67670,
+                        "checksum": "md5:1089336582bee79158bd173ab80a6f15",
+                        "links": {
+                            "self": "https://zenodo.org/api/records/7417343/files/SDT_coding.csv/content"
+                        }
+                    },
+                    {
+                        "id": "695e8bdf-7e02-40fd-a3c0-ab3eb1907023",
+                        "key": "SPSS_Syntaxes]R_code.pdf",
+                        "size": 138012,
+                        "checksum": "md5:199a5c465ba6786017bb5f81ea02fbe1",
+                        "links": {
+                            "self": "https://zenodo.org/api/records/7417343/files/SPSS_Syntaxes]R_code.pdf/content"
+                        }
+                    },
+                    {
+                        "id": "7e468733-1cef-4a1d-b96c-a3ece8fc2e1d",
+                        "key": "1_Raw_data_360_trials.csv",
+                        "size": 37223,
+                        "checksum": "md5:e3d8a66adf932920e4a658df600d77cb",
+                        "links": {
+                            "self": "https://zenodo.org/api/records/7417343/files/1_Raw_data_360_trials.csv/content"
+                        }
+                    }
+                ],
+                "swh": null,
+                "owners": [
+                    {
+                        "id": "328476"
+                    }
+                ],
+                "status": "published",
+                "stats": {
+                    "downloads": 232,
+                    "unique_downloads": 199,
+                    "views": 126,
+                    "unique_views": 117,
+                    "version_downloads": 232,
+                    "version_unique_downloads": 199,
+                    "version_unique_views": 117,
+                    "version_views": 126
+                },
+                "state": "done",
+                "submitted": true
+            },
+            {
+                "created": "2023-05-22T08:48:28.236185+00:00",
+                "modified": "2024-07-12T01:49:09.160953+00:00",
+                "id": 7956276,
+                "conceptrecid": "7956275",
+                "doi": "10.5281/zenodo.7956276",
+                "conceptdoi": "10.5281/zenodo.7956275",
+                "doi_url": "https://doi.org/10.5281/zenodo.7956276",
+                "metadata": {
+                    "title": "Enhancing Context-Based Question-Answering using Attention Mechanism",
+                    "doi": "10.5281/zenodo.7956276",
+                    "publication_date": "2023-05-22",
+                    "description": "<p><strong><em>Abstract</em></strong><strong>&mdash; This research utilizes an attention mechanism to enhance the efficacy of context-driven question-answering (QA) in chatbot technology. To produce more accurate responses to user queries, we used the ALBERT-base-v2-squad_v2 model that has been improved on the Stanford Question Answering Dataset (SQuAD) v2. In order to offer pertinent replies, the model needs to concentrate on key words or phrases in the given context, which is assisted by the attention mechanism. Our tests revealed that the suggested strategy performed better than conventional QA models without an attention mechanism and had a higher accuracy rate. These findings can be extended to numerous chatbot applications and show how attention mechanisms improve context-based quality assurance in chatbots.</strong></p>",
+                    "access_right": "open",
+                    "creators": [
+                        {
+                            "name": "Amil M Shaji",
+                            "affiliation": "Amal Jyothi College of Engineering"
+                        },
+                        {
+                            "name": "Rony Tom",
+                            "affiliation": "Amal Jyothi College of Engineering",
+                            "orcid": "0000-0002-2188-0663"
+                        }
+                    ],
+                    "keywords": [
+                        "Attention Mechanism",
+                        "Pytorch",
+                        "SQUAD Transformers",
+                        "ALBERT",
+                        "Chatbot"
+                    ],
+                    "resource_type": {
+                        "title": "Conference paper",
+                        "type": "publication",
+                        "subtype": "conferencepaper"
+                    },
+                    "meeting": {
+                        "title": "National Conference on Emerging Computer Applications (NCECA)-2023",
+                        "acronym": "(NCECA)-2023",
+                        "dates": "4th & 5th May, 2023",
+                        "place": "Kerala",
+                        "url": "https://nceca.in/"
+                    },
+                    "imprint": {
+                        "place": "India",
+                        "isbn": "978-93-5906-046-0"
+                    },
+                    "license": {
+                        "id": "cc-by-4.0"
+                    },
+                    "communities": [
+                        {
+                            "id": "amaljyothi"
+                        }
+                    ],
+                    "relations": {
+                        "version": [
+                            {
+                                "index": 0,
+                                "is_last": true,
+                                "parent": {
+                                    "pid_type": "recid",
+                                    "pid_value": "7956275"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "title": "Enhancing Context-Based Question-Answering using Attention Mechanism",
+                "links": {
+                    "self": "https://zenodo.org/api/records/7956276",
+                    "self_html": "https://zenodo.org/records/7956276",
+                    "preview_html": "https://zenodo.org/records/7956276?preview=1",
+                    "doi": "https://doi.org/10.5281/zenodo.7956276",
+                    "self_doi": "https://doi.org/10.5281/zenodo.7956276",
+                    "self_doi_html": "https://zenodo.org/doi/10.5281/zenodo.7956276",
+                    "reserve_doi": "https://zenodo.org/api/records/7956276/draft/pids/doi",
+                    "parent": "https://zenodo.org/api/records/7956275",
+                    "parent_html": "https://zenodo.org/records/7956275",
+                    "parent_doi": "https://doi.org/10.5281/zenodo.7956275",
+                    "parent_doi_html": "https://zenodo.org/doi/10.5281/zenodo.7956275",
+                    "self_iiif_manifest": "https://zenodo.org/api/iiif/record:7956276/manifest",
+                    "self_iiif_sequence": "https://zenodo.org/api/iiif/record:7956276/sequence/default",
+                    "files": "https://zenodo.org/api/records/7956276/files",
+                    "media_files": "https://zenodo.org/api/records/7956276/media-files",
+                    "thumbnails": {
+                        "10": "https://zenodo.org/api/iiif/record:7956276:Enhancing%20Context-Based%20Question-Answering%20using%20Attention%20Mechanism.pdf/full/%5E10,/0/default.jpg",
+                        "50": "https://zenodo.org/api/iiif/record:7956276:Enhancing%20Context-Based%20Question-Answering%20using%20Attention%20Mechanism.pdf/full/%5E50,/0/default.jpg",
+                        "100": "https://zenodo.org/api/iiif/record:7956276:Enhancing%20Context-Based%20Question-Answering%20using%20Attention%20Mechanism.pdf/full/%5E100,/0/default.jpg",
+                        "250": "https://zenodo.org/api/iiif/record:7956276:Enhancing%20Context-Based%20Question-Answering%20using%20Attention%20Mechanism.pdf/full/%5E250,/0/default.jpg",
+                        "750": "https://zenodo.org/api/iiif/record:7956276:Enhancing%20Context-Based%20Question-Answering%20using%20Attention%20Mechanism.pdf/full/%5E750,/0/default.jpg",
+                        "1200": "https://zenodo.org/api/iiif/record:7956276:Enhancing%20Context-Based%20Question-Answering%20using%20Attention%20Mechanism.pdf/full/%5E1200,/0/default.jpg"
+                    },
+                    "archive": "https://zenodo.org/api/records/7956276/files-archive",
+                    "archive_media": "https://zenodo.org/api/records/7956276/media-files-archive",
+                    "latest": "https://zenodo.org/api/records/7956276/versions/latest",
+                    "latest_html": "https://zenodo.org/records/7956276/latest",
+                    "versions": "https://zenodo.org/api/records/7956276/versions",
+                    "draft": "https://zenodo.org/api/records/7956276/draft",
+                    "access_links": "https://zenodo.org/api/records/7956276/access/links",
+                    "access_grants": "https://zenodo.org/api/records/7956276/access/grants",
+                    "access_users": "https://zenodo.org/api/records/7956276/access/users",
+                    "access_request": "https://zenodo.org/api/records/7956276/access/request",
+                    "access": "https://zenodo.org/api/records/7956276/access",
+                    "communities": "https://zenodo.org/api/records/7956276/communities",
+                    "communities-suggestions": "https://zenodo.org/api/records/7956276/communities-suggestions",
+                    "request_deletion": "https://zenodo.org/api/records/7956276/request-deletion",
+                    "file_modification": "https://zenodo.org/api/records/7956276/file-modification",
+                    "requests": "https://zenodo.org/api/records/7956276/requests"
+                },
+                "updated": "2024-07-12T01:49:09.160953+00:00",
+                "recid": "7956276",
+                "revision": 7,
+                "files": [
+                    {
+                        "id": "33a465e8-87f4-47e4-bdad-ddf9bd7e082c",
+                        "key": "Enhancing Context-Based Question-Answering using Attention Mechanism.pdf",
+                        "size": 259786,
+                        "checksum": "md5:62806bdcfcbaf9caf67b75f760bfe776",
+                        "links": {
+                            "self": "https://zenodo.org/api/records/7956276/files/Enhancing Context-Based Question-Answering using Attention Mechanism.pdf/content"
+                        }
+                    }
+                ],
+                "swh": null,
+                "owners": [
+                    {
+                        "id": "200642"
+                    }
+                ],
+                "status": "published",
+                "stats": {
+                    "downloads": 85,
+                    "unique_downloads": 85,
+                    "views": 70,
+                    "unique_views": 69,
+                    "version_downloads": 85,
+                    "version_unique_downloads": 85,
+                    "version_unique_views": 69,
+                    "version_views": 70
+                },
+                "state": "done",
+                "submitted": true
+            }
+        ],
+        "total": 105301
+    },
+    "aggregations": {
+        "access_status": {
+            "buckets": [
+                {
+                    "key": "open",
+                    "doc_count": 100984,
+                    "label": "Open",
+                    "is_selected": false
+                },
+                {
+                    "key": "restricted",
+                    "doc_count": 4155,
+                    "label": "Restricted",
+                    "is_selected": false
+                },
+                {
+                    "key": "embargoed",
+                    "doc_count": 162,
+                    "label": "Embargoed",
+                    "is_selected": false
+                }
+            ],
+            "label": "Access status"
+        },
+        "resource_type": {
+            "buckets": [
+                {
+                    "key": "publication",
+                    "doc_count": 105301,
+                    "label": "Publication",
+                    "is_selected": false,
+                    "inner": {
+                        "buckets": [
+                            {
+                                "key": "publication-article",
+                                "doc_count": 64159,
+                                "label": "Journal article",
+                                "is_selected": false
+                            },
+                            {
+                                "key": "publication-preprint",
+                                "doc_count": 12190,
+                                "label": "Preprint",
+                                "is_selected": false
+                            },
+                            {
+                                "key": "publication-conferencepaper",
+                                "doc_count": 5340,
+                                "label": "Conference paper",
+                                "is_selected": false
+                            },
+                            {
+                                "key": "publication-taxonomictreatment",
+                                "doc_count": 3062,
+                                "label": "Taxonomic treatment",
+                                "is_selected": false
+                            },
+                            {
+                                "key": "publication-report",
+                                "doc_count": 1973,
+                                "label": "Report",
+                                "is_selected": false
+                            },
+                            {
+                                "key": "publication-section",
+                                "doc_count": 1539,
+                                "label": "Book chapter",
+                                "is_selected": false
+                            },
+                            {
+                                "key": "publication-journal",
+                                "doc_count": 1343,
+                                "label": "Journal",
+                                "is_selected": false
+                            },
+                            {
+                                "key": "publication-book",
+                                "doc_count": 1245,
+                                "label": "Book",
+                                "is_selected": false
+                            },
+                            {
+                                "key": "publication-workingpaper",
+                                "doc_count": 1044,
+                                "label": "Working paper",
+                                "is_selected": false
+                            },
+                            {
+                                "key": "publication-thesis",
+                                "doc_count": 1029,
+                                "label": "Thesis",
+                                "is_selected": false
+                            }
+                        ]
+                    }
+                }
+            ],
+            "label": "Resource types"
+        },
+        "subject": {
+            "buckets": [
+                {
+                    "key": "Biodiversity",
+                    "doc_count": 6485,
+                    "label": "Biodiversity",
+                    "is_selected": false
+                },
+                {
+                    "key": "Taxonomy",
+                    "doc_count": 5695,
+                    "label": "Taxonomy",
+                    "is_selected": false
+                },
+                {
+                    "key": "Animalia",
+                    "doc_count": 4310,
+                    "label": "Animalia",
+                    "is_selected": false
+                },
+                {
+                    "key": "Arthropoda",
+                    "doc_count": 2394,
+                    "label": "Arthropoda",
+                    "is_selected": false
+                },
+                {
+                    "key": "Insecta",
+                    "doc_count": 1637,
+                    "label": "Insecta",
+                    "is_selected": false
+                },
+                {
+                    "key": "Chordata",
+                    "doc_count": 1454,
+                    "label": "Chordata",
+                    "is_selected": false
+                },
+                {
+                    "key": "Mammalia",
+                    "doc_count": 809,
+                    "label": "Mammalia",
+                    "is_selected": false
+                },
+                {
+                    "key": "Chiroptera",
+                    "doc_count": 599,
+                    "label": "Chiroptera",
+                    "is_selected": false
+                },
+                {
+                    "key": "Artificial Intelligence",
+                    "doc_count": 580,
+                    "label": "Artificial Intelligence",
+                    "is_selected": false
+                },
+                {
+                    "key": "Plantae",
+                    "doc_count": 558,
+                    "label": "Plantae",
+                    "is_selected": false
+                }
+            ],
+            "label": "Subjects"
+        },
+        "file_type": {
+            "buckets": [
+                {
+                    "key": "pdf",
+                    "doc_count": 93087,
+                    "label": "PDF",
+                    "is_selected": false
+                },
+                {
+                    "key": "html",
+                    "doc_count": 4116,
+                    "label": "HTML",
+                    "is_selected": false
+                },
+                {
+                    "key": "docx",
+                    "doc_count": 2880,
+                    "label": "DOCX",
+                    "is_selected": false
+                },
+                {
+                    "key": "zip",
+                    "doc_count": 1057,
+                    "label": "ZIP",
+                    "is_selected": false
+                },
+                {
+                    "key": "xml",
+                    "doc_count": 792,
+                    "label": "XML",
+                    "is_selected": false
+                },
+                {
+                    "key": "png",
+                    "doc_count": 592,
+                    "label": "PNG",
+                    "is_selected": false
+                },
+                {
+                    "key": "txt",
+                    "doc_count": 508,
+                    "label": "TXT",
+                    "is_selected": false
+                },
+                {
+                    "key": "md",
+                    "doc_count": 500,
+                    "label": "MD",
+                    "is_selected": false
+                },
+                {
+                    "key": "tex",
+                    "doc_count": 418,
+                    "label": "TEX",
+                    "is_selected": false
+                },
+                {
+                    "key": "jpg",
+                    "doc_count": 330,
+                    "label": "JPG",
+                    "is_selected": false
+                }
+            ],
+            "label": "File type"
+        }
+    },
+    "links": {
+        "self": "https://zenodo.org/api/records?page=1&q=attention+mechanism&size=3&sort=bestmatch&type=publication",
+        "next": "https://zenodo.org/api/records?page=2&q=attention+mechanism&size=3&sort=bestmatch&type=publication"
+    }
+}
