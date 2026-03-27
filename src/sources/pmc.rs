@@ -11,9 +11,10 @@ pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper
     let api_key = std::env::var("NCBI_API_KEY").ok();
 
     // Step 1: esearch
+    let encoded = super::encode_query(query);
     let mut esearch_url = format!(
         "{}{}?db=pmc&term={}&retmax={}&retmode=json&tool=fastpaper&email=yee.zhang@gmail.com",
-        base_url, ESEARCH_URL, query, max_results
+        base_url, ESEARCH_URL, encoded, max_results
     );
     if let Some(ref key) = api_key {
         esearch_url.push_str(&format!("&api_key={}", key));

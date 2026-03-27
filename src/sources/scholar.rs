@@ -17,10 +17,10 @@ pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper
         % USER_AGENTS.len();
     let ua = USER_AGENTS[ua_index];
 
-    let encoded_query = query.replace(' ', "+");
+    let encoded = super::encode_query(query);
     let url = format!(
         "{}/scholar?q={}&start=0&hl=en&as_sdt=0,5&num={}",
-        base_url, encoded_query, max_results
+        base_url, encoded, max_results
     );
 
     match ureq::get(&url).header("User-Agent", ua).call() {

@@ -5,9 +5,10 @@ const DEFAULT_EMAIL: &str = "yee.zhang@gmail.com";
 /// Search CrossRef API.
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
     let mailto = std::env::var("FASTPAPER_EMAIL").unwrap_or_else(|_| DEFAULT_EMAIL.to_string());
+    let encoded = super::encode_query(query);
     let url = format!(
         "{}/works?query={}&rows={}&mailto={}",
-        base_url, query, max_results, mailto
+        base_url, encoded, max_results, mailto
     );
     let body = http_get(&url)?;
     parse_search_response(&body)

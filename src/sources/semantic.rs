@@ -4,9 +4,10 @@ const FIELDS: &str = "title,abstract,year,citationCount,authors,url,publicationD
 
 /// Search Semantic Scholar API and return parsed papers.
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let encoded = super::encode_query(query);
     let url = format!(
         "{}/graph/v1/paper/search?query={}&limit={}&fields={}",
-        base_url, query, max_results, FIELDS
+        base_url, encoded, max_results, FIELDS
     );
 
     let api_key = std::env::var("SEMANTIC_SCHOLAR_API_KEY").ok();

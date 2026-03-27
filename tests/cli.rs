@@ -497,6 +497,25 @@ fn skill_export_agent_claude_contains_path() {
 // ── search command integration tests ────────────
 
 #[test]
+fn search_arxiv_query_with_spaces_works() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["search", "arxiv", "attention mechanism"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "query with spaces should work, stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.trim().is_empty());
+}
+
+#[test]
 fn search_arxiv_mock_outputs_title() {
     let fixture = include_str!("fixtures/arxiv_search.xml");
     let mut server = mockito::Server::new();

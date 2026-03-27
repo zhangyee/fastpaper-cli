@@ -44,9 +44,10 @@ pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, Stri
 
 /// Search arXiv API and return parsed papers.
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let encoded = super::encode_query(query);
     let url = format!(
         "{}/api/query?search_query=all:{}&start=0&max_results={}",
-        base_url, query, max_results
+        base_url, encoded, max_results
     );
 
     let mut last_err = String::new();

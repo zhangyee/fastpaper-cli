@@ -18,6 +18,24 @@ pub mod zenodo;
 
 use serde::Serialize;
 
+/// Percent-encode a query string for use in URLs.
+pub fn encode_query(query: &str) -> String {
+    let mut encoded = String::with_capacity(query.len() * 3);
+    for byte in query.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                encoded.push(byte as char);
+            }
+            b' ' => encoded.push('+'),
+            _ => {
+                encoded.push('%');
+                encoded.push_str(&format!("{:02X}", byte));
+            }
+        }
+    }
+    encoded
+}
+
 /// A paper returned from any source.
 #[derive(Debug, Clone, Serialize)]
 pub struct Paper {

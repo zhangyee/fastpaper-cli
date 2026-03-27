@@ -2,9 +2,10 @@ use super::Paper;
 
 /// Search Zenodo API.
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let encoded = super::encode_query(query);
     let url = format!(
         "{}/records?q={}&size={}&type=publication",
-        base_url, query, max_results
+        base_url, encoded, max_results
     );
 
     let mut last_err = String::new();

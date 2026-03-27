@@ -5,9 +5,10 @@ use super::Paper;
 
 /// Search DBLP API.
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let encoded = super::encode_query(query);
     let url = format!(
         "{}/search/publ/api?q={}&format=xml&h={}",
-        base_url, query, max_results
+        base_url, encoded, max_results
     );
 
     let mut last_err = String::new();
