@@ -496,3 +496,153 @@ fn skill_export_agent_claude_contains_path() {
         .success()
         .stdout(contains(".claude/skills"));
 }
+
+// ── search command integration tests ────────────
+
+#[test]
+fn search_arxiv_mock_outputs_title() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["search", "arxiv", "attention"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.trim().is_empty(), "should output something");
+}
+
+#[test]
+fn search_arxiv_format_json_valid() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["search", "arxiv", "attention", "--format", "json"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
+    assert!(v["results"].as_array().is_some(), "should have results array");
+    assert!(!v["results"].as_array().unwrap().is_empty());
+}
+
+#[test]
+fn search_arxiv_format_csv_has_header() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["search", "arxiv", "attention", "--format", "csv"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let first_line = stdout.lines().next().unwrap_or("");
+    assert!(first_line.contains("id") && first_line.contains("title"), "first line should be header");
+}
+
+#[test]
+fn search_arxiv_format_bibtex_has_article() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["search", "arxiv", "attention", "--format", "bibtex"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("@article"), "bibtex should contain @article");
+}
+
+#[test]
+fn search_arxiv_limit_passes_to_request() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Regex("max_results=5".to_string()))
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["search", "arxiv", "attention", "-n", "5"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+}
+
+#[test]
+fn search_pubmed_mock_outputs_title() {
+    let esearch = include_str!("fixtures/pubmed_esearch.json");
+    let efetch = include_str!("fixtures/pubmed_efetch.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Regex("esearch".to_string()))
+        .with_status(200)
+        .with_body(esearch)
+        .create();
+    server
+        .mock("GET", mockito::Matcher::Regex("efetch".to_string()))
+        .with_status(200)
+        .with_body(efetch)
+        .create();
+    let output = cmd()
+        .args(["search", "pubmed", "test", "--format", "json"])
+        .env("FASTPAPER_PUBMED_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    let results = v["results"].as_array().expect("results array");
+    assert!(!results.is_empty());
+    let title = results[0]["title"].as_str().unwrap_or("");
+    assert!(!title.is_empty(), "title should not be empty");
+}
+
+#[test]
+fn search_crossref_mock_outputs_title() {
+    let fixture = include_str!("fixtures/crossref_search.json");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["search", "crossref", "test", "--format", "json"])
+        .env("FASTPAPER_CROSSREF_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    let results = v["results"].as_array().expect("results array");
+    assert!(!results.is_empty());
+    let title = results[0]["title"].as_str().unwrap_or("");
+    assert!(!title.is_empty(), "title should not be empty");
+}
