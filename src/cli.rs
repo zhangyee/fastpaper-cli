@@ -240,7 +240,6 @@ pub enum Source {
     Arxiv,
     Biorxiv,
     Medrxiv,
-    Ssrn,
     Pubmed,
     Pmc,
     Europepmc,
@@ -269,7 +268,6 @@ impl Source {
             Source::Arxiv
                 | Source::Biorxiv
                 | Source::Medrxiv
-                | Source::Ssrn
                 | Source::Pmc
                 | Source::Europepmc
                 | Source::Semantic
@@ -290,7 +288,6 @@ impl Source {
             Source::Arxiv => "arxiv",
             Source::Biorxiv => "biorxiv",
             Source::Medrxiv => "medrxiv",
-            Source::Ssrn => "ssrn",
             Source::Pubmed => "pubmed",
             Source::Pmc => "pmc",
             Source::Europepmc => "europepmc",

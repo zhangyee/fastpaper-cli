@@ -108,7 +108,6 @@ fn main() {
             println!("arxiv          ✓       ✓         ✓");
             println!("biorxiv        ✓       ✓         ✓");
             println!("medrxiv        ✓       ✓         ✓");
-            println!("ssrn           ✓       ✓         ✓");
             println!("pubmed         ✓       ✗         ✗");
             println!("pmc            ✓       ✓         ✓");
             println!("europepmc      ✓       ✓         ✓");
