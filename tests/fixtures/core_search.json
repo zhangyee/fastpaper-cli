@@ -1,0 +1,107 @@
+{
+    "totalHits": 2129241,
+    "limit": 3,
+    "offset": 0,
+    "results": [
+        {
+            "acceptedDate": "",
+            "arxivId": "1904.10788",
+            "authors": [
+                {
+                    "name": "Byun, Seokhyun"
+                },
+                {
+                    "name": "Dey, Subhadeep"
+                },
+                {
+                    "name": "Jung, Kyomin"
+                },
+                {
+                    "name": "Yoon, Seunghyun"
+                }
+            ],
+            "citationCount": 0,
+            "contributors": [
+                "Seunghyun"
+            ],
+            "outputs": [
+                "https:\/\/api.core.ac.uk\/v3\/outputs\/469841313"
+            ],
+            "createdDate": "2019-06-02T02:02:14",
+            "dataProviders": [
+                {
+                    "id": 144,
+                    "name": "",
+                    "url": "https:\/\/api.core.ac.uk\/v3\/data-providers\/144",
+                    "logo": "https:\/\/api.core.ac.uk\/data-providers\/144\/logo"
+                },
+                {
+                    "id": 4786,
+                    "name": "",
+                    "url": "https:\/\/api.core.ac.uk\/v3\/data-providers\/4786",
+                    "logo": "https:\/\/api.core.ac.uk\/data-providers\/4786\/logo"
+                }
+            ],
+            "depositedDate": "",
+            "abstract": "In this paper, we are interested in exploiting textual and acoustic data of\nan utterance for the speech emotion classification task. The baseline approach\nmodels the information from audio and text independently using two deep neural\nnetworks (DNNs). The outputs from both the DNNs are then fused for\nclassification. As opposed to using knowledge from both the modalities\nseparately, we propose a framework to exploit acoustic information in tandem\nwith lexical data. The proposed framework uses two bi-directional long\nshort-term memory (BLSTM) for obtaining hidden representations of the\nutterance. Furthermore, we propose an attention mechanism, referred to as the\nmulti-hop, which is trained to automatically infer the correlation between the\nmodalities. The multi-hop attention first computes the relevant segments of the\ntextual data corresponding to the audio signal. The relevant textual data is\nthen applied to attend parts of the audio signal. To evaluate the performance\nof the proposed system, experiments are performed in the IEMOCAP dataset.\nExperimental results show that the proposed technique outperforms the\nstate-of-the-art system by 6.5% relative improvement in terms of weighted\naccuracy.Comment: 5 pages, Accepted as a conference paper at ICASSP 2019 (oral\n  presentation",
+            "documentType": "research",
+            "doi": "10.1109\/icassp.2019.8683483",
+            "downloadUrl": "http:\/\/arxiv.org\/abs\/1904.10788",
+            "fieldOfStudy": null,
+            "fullText": "Not available for public API users.",
+            "id": 58971691,
+            "identifiers": [
+                {
+                    "identifier": "1904.10788",
+                    "type": "ARXIV_ID"
+                },
+                {
+                    "identifier": "200829554",
+                    "type": "CORE_ID"
+                },
+                {
+                    "identifier": "10.1109\/icassp.2019.8683483",
+                    "type": "DOI"
+                },
+                {
+                    "identifier": "469841313",
+                    "type": "CORE_ID"
+                },
+                {
+                    "identifier": "oai:arxiv.org:1904.10788",
+                    "type": "OAI_ID"
+                }
+            ],
+            "title": "Speech Emotion Recognition Using Multi-hop Attention Mechanism",
+            "language": {
+                "code": "en",
+                "name": "English"
+            },
+            "magId": null,
+            "oaiIds": [
+                "oai:arxiv.org:1904.10788"
+            ],
+            "publishedDate": "2019-05-09T01:00:00",
+            "publisher": "\u0027Institute of Electrical and Electronics Engineers (IEEE)\u0027",
+            "pubmedId": null,
+            "references": [],
+            "sourceFulltextUrls": [
+                "http:\/\/arxiv.org\/abs\/1904.10788"
+            ],
+            "updatedDate": "2021-08-10T16:23:19",
+            "yearPublished": 2019,
+            "journals": [],
+            "links": [
+                {
+                    "type": "download",
+                    "url": "http:\/\/arxiv.org\/abs\/1904.10788"
+                },
+                {
+                    "type": "display",
+                    "url": "https:\/\/core.ac.uk\/works\/58971691"
+                }
+            ]
+        }
+    ],
+    "searchId": "5f9506e274d3d9d71ca3242afd5c38da"
+}
