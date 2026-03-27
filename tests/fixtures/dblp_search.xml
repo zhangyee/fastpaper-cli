@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<result>
+<query id="442458">attention* mechanism*</query>
+<status code="200">OK</status>
+<time unit="msecs">6.79</time>
+<completions total="3" computed="3" sent="3">
+<c sc="5166" dc="5152" oc="5166" id="66097911">mechanism</c>
+<c sc="1006" dc="1003" oc="1006" id="66097924">mechanisms</c>
+<c sc="1" dc="1" oc="1" id="66097923">mechanismon</c>
+</completions>
+<hits total="6154" computed="100" sent="3" first="0">
+<hit score="4" id="241195">
+<info><authors><author pid="31/3878">Xiaohui Wang</author><author pid="168/2426">Yulin Sun</author><author pid="76/1820">Xin Liu</author><author pid="234/4574">Zhipeng Zou</author><author pid="58/6810">Li Wang</author><author pid="05/1958">Kun Wang</author><author pid="376/0415">Xiaoyang Liang</author><author pid="49/3283">Wei Liu</author></authors><title>Rethinking Attention Mechanism: Channel Re-attention and Spatial Multi-region Attention for Fine-grained Visual Classification.</title><venue>Neural Process. Lett.</venue><volume>57</volume><number>3</number><pages>43</pages><year>2025</year><type>Journal Articles</type><access>closed</access><key>journals/npl/WangSLZWWLL25</key><doi>10.1007/S11063-025-11757-7</doi><ee>https://doi.org/10.1007/s11063-025-11757-7</ee><url>https://dblp.org/rec/journals/npl/WangSLZWWLL25</url></info>
+<url>URL#241195</url>
+</hit>
+<hit score="4" id="260355">
+<info><authors><author pid="165/8937">Jiahao Shi</author><author pid="327/2566">Zhengping Lin</author><author pid="327/2501">Yuzhong Zhou</author><author pid="22/7088">Yuliang Yang</author><author pid="88/6731">Jie Lin</author></authors><title>Leveraging Relation Attention Mechanisms for Enhanced Knowledge Graph Completion with Embedding Translation: Leveraging Relation Attention Mechanisms.</title><venue>EAI Endorsed Trans. Scalable Inf. Syst.</venue><volume>12</volume><number>4</number><year>2025</year><type>Journal Articles</type><access>open</access><key>journals/sis/ShiLZYL25</key><doi>10.4108/EETSIS.9117</doi><ee>https://doi.org/10.4108/eetsis.9117</ee><url>https://dblp.org/rec/journals/sis/ShiLZYL25</url></info>
+<url>URL#260355</url>
+</hit>
+<hit score="4" id="260356">
+<info><authors><author pid="165/8937">Jiahao Shi</author><author pid="327/2566">Zhengping Lin</author><author pid="327/2501">Yuzhong Zhou</author><author pid="22/7088">Yuliang Yang</author><author pid="88/6731">Jie Lin</author></authors><title>Leveraging Relation Attention Mechanisms for Enhanced Knowledge Graph Completion with Embedding Translation: Leveraging Relation Attention Mechanisms.</title><venue>EAI Endorsed Trans. Scalable Inf. Syst.</venue><volume>12</volume><number>4</number><year>2025</year><type>Journal Articles</type><access>open</access><key>journals/sis/ShiLZYL25a</key><doi>10.4108/EETSIS.9117</doi><ee>https://doi.org/10.4108/eetsis.9117</ee><url>https://dblp.org/rec/journals/sis/ShiLZYL25a</url></info>
+<url>URL#260356</url>
+</hit>
+</hits>
+</result>
