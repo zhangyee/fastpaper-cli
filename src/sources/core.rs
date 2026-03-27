@@ -1,5 +1,61 @@
 use super::Paper;
 
+/// Search CORE API.
+pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let url = format!(
+        "{}/search/works?q={}&limit={}",
+        base_url, query, max_results
+    );
+    let api_key = std::env::var("CORE_API_KEY").ok();
+
+    // Try with key first, then without on 403
+    let result = http_get_core(&url, api_key.as_deref());
+    match result {
+        Err(ref e) if e.contains("403") && api_key.is_some() => {
+            // Retry without key
+            let body = http_get_core(&url, None)?;
+            parse_search_response(&body)
+        }
+        Err(e) => Err(e),
+        Ok(body) => parse_search_response(&body),
+    }
+}
+
+fn http_get_core(url: &str, api_key: Option<&str>) -> Result<String, String> {
+    let mut last_err = String::new();
+    for attempt in 0..3 {
+        if attempt > 0 {
+            std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
+        }
+        let mut req = ureq::get(url);
+        if let Some(key) = api_key {
+            req = req.header("Authorization", &format!("Bearer {}", key));
+        }
+        match req.call() {
+            Ok(resp) => {
+                return resp
+                    .into_body()
+                    .read_to_string()
+                    .map_err(|e| format!("Failed to read response: {}", e));
+            }
+            Err(ureq::Error::StatusCode(429)) => {
+                last_err = "rate limited (429)".to_string();
+                continue;
+            }
+            Err(ureq::Error::StatusCode(403)) => {
+                return Err("403 Forbidden".to_string());
+            }
+            Err(ureq::Error::StatusCode(code)) if code >= 500 => {
+                return Err(format!("Server error: {}", code));
+            }
+            Err(e) => {
+                return Err(format!("HTTP error: {}", e));
+            }
+        }
+    }
+    Err(last_err)
+}
+
 /// Parse CORE JSON search response into a list of Papers.
 pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
     let root: serde_json::Value =
@@ -143,5 +199,93 @@ mod tests {
         for p in &papers {
             assert!(p.citations.is_some(), "paper {} missing citations", p.id);
         }
+    }
+
+    #[test]
+    fn search_returns_papers() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let papers = search(&server.url(), "test", 3).unwrap();
+        assert!(!papers.is_empty());
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_path() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("/search/works".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_contains_limit() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("limit=3".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_with_api_key_sends_bearer() {
+        unsafe { std::env::set_var("CORE_API_KEY", "core-test-key") };
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .match_header("Authorization", "Bearer core-test-key")
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let result = search(&server.url(), "test", 3);
+        unsafe { std::env::remove_var("CORE_API_KEY") };
+        assert!(result.is_ok());
+        mock.assert();
+    }
+
+    #[test]
+    fn search_works_without_api_key() {
+        unsafe { std::env::remove_var("CORE_API_KEY") };
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let result = search(&server.url(), "test", 3);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn search_403_with_key_retries_without() {
+        unsafe { std::env::set_var("CORE_API_KEY", "bad-key") };
+        let mut server = mockito::Server::new();
+        // First request with key → 403
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .match_header("Authorization", "Bearer bad-key")
+            .with_status(403)
+            .create();
+        // Second request without key → 200
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .match_header("Authorization", mockito::Matcher::Missing)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let result = search(&server.url(), "test", 3);
+        unsafe { std::env::remove_var("CORE_API_KEY") };
+        assert!(result.is_ok());
     }
 }
