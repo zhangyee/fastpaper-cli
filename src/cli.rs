@@ -246,7 +246,6 @@ pub enum Source {
     Europepmc,
     Scholar,
     Semantic,
-    Citeseerx,
     Crossref,
     Openalex,
     Dblp,
@@ -274,7 +273,6 @@ impl Source {
                 | Source::Pmc
                 | Source::Europepmc
                 | Source::Semantic
-                | Source::Citeseerx
                 | Source::Core
                 | Source::Doaj
                 | Source::Zenodo
@@ -298,7 +296,6 @@ impl Source {
             Source::Europepmc => "europepmc",
             Source::Scholar => "scholar",
             Source::Semantic => "semantic",
-            Source::Citeseerx => "citeseerx",
             Source::Crossref => "crossref",
             Source::Openalex => "openalex",
             Source::Dblp => "dblp",
