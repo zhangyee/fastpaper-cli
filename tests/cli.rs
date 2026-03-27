@@ -1,8 +1,20 @@
 use assert_cmd::Command;
 use predicates::str::contains;
+use std::path::PathBuf;
 
 fn cmd() -> Command {
     Command::cargo_bin("fastpaper").unwrap()
+}
+
+fn temp_dir() -> PathBuf {
+    let dir = std::env::temp_dir().join(format!(
+        "fastpaper_cli_test_{}_{:?}",
+        std::process::id(),
+        std::thread::current().id()
+    ));
+    let _ = std::fs::remove_dir_all(&dir);
+    let _ = std::fs::create_dir_all(&dir);
+    dir
 }
 
 #[test]
@@ -118,4 +130,96 @@ fn get_format_json_flag_accepted() {
     // Should route to arXiv, not complain about invalid format
     assert!(!stderr.contains("Unrecognized"));
     assert!(!stderr.contains("invalid"));
+}
+
+// ── download integration tests ──────────────────
+
+#[test]
+fn download_arxiv_saves_pdf_to_dir() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "arxiv", "2301.08745", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success();
+    assert!(dir.join("2301.08745.pdf").exists());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn download_arxiv_file_exists_exits_0_with_stderr() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .create();
+    let dir = temp_dir();
+    // Create existing file
+    std::fs::write(dir.join("2301.08745.pdf"), b"old").unwrap();
+    cmd()
+        .args(["download", "arxiv", "2301.08745", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success()
+        .stderr(contains("already exists"));
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn download_arxiv_overwrite_replaces_file() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 new content".as_slice())
+        .create();
+    let dir = temp_dir();
+    std::fs::write(dir.join("2301.08745.pdf"), b"old").unwrap();
+    cmd()
+        .args(["download", "arxiv", "2301.08745", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .arg("--overwrite")
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success();
+    assert_eq!(
+        std::fs::read(dir.join("2301.08745.pdf")).unwrap(),
+        b"%PDF-1.4 new content"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn download_arxiv_404_exits_nonzero() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(404)
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "arxiv", "9999.99999", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .failure();
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn download_pubmed_exits_nonzero_with_not_supported() {
+    cmd()
+        .args(["download", "pubmed", "12345678"])
+        .assert()
+        .failure()
+        .stderr(contains("does not support"));
 }

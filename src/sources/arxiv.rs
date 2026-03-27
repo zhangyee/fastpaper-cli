@@ -3,6 +3,26 @@ use quick_xml::Reader;
 
 use super::Paper;
 
+/// Download PDF bytes from arXiv.
+pub fn download_pdf(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+    let url = format!("{}/pdf/{}.pdf", base_url, identifier);
+    match ureq::get(&url).call() {
+        Ok(resp) => {
+            let bytes = resp
+                .into_body()
+                .read_to_vec()
+                .map_err(|e| format!("Failed to read PDF: {}", e))?;
+            Ok(bytes)
+        }
+        Err(ureq::Error::StatusCode(404)) => {
+            Err(format!("Paper not found: {}", identifier))
+        }
+        Err(e) => Err(format!("HTTP error: {}", e)),
+    }
+}
+
+
+
 /// Search arXiv API and return parsed papers.
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
     let url = format!(
@@ -373,5 +393,32 @@ mod tests {
         let result = search(&server.url(), "test", 3);
         assert!(result.is_err());
         mock.assert();
+    }
+
+    #[test]
+    fn download_pdf_returns_bytes() {
+        let fake_pdf = b"%PDF-1.4 fake content";
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(fake_pdf.as_slice())
+            .create();
+        let bytes = download_pdf(&server.url(), "2301.08745").unwrap();
+        assert!(!bytes.is_empty());
+        assert!(bytes.starts_with(b"%PDF"));
+        mock.assert();
+    }
+
+    #[test]
+    fn download_pdf_404_returns_err() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(404)
+            .create();
+        let result = download_pdf(&server.url(), "9999.99999");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("not found"));
     }
 }

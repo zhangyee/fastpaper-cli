@@ -1,4 +1,5 @@
 mod cli;
+mod download;
 mod identifier;
 mod output;
 mod sources;
@@ -31,8 +32,33 @@ fn main() {
                 }
                 std::process::exit(1);
             }
-            eprintln!("download: not yet implemented");
-            std::process::exit(1);
+            match args.source {
+                cli::Source::Arxiv => {
+                    let base_url = std::env::var("FASTPAPER_ARXIV_URL")
+                        .unwrap_or_else(|_| "https://arxiv.org".to_string());
+                    match download::download_arxiv(
+                        &base_url,
+                        &args.identifier,
+                        &args.dir,
+                        args.overwrite,
+                    ) {
+                        Ok(path) => {
+                            eprintln!("Saved: {}", path.display());
+                        }
+                        Err(e) if e.contains("already exists") => {
+                            eprintln!("{}", e);
+                        }
+                        Err(e) => {
+                            eprintln!("Error: {}", e);
+                            std::process::exit(1);
+                        }
+                    }
+                }
+                _ => {
+                    eprintln!("download: source '{}' not yet implemented", args.source.name());
+                    std::process::exit(1);
+                }
+            }
         }
         cli::Commands::Read(args) => {
             if !args.source.supports_read() {
