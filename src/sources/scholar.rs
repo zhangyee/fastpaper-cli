@@ -2,6 +2,45 @@ use scraper::{Html, Selector};
 
 use super::Paper;
 
+const USER_AGENTS: &[&str] = &[
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+];
+
+/// Search Google Scholar (experimental, rate-limited).
+pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let ua_index = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos() as usize
+        % USER_AGENTS.len();
+    let ua = USER_AGENTS[ua_index];
+
+    let encoded_query = query.replace(' ', "+");
+    let url = format!(
+        "{}/scholar?q={}&start=0&hl=en&as_sdt=0,5&num={}",
+        base_url, encoded_query, max_results
+    );
+
+    match ureq::get(&url).header("User-Agent", ua).call() {
+        Ok(resp) => {
+            let body = resp
+                .into_body()
+                .read_to_string()
+                .map_err(|e| format!("Failed to read response: {}", e))?;
+            parse_search_response(&body)
+        }
+        Err(ureq::Error::StatusCode(429)) => {
+            Err("Google Scholar rate limited (429). Try again later.".to_string())
+        }
+        Err(ureq::Error::StatusCode(403)) => {
+            Err("Google Scholar blocked request (403). May need different IP.".to_string())
+        }
+        Err(e) => Err(format!("HTTP error: {}", e)),
+    }
+}
+
 /// Parse Google Scholar HTML search results into a list of Papers.
 pub fn parse_search_response(html: &str) -> Result<Vec<Paper>, String> {
     // Check for CAPTCHA
@@ -182,5 +221,67 @@ mod tests {
         for p in &papers {
             assert!(p.open_access.is_none(), "Scholar should not have OA info");
         }
+    }
+
+    #[test]
+    fn search_returns_papers() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let papers = search(&server.url(), "attention mechanism", 10).unwrap();
+        assert!(!papers.is_empty());
+        mock.assert();
+    }
+
+    #[test]
+    fn search_sends_user_agent() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .match_header("User-Agent", mockito::Matcher::Regex("Mozilla".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 10);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_path_contains_scholar() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("/scholar".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 10);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_contains_query() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("q=test".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 10);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_contains_hl_en() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("hl=en".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 10);
+        mock.assert();
     }
 }
