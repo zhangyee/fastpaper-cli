@@ -10,14 +10,8 @@ pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper
     let thirty_days = 30 * 24 * 60 * 60;
     let start = now - thirty_days;
 
-    let fmt_date = |secs: u64| -> String {
-        let days_since_epoch = secs / 86400;
-        let (y, m, d) = days_to_ymd(days_since_epoch);
-        format!("{}-{:02}-{:02}", y, m, d)
-    };
-
-    let start_date = fmt_date(start);
-    let end_date = fmt_date(now);
+    let start_date = format_date(start);
+    let end_date = format_date(now);
 
     let url = format!(
         "{}/details/biorxiv/{}/{}/0",
@@ -69,6 +63,12 @@ fn http_get(url: &str) -> Result<String, String> {
         }
     }
     Err(last_err)
+}
+
+pub fn format_date(secs: u64) -> String {
+    let days_since_epoch = secs / 86400;
+    let (y, m, d) = days_to_ymd(days_since_epoch);
+    format!("{}-{:02}-{:02}", y, m, d)
 }
 
 fn days_to_ymd(days: u64) -> (u64, u64, u64) {
