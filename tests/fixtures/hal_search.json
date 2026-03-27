@@ -1,0 +1,34 @@
+{
+  "response":{
+    "numFound":2782,
+    "start":0,
+    "maxScore":7.5175743,
+    "numFoundExact":true,
+    "docs":[{
+      "title_s":["Attention Mechanism, Transformers, BERT, and GPT: Tutorial and Survey"],
+      "abstract_s":["This is a tutorial and survey paper on the attention mechanism, transformers, BERT, and GPT. We first explain attention mechanism, sequence-to-sequence model without and with attention, self-attention, and attention in different areas such as natural language processing and computer vision. Then, we explain transformers which do not use any recurrence. We explain all the parts of encoder and decoder in the transformer, including positional encoding, multihead self-attention and cross-attention, and masked multihead attention. Thereafter, we introduce the Bidirectional Encoder Representations from Transformers (BERT) and Generative Pre-trained Transformer (GPT) as the stacks of encoders and decoders of transformer, respectively. We explain their characteristics and how they work."],
+      "authFullName_s":["Benyamin Ghojogh","Ali Ghodsi"],
+      "halId_s":"hal-04637647",
+      "uri_s":"https://hal.science/hal-04637647v1",
+      "publicationDateY_i":2020,
+      "fileMain_s":"https://hal.science/hal-04637647/document"
+    },{
+      "title_s":["Self-Attention Mechanism in Multimodal Context for Banking Transaction Flow"],
+      "abstract_s":["Banking Transaction Flow (BTF) is a sequential data found in a number of banking activities such as marketing, credit risk or banking fraud. It is a multimodal data composed of three modalities: a date, a numerical value and a wording. We propose in this work an application of self-attention mechanism to the processing of BTFs. We trained two general models on a large amount of BTFs in a self-supervised way: one RNN-based model and one Transformer-based model. We proposed a specific tokenization in order to be able to process BTFs. The performance of these two models was evaluated on two banking downstream tasks: a transaction categorization task and a credit risk task. The results show that fine-tuning these two pre-trained models allowed to perform better than the state-of-the-art approaches for both tasks."],
+      "authFullName_s":["Cyrile Delestre","Yoann Sola"],
+      "halId_s":"hal-04584517",
+      "uri_s":"https://hal.science/hal-04584517v2",
+      "publicationDateY_i":2024,
+      "fileMain_s":"https://hal.science/hal-04584517/document"
+    },{
+      "title_s":["Augmenting Convolution Neural Networks by Utilizing Attention Mechanism for Knowledge Tracing"],
+      "abstract_s":["The devastating, ongoing Covid-19 epidemic has led to many students resorting to online education. In order to better guarantee the quality, online education faces severe challenges. There is an important part of online education referred to as Knowledge Tracing (KT). The objective of KT is to estimate students’ learning performance using a series of questions. It has garnered widespread attention ever since it was proposed. Recently, an increasing number of research efforts have concentrated on deep learning (DL)-based KT attributing to the huge success over traditional Bayesian-based KT methods. Most existing DL-based KT methods utilize Recurrent Neural Network and its variants, i.e. Long Short-Term Memory (LSTM), Gated Recurrent Unit (GRU) etc. Recurrent neural networks are good at modeling local features, but underperforms at long sequence modeling, so the attention mechanism is introduced to make up for this shortcoming. In this paper, we introduce a DL-based KT model referred to as Convolutional Attention Knowledge Tracing (CAKT) utilizing attention mechanism to augment Convolutional Neural Network (CNN) in order to enhance the ability of modeling longer range dependencies."],
+      "authFullName_s":["Meng Zhang","Liang Chang","Tieyuan Liu","Chen Wei"],
+      "halId_s":"hal-04178712",
+      "uri_s":"https://inria.hal.science/hal-04178712v1",
+      "doiId_s":"10.1007/978-3-031-03948-5_7",
+      "publicationDateY_i":2022,
+      "fileMain_s":"https://inria.hal.science/hal-04178712/document"
+    }]
+  }
+}
