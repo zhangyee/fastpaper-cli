@@ -1,0 +1,182 @@
+{
+    "best_oa_location": {
+        "endpoint_id": null,
+        "evidence": "deprecated",
+        "host_type": "publisher",
+        "is_best": true,
+        "license": null,
+        "oa_date": "2013-07-30",
+        "pmh_id": null,
+        "repository_institution": null,
+        "updated": "deprecated",
+        "url": "https://www.nature.com/articles/nature12373.pdf",
+        "url_for_landing_page": "https://doi.org/10.1038/nature12373",
+        "url_for_pdf": "https://www.nature.com/articles/nature12373.pdf",
+        "version": "publishedVersion"
+    },
+    "data_standard": 2,
+    "doi": "10.1038/nature12373",
+    "doi_url": "https://doi.org/10.1038/nature12373",
+    "first_oa_location": {
+        "endpoint_id": null,
+        "evidence": "deprecated",
+        "host_type": "publisher",
+        "is_best": true,
+        "license": null,
+        "oa_date": "2013-07-30",
+        "pmh_id": null,
+        "repository_institution": null,
+        "updated": "deprecated",
+        "url": "https://www.nature.com/articles/nature12373.pdf",
+        "url_for_landing_page": "https://doi.org/10.1038/nature12373",
+        "url_for_pdf": "https://www.nature.com/articles/nature12373.pdf",
+        "version": "publishedVersion"
+    },
+    "genre": "journal-article",
+    "has_repository_copy": true,
+    "is_oa": true,
+    "is_paratext": false,
+    "journal_is_in_doaj": false,
+    "journal_is_oa": false,
+    "journal_issn_l": "0028-0836",
+    "journal_issns": "0028-0836,1476-4687",
+    "journal_name": "Nature",
+    "oa_locations": [
+        {
+            "endpoint_id": null,
+            "evidence": "deprecated",
+            "host_type": "publisher",
+            "is_best": true,
+            "license": null,
+            "oa_date": "2013-07-30",
+            "pmh_id": null,
+            "repository_institution": null,
+            "updated": "deprecated",
+            "url": "https://www.nature.com/articles/nature12373.pdf",
+            "url_for_landing_page": "https://doi.org/10.1038/nature12373",
+            "url_for_pdf": "https://www.nature.com/articles/nature12373.pdf",
+            "version": "publishedVersion"
+        },
+        {
+            "endpoint_id": "ca8f8d56758a80a4f86",
+            "evidence": "deprecated",
+            "host_type": "repository",
+            "is_best": false,
+            "license": null,
+            "oa_date": "2013-07-30",
+            "pmh_id": "oai:arXiv.org:1304.1068",
+            "repository_institution": "Cornell University",
+            "updated": "deprecated",
+            "url": "https://arxiv.org/pdf/1304.1068",
+            "url_for_landing_page": "http://arxiv.org/abs/1304.1068",
+            "url_for_pdf": "https://arxiv.org/pdf/1304.1068",
+            "version": "submittedVersion"
+        },
+        {
+            "endpoint_id": "8c9d8ba370a84253deb",
+            "evidence": "deprecated",
+            "host_type": "repository",
+            "is_best": false,
+            "license": "cc-by",
+            "oa_date": "2013-07-30",
+            "pmh_id": "oai:dash.harvard.edu:1/12285462",
+            "repository_institution": "Harvard University",
+            "updated": "deprecated",
+            "url": "http://nrs.harvard.edu/urn-3:HUL.InstRepos:12285462",
+            "url_for_landing_page": "http://nrs.harvard.edu/urn-3:HUL.InstRepos:12285462",
+            "url_for_pdf": null,
+            "version": "submittedVersion"
+        },
+        {
+            "endpoint_id": "ac9de7698155b820de7",
+            "evidence": "deprecated",
+            "host_type": "repository",
+            "is_best": false,
+            "license": null,
+            "oa_date": "2013-07-30",
+            "pmh_id": "oai:pubmedcentral.nih.gov:4221854",
+            "repository_institution": "National Institutes of Health",
+            "updated": "deprecated",
+            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/4221854",
+            "url_for_landing_page": "https://www.ncbi.nlm.nih.gov/pmc/articles/4221854",
+            "url_for_pdf": null,
+            "version": "submittedVersion"
+        }
+    ],
+    "oa_locations_embargoed": [],
+    "oa_status": "bronze",
+    "published_date": "2013-07-30",
+    "publisher": "Springer Science and Business Media LLC",
+    "title": "Nanometre-scale thermometry in a living cell",
+    "updated": "2026-03-20T23:48:44Z",
+    "year": 2013,
+    "z_authors": [
+        {
+            "author_position": "first",
+            "is_corresponding": true,
+            "raw_affiliation_strings": [
+                "Department of Physics, Harvard University, Cambridge, Massachusetts 02138, USA",
+                "Department of Physics, Harvard University, Cambridge, 02138, Massachusetts, USA"
+            ],
+            "raw_author_name": "G. Kucsko"
+        },
+        {
+            "author_position": "middle",
+            "is_corresponding": false,
+            "raw_affiliation_strings": [
+                "Department of Physics, Harvard University, Cambridge, 02138, Massachusetts, USA"
+            ],
+            "raw_author_name": "P. C. Maurer"
+        },
+        {
+            "author_position": "middle",
+            "is_corresponding": false,
+            "raw_affiliation_strings": [
+                "Department of Physics, Harvard University, Cambridge, 02138, Massachusetts, USA"
+            ],
+            "raw_author_name": "N. Y. Yao"
+        },
+        {
+            "author_position": "middle",
+            "is_corresponding": false,
+            "raw_affiliation_strings": [
+                "Department of Chemistry and Chemical Biology, Harvard University, Cambridge, 02138, Massachusetts, USA"
+            ],
+            "raw_author_name": "M. Kubo"
+        },
+        {
+            "author_position": "middle",
+            "is_corresponding": false,
+            "raw_affiliation_strings": [
+                "Broad Institute of MIT and Harvard University, 7 Cambridge Center, Cambridge, 02142, Massachusetts, USA"
+            ],
+            "raw_author_name": "H. J. Noh"
+        },
+        {
+            "author_position": "middle",
+            "is_corresponding": false,
+            "raw_affiliation_strings": [
+                "Department of Biology and Chemistry, City University of Hong Kong, Tat Chee Avenue, Kowloon, Hong Kong SAR, China,"
+            ],
+            "raw_author_name": "P. K. Lo"
+        },
+        {
+            "author_position": "middle",
+            "is_corresponding": false,
+            "raw_affiliation_strings": [
+                "Broad Institute of MIT and Harvard University, 7 Cambridge Center, Cambridge, 02142, Massachusetts, USA",
+                "Department of Chemistry and Chemical Biology, Harvard University, Cambridge, 02138, Massachusetts, USA",
+                "Department of Physics, Harvard University, Cambridge, 02138, Massachusetts, USA"
+            ],
+            "raw_author_name": "H. Park"
+        },
+        {
+            "author_position": "last",
+            "is_corresponding": false,
+            "raw_affiliation_strings": [
+                "Department of Physics, Harvard University, Cambridge, 02138, Massachusetts, USA"
+            ],
+            "raw_author_name": "M. D. Lukin"
+        }
+    ]
+}

@@ -9,6 +9,7 @@ pub mod openalex;
 pub mod pmc;
 pub mod pubmed;
 pub mod semantic;
+pub mod unpaywall;
 
 use serde::Serialize;
 
