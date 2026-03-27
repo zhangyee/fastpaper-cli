@@ -2,6 +2,7 @@ mod cli;
 mod download;
 mod identifier;
 mod output;
+mod read;
 mod sources;
 
 use clap::Parser;
@@ -99,8 +100,64 @@ fn main() {
                     }
                 }
             } else {
-                eprintln!("read: full text mode not yet implemented");
-                std::process::exit(1);
+                // Full text mode
+                match args.source {
+                    cli::Source::Local => {
+                        let path = std::path::Path::new(&args.identifier);
+                        match read::extract_text(path) {
+                            Ok(full_text) => {
+                                let text = match args.section {
+                                    cli::Section::Abstract => {
+                                        read::extract_section_abstract(&full_text)
+                                            .unwrap_or_default()
+                                    }
+                                    _ => full_text.clone(),
+                                };
+                                let text = if let Some(max) = args.max_length {
+                                    text.chars().take(max).collect::<String>()
+                                } else {
+                                    text
+                                };
+                                match cli.global.format {
+                                    cli::OutputFormat::Json => {
+                                        let out = serde_json::json!({
+                                            "content": {
+                                                "full_text": text,
+                                            }
+                                        });
+                                        let json_str = serde_json::to_string_pretty(&out).unwrap();
+                                        if let Some(ref out_path) = args.output {
+                                            std::fs::write(out_path, &json_str).unwrap_or_else(|e| {
+                                                eprintln!("Error writing file: {}", e);
+                                                std::process::exit(1);
+                                            });
+                                        } else {
+                                            print!("{}", json_str);
+                                        }
+                                    }
+                                    _ => {
+                                        if let Some(ref out_path) = args.output {
+                                            std::fs::write(out_path, &text).unwrap_or_else(|e| {
+                                                eprintln!("Error writing file: {}", e);
+                                                std::process::exit(1);
+                                            });
+                                        } else {
+                                            print!("{}", text);
+                                        }
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                eprintln!("Error: {}", e);
+                                std::process::exit(1);
+                            }
+                        }
+                    }
+                    _ => {
+                        eprintln!("read: full text for source '{}' not yet implemented", args.source.name());
+                        std::process::exit(1);
+                    }
+                }
             }
         }
         cli::Commands::Get(args) => {

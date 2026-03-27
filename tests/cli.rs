@@ -292,3 +292,76 @@ fn read_pubmed_metadata_only_exits_nonzero() {
         .failure()
         .stderr(contains("does not support"));
 }
+
+// ── read full text (local PDF) integration tests ──
+
+#[test]
+fn read_local_pdf_outputs_text() {
+    let output = cmd()
+        .args(["read", "local", "tests/fixtures/test.pdf"])
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.trim().is_empty(), "should output text content");
+}
+
+#[test]
+fn read_local_pdf_section_abstract() {
+    let output = cmd()
+        .args(["read", "local", "tests/fixtures/test.pdf", "--section", "abstract"])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.trim().is_empty(), "abstract section should not be empty");
+    let lower = stdout.to_lowercase();
+    assert!(
+        !lower.contains("introduction"),
+        "abstract should not contain introduction"
+    );
+}
+
+#[test]
+fn read_local_pdf_format_json_has_full_text() {
+    let output = cmd()
+        .args(["read", "local", "tests/fixtures/test.pdf", "--format", "json"])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
+    let full_text = v["content"]["full_text"].as_str().unwrap_or("");
+    assert!(!full_text.is_empty(), "full_text should not be empty");
+}
+
+#[test]
+fn read_local_pdf_max_length_truncates() {
+    let output = cmd()
+        .args(["read", "local", "tests/fixtures/test.pdf", "--max-length", "100"])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.trim().len() <= 100,
+        "output should be at most 100 chars, got {}",
+        stdout.trim().len()
+    );
+}
+
+#[test]
+fn read_local_pdf_output_to_file() {
+    let dir = temp_dir();
+    let out_file = dir.join("output.txt");
+    let output = cmd()
+        .args(["read", "local", "tests/fixtures/test.pdf", "-o"])
+        .arg(out_file.to_str().unwrap())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(out_file.exists(), "output file should exist");
+    let content = std::fs::read_to_string(&out_file).unwrap();
+    assert!(!content.trim().is_empty(), "output file should not be empty");
+    let _ = std::fs::remove_dir_all(&dir);
+}
