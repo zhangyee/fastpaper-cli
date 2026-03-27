@@ -223,7 +223,10 @@ pub struct SourcesArgs {
 #[derive(Subcommand)]
 pub enum SkillAction {
     /// Export SKILL.md to stdout
-    Export,
+    Export {
+        #[arg(long)]
+        agent: Option<AgentTarget>,
+    },
     /// Install skill to agent's skill directory
     Install {
         #[arg(long)]

@@ -343,9 +343,29 @@ fn main() {
             println!("zenodo         ✓       ✓         ✓");
             println!("hal            ✓       ✓         ✓");
         }
-        cli::Commands::Skill { action: _ } => {
-            eprintln!("skill: not yet implemented");
-            std::process::exit(1);
+        cli::Commands::Skill { action } => {
+            const SKILL_CONTENT: &str = include_str!("../skills/fastpaper/SKILL.md");
+            match action {
+                cli::SkillAction::Show => {
+                    print!("{}", SKILL_CONTENT);
+                }
+                cli::SkillAction::Export { agent } => {
+                    if let Some(target) = agent {
+                        let path = match target {
+                            cli::AgentTarget::Claude => "~/.claude/skills/fastpaper/SKILL.md",
+                            cli::AgentTarget::Codex => ".codex/skills/fastpaper/SKILL.md",
+                            cli::AgentTarget::Cursor => ".cursor/skills/fastpaper/SKILL.md",
+                            cli::AgentTarget::Gemini => ".gemini/skills/fastpaper/SKILL.md",
+                        };
+                        eprintln!("Install to: {}", path);
+                    }
+                    print!("{}", SKILL_CONTENT);
+                }
+                cli::SkillAction::Install { agent: _ } => {
+                    eprintln!("skill install: not yet implemented");
+                    std::process::exit(1);
+                }
+            }
         }
         cli::Commands::Completions { shell } => {
             clap_complete::generate(

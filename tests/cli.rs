@@ -464,3 +464,35 @@ fn completions_fish_exits_0_contains_fastpaper() {
         .success()
         .stdout(contains("fastpaper"));
 }
+
+// ── skill integration tests ─────────────────────
+
+#[test]
+fn skill_show_exits_0_contains_search() {
+    cmd()
+        .args(["skill", "show"])
+        .assert()
+        .success()
+        .stdout(contains("fastpaper search"));
+}
+
+#[test]
+fn skill_export_has_yaml_frontmatter() {
+    let output = cmd()
+        .args(["skill", "export"])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.starts_with("---"), "should start with YAML frontmatter");
+    assert!(stdout.matches("---").count() >= 2, "should have opening and closing ---");
+}
+
+#[test]
+fn skill_export_agent_claude_contains_path() {
+    cmd()
+        .args(["skill", "export", "--agent", "claude"])
+        .assert()
+        .success()
+        .stdout(contains(".claude/skills"));
+}
