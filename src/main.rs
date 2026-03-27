@@ -138,30 +138,71 @@ fn main() {
                 }
                 std::process::exit(1);
             }
-            match args.source {
+            let result = match args.source {
                 cli::Source::Arxiv => {
                     let base_url = std::env::var("FASTPAPER_ARXIV_URL")
                         .unwrap_or_else(|_| "https://arxiv.org".to_string());
-                    match download::download_arxiv(
-                        &base_url,
-                        &args.identifier,
-                        &args.dir,
-                        args.overwrite,
-                    ) {
-                        Ok(path) => {
-                            eprintln!("Saved: {}", path.display());
-                        }
-                        Err(e) if e.contains("already exists") => {
-                            eprintln!("{}", e);
-                        }
-                        Err(e) => {
-                            eprintln!("Error: {}", e);
-                            std::process::exit(1);
-                        }
-                    }
+                    download::download_arxiv(&base_url, &args.identifier, &args.dir, args.overwrite)
+                }
+                cli::Source::Biorxiv => {
+                    let base_url = std::env::var("FASTPAPER_BIORXIV_DL_URL")
+                        .unwrap_or_else(|_| "https://www.biorxiv.org".to_string());
+                    download::download_biorxiv(&base_url, &args.identifier, &args.dir, args.overwrite)
+                }
+                cli::Source::Medrxiv => {
+                    let base_url = std::env::var("FASTPAPER_MEDRXIV_DL_URL")
+                        .unwrap_or_else(|_| "https://www.medrxiv.org".to_string());
+                    download::download_medrxiv(&base_url, &args.identifier, &args.dir, args.overwrite)
+                }
+                cli::Source::Pmc => {
+                    let base_url = std::env::var("FASTPAPER_PMC_DL_URL")
+                        .unwrap_or_else(|_| "https://www.ncbi.nlm.nih.gov".to_string());
+                    download::download_pmc(&base_url, &args.identifier, &args.dir, args.overwrite)
+                }
+                cli::Source::Europepmc => {
+                    let base_url = std::env::var("FASTPAPER_EUROPEPMC_URL")
+                        .unwrap_or_else(|_| "https://www.ebi.ac.uk".to_string());
+                    download::download_europepmc(&base_url, &args.identifier, &args.dir, args.overwrite)
+                }
+                cli::Source::Semantic => {
+                    let base_url = std::env::var("FASTPAPER_SEMANTIC_URL")
+                        .unwrap_or_else(|_| "https://api.semanticscholar.org".to_string());
+                    download::download_semantic(&base_url, &args.identifier, &args.dir, args.overwrite)
+                }
+                cli::Source::Core => {
+                    let base_url = std::env::var("FASTPAPER_CORE_URL")
+                        .unwrap_or_else(|_| "https://api.core.ac.uk".to_string());
+                    download::download_core(&base_url, &args.identifier, &args.dir, args.overwrite)
+                }
+                cli::Source::Doaj => {
+                    let base_url = std::env::var("FASTPAPER_DOAJ_URL")
+                        .unwrap_or_else(|_| "https://doaj.org".to_string());
+                    download::download_doaj(&base_url, &args.identifier, &args.dir, args.overwrite)
+                }
+                cli::Source::Zenodo => {
+                    let base_url = std::env::var("FASTPAPER_ZENODO_URL")
+                        .unwrap_or_else(|_| "https://zenodo.org".to_string());
+                    download::download_zenodo(&base_url, &args.identifier, &args.dir, args.overwrite)
+                }
+                cli::Source::Hal => {
+                    let base_url = std::env::var("FASTPAPER_HAL_URL")
+                        .unwrap_or_else(|_| "https://api.archives-ouvertes.fr".to_string());
+                    download::download_hal(&base_url, &args.identifier, &args.dir, args.overwrite)
                 }
                 _ => {
                     eprintln!("download: source '{}' not yet implemented", args.source.name());
+                    std::process::exit(1);
+                }
+            };
+            match result {
+                Ok(path) => {
+                    eprintln!("Saved: {}", path.display());
+                }
+                Err(e) if e.contains("already exists") => {
+                    eprintln!("{}", e);
+                }
+                Err(e) => {
+                    eprintln!("Error: {}", e);
                     std::process::exit(1);
                 }
             }
