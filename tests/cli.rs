@@ -223,3 +223,72 @@ fn download_pubmed_exits_nonzero_with_not_supported() {
         .failure()
         .stderr(contains("does not support"));
 }
+
+// ── read --metadata-only integration tests ──────
+
+#[test]
+fn read_arxiv_metadata_only_json_contains_title() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["read", "arxiv", "2301.08745", "--metadata-only", "--format", "json"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
+    let title = v["results"][0]["title"].as_str().unwrap_or("");
+    assert!(!title.is_empty(), "title should not be empty");
+}
+
+#[test]
+fn read_arxiv_metadata_only_json_contains_authors() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["read", "arxiv", "2301.08745", "--metadata-only", "--format", "json"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
+    let authors = v["results"][0]["authors"].as_array().expect("authors should be array");
+    assert!(!authors.is_empty(), "authors should not be empty");
+}
+
+#[test]
+fn read_arxiv_metadata_only_json_no_full_text() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["read", "arxiv", "2301.08745", "--metadata-only", "--format", "json"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.contains("full_text"), "metadata-only should not contain full_text");
+}
+
+#[test]
+fn read_pubmed_metadata_only_exits_nonzero() {
+    cmd()
+        .args(["read", "pubmed", "12345678", "--metadata-only"])
+        .assert()
+        .failure()
+        .stderr(contains("does not support"));
+}

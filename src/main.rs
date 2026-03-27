@@ -68,8 +68,40 @@ fn main() {
                 );
                 std::process::exit(1);
             }
-            eprintln!("read: not yet implemented");
-            std::process::exit(1);
+            if args.metadata_only {
+                match args.source {
+                    cli::Source::Arxiv => {
+                        let base_url = std::env::var("FASTPAPER_ARXIV_URL")
+                            .unwrap_or_else(|_| "https://export.arxiv.org".to_string());
+                        match sources::arxiv::get_by_id(&base_url, &args.identifier) {
+                            Ok(Some(paper)) => {
+                                let out = match cli.global.format {
+                                    cli::OutputFormat::Json => output::to_json(&[paper]),
+                                    cli::OutputFormat::Csv => output::to_csv(&[paper]),
+                                    cli::OutputFormat::Bibtex => output::to_bibtex(&[paper]),
+                                    _ => output::to_table(&[paper]),
+                                };
+                                print!("{}", out);
+                            }
+                            Ok(None) => {
+                                eprintln!("Paper not found: {}", args.identifier);
+                                std::process::exit(4);
+                            }
+                            Err(e) => {
+                                eprintln!("Error: {}", e);
+                                std::process::exit(1);
+                            }
+                        }
+                    }
+                    _ => {
+                        eprintln!("read: source '{}' not yet implemented", args.source.name());
+                        std::process::exit(1);
+                    }
+                }
+            } else {
+                eprintln!("read: full text mode not yet implemented");
+                std::process::exit(1);
+            }
         }
         cli::Commands::Get(args) => {
             let id_type = identifier::detect_id_type(&args.identifier);

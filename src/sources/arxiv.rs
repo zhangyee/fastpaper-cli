@@ -23,6 +23,25 @@ pub fn download_pdf(base_url: &str, identifier: &str) -> Result<Vec<u8>, String>
 
 
 
+/// Fetch a single paper by arXiv ID.
+pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, String> {
+    let url = format!(
+        "{}/api/query?id_list={}&max_results=1",
+        base_url, identifier
+    );
+    match ureq::get(&url).call() {
+        Ok(resp) => {
+            let body = resp
+                .into_body()
+                .read_to_string()
+                .map_err(|e| format!("Failed to read response: {}", e))?;
+            let papers = parse_search_response(&body)?;
+            Ok(papers.into_iter().next())
+        }
+        Err(e) => Err(format!("HTTP error: {}", e)),
+    }
+}
+
 /// Search arXiv API and return parsed papers.
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
     let url = format!(
@@ -393,6 +412,56 @@ mod tests {
         let result = search(&server.url(), "test", 3);
         assert!(result.is_err());
         mock.assert();
+    }
+
+    #[test]
+    fn get_by_id_returns_paper() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("id_list=2301.08745".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let result = get_by_id(&server.url(), "2301.08745");
+        assert!(result.is_ok());
+        let paper = result.unwrap();
+        assert!(paper.is_some());
+    }
+
+    #[test]
+    fn get_by_id_has_title() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let paper = get_by_id(&server.url(), "2301.08745").unwrap().unwrap();
+        assert!(!paper.title.is_empty());
+    }
+
+    #[test]
+    fn get_by_id_has_authors() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let paper = get_by_id(&server.url(), "2301.08745").unwrap().unwrap();
+        assert!(!paper.authors.is_empty());
+    }
+
+    #[test]
+    fn get_by_id_empty_feed_returns_none() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body("<feed></feed>")
+            .create();
+        let result = get_by_id(&server.url(), "9999.99999").unwrap();
+        assert!(result.is_none());
     }
 
     #[test]
