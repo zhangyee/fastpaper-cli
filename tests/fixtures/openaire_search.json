@@ -1,0 +1,2086 @@
+{
+  "response": {
+    "header": {
+      "query": {
+        "$": "(oaftype exact result) and (resulttypeid exact publication) and ( attention and mechanism)"
+      },
+      "locale": {
+        "$": "en_US"
+      },
+      "size": {
+        "$": 3
+      },
+      "page": {
+        "$": 1
+      },
+      "total": {
+        "$": 164167
+      },
+      "fields": null
+    },
+    "results": {
+      "result": [
+        {
+          "header": {
+            "dri:objIdentifier": {
+              "$": "doi_dedup___::bb676cdcf8956ff467f68524a987e67c"
+            },
+            "dri:dateOfCollection": {
+              "$": "2025-12-20T13:47:37.242055362"
+            },
+            "dri:dateOfTransformation": null
+          },
+          "metadata": {
+            "oaf:entity": {
+              "@xsi:schemaLocation": "http://namespace.openaire.eu/oaf https://www.openaire.eu/schema/1.0/oaf-1.0.xsd",
+              "oaf:result": {
+                "collectedfrom": [
+                  {
+                    "@name": "Crossref",
+                    "@id": "openaire____::081b82f96300b6a6e3d282bad31cb6e2"
+                  },
+                  {
+                    "@name": "Microsoft Academic Graph",
+                    "@id": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a"
+                  }
+                ],
+                "originalId": [
+                  {
+                    "$": "10.1109/roman.2000.892460"
+                  },
+                  {
+                    "$": "50|doiboost____|bb676cdcf8956ff467f68524a987e67c"
+                  },
+                  {
+                    "$": "2147038810"
+                  }
+                ],
+                "pid": {
+                  "@classid": "doi",
+                  "@classname": "Digital Object Identifier",
+                  "@schemeid": "dnet:pid_types",
+                  "@schemename": "dnet:pid_types",
+                  "$": "10.1109/roman.2000.892460"
+                },
+                "measure": [
+                  {
+                    "@id": "influence",
+                    "@score": "2.7853433E-9",
+                    "@class": "C5"
+                  },
+                  {
+                    "@id": "popularity",
+                    "@score": "2.9162125E-10",
+                    "@class": "C5"
+                  },
+                  {
+                    "@id": "influence_alt",
+                    "@score": "2",
+                    "@class": "C5"
+                  },
+                  {
+                    "@id": "popularity_alt",
+                    "@score": "2.3020257E-4",
+                    "@class": "C5"
+                  },
+                  {
+                    "@id": "impulse",
+                    "@score": "0",
+                    "@class": "C5"
+                  }
+                ],
+                "title": [
+                  {
+                    "@classid": "main title",
+                    "@classname": "main title",
+                    "@schemeid": "dnet:dataCite_title",
+                    "@schemename": "dnet:dataCite_title",
+                    "$": "Attention expression mechanism for utterance generation"
+                  },
+                  {
+                    "@classid": "main title",
+                    "@classname": "main title",
+                    "@schemeid": "dnet:dataCite_title",
+                    "@schemename": "dnet:dataCite_title",
+                    "$": "attention expression mechanism for utterance generation"
+                  }
+                ],
+                "bestaccessright": {
+                  "@classid": "UNKNOWN",
+                  "@classname": "unspecified",
+                  "@schemeid": "dnet:access_modes",
+                  "@schemename": "dnet:access_modes"
+                },
+                "creator": [
+                  {
+                    "@rank": "1",
+                    "@name": "M.",
+                    "@surname": "Imai",
+                    "$": "M. Imai"
+                  },
+                  {
+                    "@rank": "2",
+                    "@name": "T.",
+                    "@surname": "Ono",
+                    "$": "T. Ono"
+                  },
+                  {
+                    "@rank": "3",
+                    "@name": "H.",
+                    "@surname": "Ishiguro",
+                    "$": "H. Ishiguro"
+                  },
+                  {
+                    "@rank": "4",
+                    "@name": "Y.",
+                    "@surname": "Anzai",
+                    "$": "Y. Anzai"
+                  }
+                ],
+                "dateofacceptance": {
+                  "$": "2002-11-08"
+                },
+                "description": {
+                  "$": "This paper proposes an attention expression mechanism for a robot to generate utterances spontaneously. The robot must direct the attention of a person to the same real world information as the robot for the person to interpret an utterance from the robot. The attention expression mechanism exposes the robot's focus of attention by turning its head towards the target of attention. In particular, the mechanism exposes the attention of the robot to the person, as well as real world information for the person to develop joint attention. In addition, we introduce an utterance generation mechanism named Linta-III, which was developed with the attention expression mechanism."
+                },
+                "subject": [
+                  {
+                    "@classid": "FOS",
+                    "@classname": "Fields of Science and Technology classification",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "@inferred": true,
+                    "@inferenceprovenance": "update",
+                    "@provenanceaction": "subject:fos",
+                    "$": "0202 electrical engineering, electronic engineering, information engineering"
+                  },
+                  {
+                    "@classid": "FOS",
+                    "@classname": "Fields of Science and Technology classification",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "@inferred": true,
+                    "@inferenceprovenance": "update",
+                    "@provenanceaction": "subject:fos",
+                    "$": "02 engineering and technology"
+                  }
+                ],
+                "language": {
+                  "@classid": "und",
+                  "@classname": "Undetermined",
+                  "@schemeid": "dnet:languages",
+                  "@schemename": "dnet:languages"
+                },
+                "relevantdate": {
+                  "@classid": "created",
+                  "@classname": "created",
+                  "@schemeid": "dnet:dataCite_date",
+                  "@schemename": "dnet:dataCite_date",
+                  "$": "2002-11-08"
+                },
+                "publisher": {
+                  "$": "IEEE"
+                },
+                "source": {
+                  "$": "Crossref"
+                },
+                "resulttype": {
+                  "@classid": "publication",
+                  "@classname": "publication",
+                  "@schemeid": "dnet:result_typologies",
+                  "@schemename": "dnet:result_typologies"
+                },
+                "resourcetype": {
+                  "@classid": "publication",
+                  "@classname": "publication",
+                  "@schemeid": "dnet:result_typologies",
+                  "@schemename": "dnet:result_typologies"
+                },
+                "isgreen": {
+                  "$": false
+                },
+                "isindiamondjournal": {
+                  "$": false
+                },
+                "publiclyfunded": {
+                  "$": false
+                },
+                "journal": {
+                  "@ep": "6",
+                  "@sp": "1",
+                  "$": "Proceedings 9th IEEE International Workshop on Robot and Human Interactive Communication. IEEE RO-MAN 2000 (Cat. No.00TH8499)"
+                },
+                "datainfo": {
+                  "inferred": {
+                    "$": true
+                  },
+                  "deletedbyinference": {
+                    "$": false
+                  },
+                  "trust": {
+                    "$": "0.8"
+                  },
+                  "inferenceprovenance": {
+                    "$": "dedup-result-decisiontree-v4"
+                  },
+                  "provenanceaction": {
+                    "@classid": "sysimport:dedup",
+                    "@classname": "Inferred by OpenAIRE",
+                    "@schemeid": "dnet:provenanceActions",
+                    "@schemename": "dnet:provenanceActions"
+                  }
+                },
+                "rels": {
+                  "rel": [
+                    {
+                      "@inferred": true,
+                      "@trust": "1.0",
+                      "@inferenceprovenance": "openaire:affiliation:rawaff",
+                      "@provenanceaction": "result:organization:openaireinference",
+                      "to": {
+                        "@class": "hasAuthorInstitution",
+                        "@scheme": "dnet:result_organization_relations",
+                        "@type": "organization",
+                        "$": "openorgs____::27c42a809308249c4214d61833ed48d0"
+                      },
+                      "country": {
+                        "@classid": "JP",
+                        "@classname": "Japan",
+                        "@schemeid": "dnet:countries",
+                        "@schemename": "dnet:countries"
+                      },
+                      "websiteurl": {
+                        "$": "http://www.wakayama-u.ac.jp/en/"
+                      },
+                      "legalshortname": {
+                        "$": "Wakayama University"
+                      },
+                      "legalname": {
+                        "$": "Wakayama University"
+                      }
+                    },
+                    {
+                      "@inferred": true,
+                      "@trust": "1.0",
+                      "@inferenceprovenance": "openaire:affiliation:rawaff",
+                      "@provenanceaction": "result:organization:openaireinference",
+                      "to": {
+                        "@class": "hasAuthorInstitution",
+                        "@scheme": "dnet:result_organization_relations",
+                        "@type": "organization",
+                        "$": "openorgs____::a53b9723e74b3b56d10d3bfd7718d4e6"
+                      },
+                      "legalshortname": {
+                        "$": "Keio University"
+                      },
+                      "country": {
+                        "@classid": "JP",
+                        "@classname": "Japan",
+                        "@schemeid": "dnet:countries",
+                        "@schemename": "dnet:countries"
+                      },
+                      "websiteurl": {
+                        "$": "http://www.keio.ac.jp/"
+                      },
+                      "legalname": {
+                        "$": "Keio University"
+                      }
+                    }
+                  ]
+                },
+                "children": {
+                  "result": [
+                    {
+                      "@objidentifier": "doi_________::bb676cdcf8956ff467f68524a987e67c",
+                      "title": {
+                        "@classid": "main title",
+                        "@classname": "main title",
+                        "@schemeid": "dnet:dataCite_title",
+                        "@schemename": "dnet:dataCite_title",
+                        "$": "Attention expression mechanism for utterance generation"
+                      },
+                      "creator": [
+                        {
+                          "$": "Y. Anzai"
+                        },
+                        {
+                          "$": "M. Imai"
+                        },
+                        {
+                          "$": "H. Ishiguro"
+                        },
+                        {
+                          "$": "T. Ono"
+                        }
+                      ],
+                      "resulttype": {
+                        "@classid": "publication",
+                        "@classname": "publication",
+                        "@schemeid": "dnet:result_typologies",
+                        "@schemename": "dnet:result_typologies"
+                      },
+                      "collectedfrom": {
+                        "@name": "Crossref",
+                        "@id": "openaire____::081b82f96300b6a6e3d282bad31cb6e2"
+                      },
+                      "instance": {
+                        "accessright": {
+                          "@classid": "UNKNOWN",
+                          "@classname": "unspecified",
+                          "@schemeid": "dnet:access_modes",
+                          "@schemename": "dnet:access_modes"
+                        },
+                        "hostedby": {
+                          "@name": "Unknown Repository",
+                          "@id": "openaire____::55045bd2a65019fd8e6741a755395c8c"
+                        },
+                        "dateofacceptance": {
+                          "$": "2002-11-08"
+                        },
+                        "instancetype": {
+                          "@classid": "0001",
+                          "@classname": "Article",
+                          "@schemeid": "dnet:publication_resource",
+                          "@schemename": "dnet:publication_resource"
+                        },
+                        "refereed": {
+                          "@classid": "0001",
+                          "@classname": "peerReviewed",
+                          "@schemeid": "dnet:review_levels",
+                          "@schemename": "dnet:review_levels"
+                        },
+                        "url": {
+                          "$": "https://doi.org/10.1109/roman.2000.892460"
+                        },
+                        "webresource": {
+                          "url": {
+                            "$": "https://doi.org/10.1109/roman.2000.892460"
+                          }
+                        }
+                      },
+                      "dateofacceptance": {
+                        "$": "2002-11-08"
+                      },
+                      "pid": {
+                        "@classid": "doi",
+                        "@classname": "Digital Object Identifier",
+                        "@schemeid": "dnet:pid_types",
+                        "@schemename": "dnet:pid_types",
+                        "$": "10.1109/roman.2000.892460"
+                      },
+                      "publisher": {
+                        "$": "IEEE"
+                      }
+                    }
+                  ],
+                  "instance": {
+                    "accessright": {
+                      "@classid": "UNKNOWN",
+                      "@classname": "unspecified",
+                      "@schemeid": "dnet:access_modes",
+                      "@schemename": "dnet:access_modes"
+                    },
+                    "collectedfrom": [
+                      {
+                        "@name": "Crossref",
+                        "@id": "openaire____::081b82f96300b6a6e3d282bad31cb6e2"
+                      },
+                      {
+                        "@name": "Microsoft Academic Graph",
+                        "@id": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a"
+                      }
+                    ],
+                    "hostedby": [
+                      {
+                        "@name": "Unknown Repository",
+                        "@id": "openaire____::55045bd2a65019fd8e6741a755395c8c"
+                      },
+                      {
+                        "@name": "Unknown Repository",
+                        "@id": "openaire____::55045bd2a65019fd8e6741a755395c8c"
+                      }
+                    ],
+                    "dateofacceptance": {
+                      "$": "2002-11-08"
+                    },
+                    "instancetype": {
+                      "@classid": "0001",
+                      "@classname": "Article",
+                      "@schemeid": "dnet:publication_resource",
+                      "@schemename": "dnet:publication_resource"
+                    },
+                    "pid": {
+                      "@classid": "doi",
+                      "@classname": "Digital Object Identifier",
+                      "@schemeid": "dnet:pid_types",
+                      "@schemename": "dnet:pid_types",
+                      "$": "10.1109/roman.2000.892460"
+                    },
+                    "alternateidentifier": [
+                      {
+                        "@classid": "mag_id",
+                        "@classname": "Microsoft Academic Graph Identifier",
+                        "@schemeid": "dnet:pid_types",
+                        "@schemename": "dnet:pid_types",
+                        "$": 2147038810
+                      },
+                      {
+                        "@classid": "doi",
+                        "@classname": "Digital Object Identifier",
+                        "@schemeid": "dnet:pid_types",
+                        "@schemename": "dnet:pid_types",
+                        "$": "10.1109/roman.2000.892460"
+                      }
+                    ],
+                    "refereed": {
+                      "@classid": "0001",
+                      "@classname": "peerReviewed",
+                      "@schemeid": "dnet:review_levels",
+                      "@schemename": "dnet:review_levels"
+                    },
+                    "webresource": {
+                      "url": {
+                        "$": "https://doi.org/10.1109/roman.2000.892460"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "header": {
+            "dri:objIdentifier": {
+              "$": "doi_dedup___::bfb3112a3f4ca3b90be029787e0030cc"
+            },
+            "dri:dateOfCollection": {
+              "$": "2025-12-20T13:51:53.540731353"
+            },
+            "dri:dateOfTransformation": null
+          },
+          "metadata": {
+            "oaf:entity": {
+              "@xsi:schemaLocation": "http://namespace.openaire.eu/oaf https://www.openaire.eu/schema/1.0/oaf-1.0.xsd",
+              "oaf:result": {
+                "collectedfrom": [
+                  {
+                    "@name": "Datacite",
+                    "@id": "openaire____::9e3be59865b2c1c335d32dae2fe7b254"
+                  },
+                  {
+                    "@name": "arXiv.org e-Print Archive",
+                    "@id": "opendoar____::6f4922f45568161a8cdf4ad2299f6d23"
+                  }
+                ],
+                "originalId": [
+                  {
+                    "$": "50|datacite____::bfb3112a3f4ca3b90be029787e0030cc"
+                  },
+                  {
+                    "$": "10.48550/arxiv.2007.14902"
+                  },
+                  {
+                    "$": "oai:arXiv.org:2007.14902"
+                  },
+                  {
+                    "$": "50|od________18::cd49291dbbed3ac74af5357f0ecdc534"
+                  }
+                ],
+                "pid": [
+                  {
+                    "@classid": "doi",
+                    "@classname": "Digital Object Identifier",
+                    "@schemeid": "dnet:pid_types",
+                    "@schemename": "dnet:pid_types",
+                    "@inferred": false,
+                    "@provenanceaction": "sysimport:actionset",
+                    "@trust": "0.9",
+                    "$": "10.48550/arxiv.2007.14902"
+                  },
+                  {
+                    "@classid": "arXiv",
+                    "@classname": "arXiv",
+                    "@schemeid": "dnet:pid_types",
+                    "@schemename": "dnet:pid_types",
+                    "@inferred": false,
+                    "@provenanceaction": "sysimport:crosswalk:repository",
+                    "@trust": "0.9",
+                    "$": 2007.14902
+                  }
+                ],
+                "measure": [
+                  {
+                    "@id": "influence",
+                    "@score": "2.5152056E-9",
+                    "@class": "C5"
+                  },
+                  {
+                    "@id": "popularity",
+                    "@score": "1.3784371E-9",
+                    "@class": "C5"
+                  },
+                  {
+                    "@id": "influence_alt",
+                    "@score": "0",
+                    "@class": "C5"
+                  },
+                  {
+                    "@id": "popularity_alt",
+                    "@score": "0.0",
+                    "@class": "C5"
+                  },
+                  {
+                    "@id": "impulse",
+                    "@score": "0",
+                    "@class": "C5"
+                  }
+                ],
+                "title": {
+                  "@classid": "main title",
+                  "@classname": "main title",
+                  "@schemeid": "dnet:dataCite_title",
+                  "@schemename": "dnet:dataCite_title",
+                  "$": "Linear Attention Mechanism: An Efficient Attention for Semantic Segmentation"
+                },
+                "bestaccessright": {
+                  "@classid": "OPEN",
+                  "@classname": "Open Access",
+                  "@schemeid": "dnet:access_modes",
+                  "@schemename": "dnet:access_modes"
+                },
+                "creator": [
+                  {
+                    "@rank": "1",
+                    "@name": "Rui",
+                    "@surname": "Li",
+                    "$": "Li, Rui"
+                  },
+                  {
+                    "@rank": "2",
+                    "@name": "Jianlin",
+                    "@surname": "Su",
+                    "$": "Su, Jianlin"
+                  },
+                  {
+                    "@rank": "3",
+                    "@name": "Chenxi",
+                    "@surname": "Duan",
+                    "$": "Duan, Chenxi"
+                  },
+                  {
+                    "@rank": "4",
+                    "@name": "Shunyi",
+                    "@surname": "Zheng",
+                    "$": "Zheng, Shunyi"
+                  }
+                ],
+                "dateofacceptance": {
+                  "$": "2020-01-01"
+                },
+                "description": {
+                  "$": "In this paper, to remedy this deficiency, we propose a Linear Attention Mechanism which is approximate to dot-product attention with much less memory and computational costs. The efficient design makes the incorporation between attention mechanisms and neural networks more flexible and versatile. Experiments conducted on semantic segmentation demonstrated the effectiveness of linear attention mechanism. Code is available at https://github.com/lironui/Linear-Attention-Mechanism."
+                },
+                "embargoenddate": {
+                  "$": "2020-01-01"
+                },
+                "subject": [
+                  {
+                    "@classid": "keyword",
+                    "@classname": "keyword",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "$": "FOS: Computer and information sciences"
+                  },
+                  {
+                    "@classid": "keyword",
+                    "@classname": "keyword",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "$": "Computer Vision and Pattern Recognition (cs.CV)"
+                  },
+                  {
+                    "@classid": "keyword",
+                    "@classname": "keyword",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "@inferred": false,
+                    "@provenanceaction": "sysimport:crosswalk:repository",
+                    "@trust": "0.9",
+                    "$": "Computer Science - Computer Vision and Pattern Recognition"
+                  },
+                  {
+                    "@classid": "FOS",
+                    "@classname": "Fields of Science and Technology classification",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "@inferred": true,
+                    "@inferenceprovenance": "update",
+                    "@provenanceaction": "subject:fos",
+                    "$": "0202 electrical engineering, electronic engineering, information engineering"
+                  },
+                  {
+                    "@classid": "FOS",
+                    "@classname": "Fields of Science and Technology classification",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "@inferred": true,
+                    "@inferenceprovenance": "update",
+                    "@provenanceaction": "subject:fos",
+                    "$": "02 engineering and technology"
+                  }
+                ],
+                "language": {
+                  "@classid": "und",
+                  "@classname": "Undetermined",
+                  "@schemeid": "dnet:languages",
+                  "@schemename": "dnet:languages"
+                },
+                "relevantdate": [
+                  {
+                    "@classid": "submitted",
+                    "@classname": "submitted",
+                    "@schemeid": "dnet:dataCite_date",
+                    "@schemename": "dnet:dataCite_date",
+                    "$": "2020-07-29"
+                  },
+                  {
+                    "@classid": "updated",
+                    "@classname": "updated",
+                    "@schemeid": "dnet:dataCite_date",
+                    "@schemename": "dnet:dataCite_date",
+                    "$": "2020-07-30"
+                  },
+                  {
+                    "@classid": "submitted",
+                    "@classname": "submitted",
+                    "@schemeid": "dnet:dataCite_date",
+                    "@schemename": "dnet:dataCite_date",
+                    "$": "2020-07-30"
+                  },
+                  {
+                    "@classid": "updated",
+                    "@classname": "updated",
+                    "@schemeid": "dnet:dataCite_date",
+                    "@schemename": "dnet:dataCite_date",
+                    "$": "2020-07-31"
+                  },
+                  {
+                    "@classid": "submitted",
+                    "@classname": "submitted",
+                    "@schemeid": "dnet:dataCite_date",
+                    "@schemename": "dnet:dataCite_date",
+                    "$": "2020-08-20"
+                  },
+                  {
+                    "@classid": "updated",
+                    "@classname": "updated",
+                    "@schemeid": "dnet:dataCite_date",
+                    "@schemename": "dnet:dataCite_date",
+                    "$": "2020-08-21"
+                  },
+                  {
+                    "@classid": "available",
+                    "@classname": "available",
+                    "@schemeid": "dnet:dataCite_date",
+                    "@schemename": "dnet:dataCite_date",
+                    "$": "2020-01-01"
+                  },
+                  {
+                    "@classid": "issued",
+                    "@classname": "issued",
+                    "@schemeid": "dnet:dataCite_date",
+                    "@schemename": "dnet:dataCite_date",
+                    "$": "2020-01-01"
+                  }
+                ],
+                "publisher": {
+                  "$": "arXiv"
+                },
+                "resulttype": {
+                  "@classid": "publication",
+                  "@classname": "publication",
+                  "@schemeid": "dnet:result_typologies",
+                  "@schemename": "dnet:result_typologies"
+                },
+                "resourcetype": {
+                  "@classid": "UNKNOWN",
+                  "@classname": "UNKNOWN",
+                  "@schemeid": "dnet:dataCite_resource",
+                  "@schemename": "dnet:dataCite_resource"
+                },
+                "isgreen": {
+                  "$": true
+                },
+                "isindiamondjournal": {
+                  "$": false
+                },
+                "publiclyfunded": {
+                  "$": false
+                },
+                "datainfo": {
+                  "inferred": {
+                    "$": true
+                  },
+                  "deletedbyinference": {
+                    "$": false
+                  },
+                  "trust": {
+                    "$": "0.8"
+                  },
+                  "inferenceprovenance": {
+                    "$": "dedup-result-decisiontree-v4"
+                  },
+                  "provenanceaction": {
+                    "@classid": "sysimport:dedup",
+                    "@classname": "Inferred by OpenAIRE",
+                    "@schemeid": "dnet:provenanceActions",
+                    "@schemename": "dnet:provenanceActions"
+                  }
+                },
+                "rels": {
+                  "rel": {
+                    "@inferred": true,
+                    "@trust": "0.72",
+                    "@inferenceprovenance": "iis::document_software_url",
+                    "@provenanceaction": "iis",
+                    "to": {
+                      "@class": "IsRelatedTo",
+                      "@scheme": "dnet:result_result_relations",
+                      "@type": "software",
+                      "$": "openaire____::280b09afb6896cf03e0642ae1a118079"
+                    },
+                    "collectedfrom": [
+                      {
+                        "@name": "Software Heritage",
+                        "@id": "openaire____::dbfd07503aaa1ed31beed7dec942f3f4"
+                      },
+                      {
+                        "@name": "GitHub",
+                        "@id": "openaire____::d3b7c913cd04ebfec0e9ec32cb6fd58c"
+                      }
+                    ],
+                    "instance": [
+                      {
+                        "accessright": {
+                          "@classid": "OPEN SOURCE",
+                          "@classname": "Open Source",
+                          "@schemeid": "dnet:access_modes",
+                          "@schemename": "dnet:access_modes"
+                        },
+                        "hostedby": {
+                          "@name": "GitHub",
+                          "@id": "openaire____::d3b7c913cd04ebfec0e9ec32cb6fd58c"
+                        },
+                        "instancetype": {
+                          "@classid": "0029",
+                          "@classname": "Software",
+                          "@schemeid": "dnet:publication_resource",
+                          "@schemename": "dnet:publication_resource"
+                        },
+                        "refereed": {
+                          "@classid": "0002",
+                          "@classname": "nonPeerReviewed",
+                          "@schemeid": "dnet:review_levels",
+                          "@schemename": "dnet:review_levels"
+                        },
+                        "url": {
+                          "$": "https://github.com/lironui/Linear-Attention-Mechanism"
+                        },
+                        "webresource": {
+                          "url": {
+                            "$": "https://github.com/lironui/Linear-Attention-Mechanism"
+                          }
+                        }
+                      },
+                      {
+                        "accessright": {
+                          "@classid": "OPEN SOURCE",
+                          "@classname": "Open Source",
+                          "@schemeid": "dnet:access_modes",
+                          "@schemename": "dnet:access_modes"
+                        },
+                        "hostedby": {
+                          "@name": "Software Heritage",
+                          "@id": "openaire____::dbfd07503aaa1ed31beed7dec942f3f4"
+                        },
+                        "instancetype": {
+                          "@classid": "0029",
+                          "@classname": "Software",
+                          "@schemeid": "dnet:publication_resource",
+                          "@schemename": "dnet:publication_resource"
+                        },
+                        "refereed": {
+                          "@classid": "0002",
+                          "@classname": "nonPeerReviewed",
+                          "@schemeid": "dnet:review_levels",
+                          "@schemename": "dnet:review_levels"
+                        },
+                        "url": {
+                          "$": "https://archive.softwareheritage.org/browse/origin/https://github.com/lironui/Linear-Attention-Mechanism"
+                        },
+                        "webresource": {
+                          "url": {
+                            "$": "https://archive.softwareheritage.org/browse/origin/https://github.com/lironui/Linear-Attention-Mechanism"
+                          }
+                        }
+                      }
+                    ],
+                    "title": {
+                      "@classid": "main title",
+                      "@classname": "main title",
+                      "@schemeid": "dnet:dataCite_title",
+                      "@schemename": "dnet:dataCite_title",
+                      "$": "Linear-Attention-Mechanism software on GitHub"
+                    },
+                    "resulttype": {
+                      "@classid": "software",
+                      "@classname": "software",
+                      "@schemeid": "dnet:result_typologies",
+                      "@schemename": "dnet:result_typologies"
+                    }
+                  }
+                },
+                "children": {
+                  "result": [
+                    {
+                      "@objidentifier": "doi_________::bfb3112a3f4ca3b90be029787e0030cc",
+                      "dateofacceptance": {
+                        "$": "2020-01-01"
+                      },
+                      "creator": [
+                        {
+                          "$": "Li, Rui"
+                        },
+                        {
+                          "$": "Zheng, Shunyi"
+                        },
+                        {
+                          "$": "Duan, Chenxi"
+                        },
+                        {
+                          "$": "Su, Jianlin"
+                        }
+                      ],
+                      "collectedfrom": {
+                        "@name": "Datacite",
+                        "@id": "openaire____::9e3be59865b2c1c335d32dae2fe7b254"
+                      },
+                      "title": {
+                        "@classid": "main title",
+                        "@classname": "main title",
+                        "@schemeid": "dnet:dataCite_title",
+                        "@schemename": "dnet:dataCite_title",
+                        "$": "Linear Attention Mechanism: An Efficient Attention for Semantic Segmentation"
+                      },
+                      "publisher": {
+                        "$": "arXiv"
+                      },
+                      "resulttype": {
+                        "@classid": "publication",
+                        "@classname": "publication",
+                        "@schemeid": "dnet:result_typologies",
+                        "@schemename": "dnet:result_typologies"
+                      },
+                      "pid": {
+                        "@classid": "doi",
+                        "@classname": "Digital Object Identifier",
+                        "@schemeid": "dnet:pid_types",
+                        "@schemename": "dnet:pid_types",
+                        "@inferred": false,
+                        "@provenanceaction": "sysimport:actionset",
+                        "@trust": "0.9",
+                        "$": "10.48550/arxiv.2007.14902"
+                      },
+                      "description": {
+                        "$": "In this paper, to remedy this deficiency, we propose a Linear Attention Mechanism which is approximate to dot-product attention with much less memory and computational costs. The efficient design makes the incorporation between attention mechanisms and neural networks more flexible and versatile. Experiments conducted on semantic segmentation demonstrated the effectiveness of linear attention mechanism. Code is available at https://github.com/lironui/Linear-Attention-Mechanism."
+                      },
+                      "instance": {
+                        "accessright": {
+                          "@classid": "UNKNOWN",
+                          "@classname": "unspecified",
+                          "@schemeid": "dnet:access_modes",
+                          "@schemename": "dnet:access_modes"
+                        },
+                        "hostedby": {
+                          "@name": "Unknown Repository",
+                          "@id": "openaire____::55045bd2a65019fd8e6741a755395c8c"
+                        },
+                        "dateofacceptance": {
+                          "$": "2020-01-01"
+                        },
+                        "instancetype": {
+                          "@classid": "0001",
+                          "@classname": "Article",
+                          "@schemeid": "dnet:publication_resource",
+                          "@schemename": "dnet:publication_resource"
+                        },
+                        "refereed": {
+                          "@classid": "0002",
+                          "@classname": "nonPeerReviewed",
+                          "@schemeid": "dnet:review_levels",
+                          "@schemename": "dnet:review_levels"
+                        },
+                        "license": {
+                          "$": "arXiv Non-Exclusive Distribution"
+                        },
+                        "url": {
+                          "$": "https://dx.doi.org/10.48550/arxiv.2007.14902"
+                        },
+                        "webresource": {
+                          "url": {
+                            "$": "https://dx.doi.org/10.48550/arxiv.2007.14902"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "@objidentifier": "arXiv_______::6b54e2e48ca0e1651cb0ee6085ec0e4a",
+                      "title": {
+                        "@classid": "main title",
+                        "@classname": "main title",
+                        "@schemeid": "dnet:dataCite_title",
+                        "@schemename": "dnet:dataCite_title",
+                        "@inferred": false,
+                        "@provenanceaction": "sysimport:crosswalk:repository",
+                        "@trust": "0.9",
+                        "$": "Linear Attention Mechanism: An Efficient Attention for Semantic Segmentation"
+                      },
+                      "creator": [
+                        {
+                          "$": "Duan, Chenxi"
+                        },
+                        {
+                          "$": "Su, Jianlin"
+                        },
+                        {
+                          "$": "Li, Rui"
+                        },
+                        {
+                          "$": "Zheng, Shunyi"
+                        }
+                      ],
+                      "instance": {
+                        "accessright": {
+                          "@classid": "OPEN",
+                          "@classname": "Open Access",
+                          "@schemeid": "dnet:access_modes",
+                          "@schemename": "dnet:access_modes"
+                        },
+                        "hostedby": {
+                          "@name": "arXiv.org e-Print Archive",
+                          "@id": "opendoar____::6f4922f45568161a8cdf4ad2299f6d23"
+                        },
+                        "dateofacceptance": {
+                          "$": "2020-07-29"
+                        },
+                        "instancetype": {
+                          "@classid": "0016",
+                          "@classname": "Preprint",
+                          "@schemeid": "dnet:publication_resource",
+                          "@schemename": "dnet:publication_resource"
+                        },
+                        "refereed": {
+                          "@classid": "0002",
+                          "@classname": "nonPeerReviewed",
+                          "@schemeid": "dnet:review_levels",
+                          "@schemename": "dnet:review_levels"
+                        },
+                        "url": {
+                          "$": "http://arxiv.org/abs/2007.14902"
+                        },
+                        "webresource": {
+                          "url": {
+                            "$": "http://arxiv.org/abs/2007.14902"
+                          }
+                        }
+                      },
+                      "dateofacceptance": {
+                        "$": "2020-07-29"
+                      },
+                      "collectedfrom": {
+                        "@name": "arXiv.org e-Print Archive",
+                        "@id": "opendoar____::6f4922f45568161a8cdf4ad2299f6d23"
+                      },
+                      "pid": {
+                        "@classid": "arXiv",
+                        "@classname": "arXiv",
+                        "@schemeid": "dnet:pid_types",
+                        "@schemename": "dnet:pid_types",
+                        "@inferred": false,
+                        "@provenanceaction": "sysimport:crosswalk:repository",
+                        "@trust": "0.9",
+                        "$": 2007.14902
+                      },
+                      "resulttype": {
+                        "@classid": "publication",
+                        "@classname": "publication",
+                        "@schemeid": "dnet:result_typologies",
+                        "@schemename": "dnet:result_typologies"
+                      },
+                      "description": {
+                        "$": "In this paper, to remedy this deficiency, we propose a Linear Attention Mechanism which is approximate to dot-product attention with much less memory and computational costs. The efficient design makes the incorporation between attention mechanisms and neural networks more flexible and versatile. Experiments conducted on semantic segmentation demonstrated the effectiveness of linear attention mechanism. Code is available at https://github.com/lironui/Linear-Attention-Mechanism."
+                      }
+                    }
+                  ],
+                  "instance": [
+                    {
+                      "accessright": {
+                        "@classid": "UNKNOWN",
+                        "@classname": "unspecified",
+                        "@schemeid": "dnet:access_modes",
+                        "@schemename": "dnet:access_modes"
+                      },
+                      "collectedfrom": {
+                        "@name": "Datacite",
+                        "@id": "openaire____::9e3be59865b2c1c335d32dae2fe7b254"
+                      },
+                      "hostedby": {
+                        "@name": "Unknown Repository",
+                        "@id": "openaire____::55045bd2a65019fd8e6741a755395c8c"
+                      },
+                      "dateofacceptance": {
+                        "$": "2020-01-01"
+                      },
+                      "instancetype": {
+                        "@classid": "0001",
+                        "@classname": "Article",
+                        "@schemeid": "dnet:publication_resource",
+                        "@schemename": "dnet:publication_resource"
+                      },
+                      "pid": {
+                        "@classid": "doi",
+                        "@classname": "Digital Object Identifier",
+                        "@schemeid": "dnet:pid_types",
+                        "@schemename": "dnet:pid_types",
+                        "@inferred": false,
+                        "@provenanceaction": "sysimport:actionset",
+                        "@trust": "0.9",
+                        "$": "10.48550/arxiv.2007.14902"
+                      },
+                      "refereed": {
+                        "@classid": "0002",
+                        "@classname": "nonPeerReviewed",
+                        "@schemeid": "dnet:review_levels",
+                        "@schemename": "dnet:review_levels"
+                      },
+                      "license": {
+                        "$": "arXiv Non-Exclusive Distribution"
+                      },
+                      "webresource": {
+                        "url": {
+                          "$": "https://doi.org/10.48550/arxiv.2007.14902"
+                        }
+                      }
+                    },
+                    {
+                      "accessright": {
+                        "@classid": "OPEN",
+                        "@classname": "Open Access",
+                        "@schemeid": "dnet:access_modes",
+                        "@schemename": "dnet:access_modes"
+                      },
+                      "collectedfrom": {
+                        "@name": "arXiv.org e-Print Archive",
+                        "@id": "opendoar____::6f4922f45568161a8cdf4ad2299f6d23"
+                      },
+                      "hostedby": {
+                        "@name": "arXiv.org e-Print Archive",
+                        "@id": "opendoar____::6f4922f45568161a8cdf4ad2299f6d23"
+                      },
+                      "dateofacceptance": {
+                        "$": "2020-07-29"
+                      },
+                      "instancetype": {
+                        "@classid": "0016",
+                        "@classname": "Preprint",
+                        "@schemeid": "dnet:publication_resource",
+                        "@schemename": "dnet:publication_resource"
+                      },
+                      "pid": {
+                        "@classid": "arXiv",
+                        "@classname": "arXiv",
+                        "@schemeid": "dnet:pid_types",
+                        "@schemename": "dnet:pid_types",
+                        "@inferred": false,
+                        "@provenanceaction": "sysimport:crosswalk:repository",
+                        "@trust": "0.9",
+                        "$": 2007.14902
+                      },
+                      "refereed": {
+                        "@classid": "0002",
+                        "@classname": "nonPeerReviewed",
+                        "@schemeid": "dnet:review_levels",
+                        "@schemename": "dnet:review_levels"
+                      },
+                      "webresource": {
+                        "url": {
+                          "$": "http://arxiv.org/abs/2007.14902"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "extraInfo": [
+                  {
+                    "@name": "result reference list",
+                    "@typology": "reference list",
+                    "@provenance": "iis::document_referencedDocuments",
+                    "@trust": "0.9",
+                    "references": {
+                      "reference": [
+                        {
+                          "@position": "1",
+                          "rawText": {
+                            "$": "[1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11] [12] X. Wang, R. Girshick, A. Gupta, and K. He, \"Non-local neural networks,\" in Proceedings of the IEEE conference on computer vision and pattern recognition, 2018, pp. 7794-7803."
+                          }
+                        },
+                        {
+                          "@position": "2",
+                          "rawText": {
+                            "$": "H. Zhang, I. Goodfellow, D. Metaxas, and A. Odena, \"Selfattention generative adversarial networks,\" in International Conference on Machine Learning, 2019, pp. 7354-7363."
+                          }
+                        },
+                        {
+                          "@position": "3",
+                          "rawText": {
+                            "$": "I. Bello, B. Zoph, A. Vaswani, J. Shlens, and Q. V. Le, \"Attention augmented convolutional networks,\" in Proceedings of the IEEE International Conference on Computer Vision, 2019, pp. 3286-3295."
+                          }
+                        },
+                        {
+                          "@position": "4",
+                          "rawText": {
+                            "$": "J. Fu et al., \"Dual attention network for scene segmentation,\" in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, 2019, pp. 3146-3154."
+                          }
+                        },
+                        {
+                          "@position": "5",
+                          "rawText": {
+                            "$": "Y. Li et al., \"Attention-guided unified network for panoptic segmentation,\" in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, 2019, pp. 7026-7035."
+                          }
+                        },
+                        {
+                          "@position": "6",
+                          "rawText": {
+                            "$": "R. Child, S. Gray, A. Radford, and I. Sutskever, \"Generating long sequences with sparse transformers,\" arXiv preprint arXiv:1904.10509, 2019."
+                          }
+                        },
+                        {
+                          "@position": "7",
+                          "rawText": {
+                            "$": "N. Kitaev, \u0141. Kaiser, and A. Levskaya, \"Reformer: The efficient transformer,\" arXiv preprint arXiv:2001.04451, 2020."
+                          }
+                        },
+                        {
+                          "@position": "8",
+                          "rawText": {
+                            "$": "A. Katharopoulos, A. Vyas, N. Pappas, and F. Fleuret, \"Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention,\" arXiv preprint arXiv:2006.16236, 2020."
+                          }
+                        },
+                        {
+                          "@position": "9",
+                          "rawText": {
+                            "$": "Z. Shen, M. Zhang, H. Zhao, S. Yi, and H. Li, \"Efficient Attention: Attention with Linear Complexities,\" arXiv preprint arXiv:1812.01243, 2018."
+                          }
+                        },
+                        {
+                          "@position": "10",
+                          "rawText": {
+                            "$": "D. Bahdanau, K. Cho, and Y. Bengio, \"Neural machine translation by jointly learning to align and translate,\" arXiv preprint arXiv:1409.0473, 2014."
+                          }
+                        },
+                        {
+                          "@position": "11",
+                          "rawText": {
+                            "$": "A. Vaswani et al., \"Attention is all you need,\" in Advances in neural information processing systems, 2017, pp. 5998-6008."
+                          }
+                        },
+                        {
+                          "@position": "12",
+                          "rawText": {
+                            "$": "L. Dong, S. Xu, and B. Xu, \"Speech-transformer: a no-recurrence sequence-to-sequence model for speech recognition,\" in 2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018: IEEE, pp. 5884-5888."
+                          }
+                        },
+                        {
+                          "@position": "13",
+                          "rawText": {
+                            "$": "[13] [14] [15] [16] [17] [18] [19] [20] [21] [22] [23] [24] [25] [26] [27] [28] [29] N.-Q. Pham, T.-S. Nguyen, J. Niehues, M. M\u00fcller, S. St\u00fcker, and A."
+                          }
+                        },
+                        {
+                          "@position": "14",
+                          "rawText": {
+                            "$": "Waibel, \"Very deep self-attention networks for end-to-end speech recognition,\" arXiv preprint arXiv:1904.13377, 2019."
+                          }
+                        },
+                        {
+                          "@position": "15",
+                          "rawText": {
+                            "$": "J. Hu, L. Shen, and G. Sun, \"Squeeze-and-excitation networks,\" in Proceedings of the IEEE conference on computer vision and pattern recognition, 2018, pp. 7132-7141."
+                          }
+                        },
+                        {
+                          "@position": "16",
+                          "rawText": {
+                            "$": "S. Woo, J. Park, J.-Y. Lee, and I. So Kweon, \"Cbam: Convolutional block attention module,\" in Proceedings of the European conference on computer vision (ECCV), 2018, pp. 3-19."
+                          }
+                        },
+                        {
+                          "@position": "17",
+                          "rawText": {
+                            "$": "F. Yu and V. Koltun, \"Multi-scale context aggregation by dilated convolutions,\" arXiv preprint arXiv:1511.07122, 2015."
+                          }
+                        },
+                        {
+                          "@position": "18",
+                          "rawText": {
+                            "$": "Yuille, \"Semantic image segmentation with deep convolutional nets and fully connected crfs,\" arXiv preprint arXiv:1412.7062, 2014."
+                          }
+                        },
+                        {
+                          "@position": "19",
+                          "rawText": {
+                            "$": "L.-C. Chen, G. Papandreou, F. Schroff, and H. Adam, \"Rethinking atrous convolution for semantic image segmentation,\" arXiv preprint arXiv:1706.05587, 2017."
+                          }
+                        },
+                        {
+                          "@position": "20",
+                          "rawText": {
+                            "$": "L.-C. Chen, Y. Zhu, G. Papandreou, F. Schroff, and H. Adam, \"Encoder-decoder with atrous separable convolution for semantic image segmentation,\" in Proceedings of the European conference on computer vision (ECCV), 2018, pp. 801-818."
+                          }
+                        },
+                        {
+                          "@position": "21",
+                          "rawText": {
+                            "$": "H. Zhao, J. Shi, X. Qi, X. Wang, and J. Jia, \"Pyramid scene parsing network,\" in Proceedings of the IEEE conference on computer vision and pattern recognition, 2017, pp. 2881-2890."
+                          }
+                        },
+                        {
+                          "@position": "22",
+                          "rawText": {
+                            "$": "H. Zhang et al., \"Context encoding for semantic segmentation,\" in Proceedings of the IEEE conference on Computer Vision and Pattern Recognition, 2018, pp. 7151-7160."
+                          }
+                        },
+                        {
+                          "@position": "23",
+                          "rawText": {
+                            "$": "H. Wu, J. Zhang, K. Huang, K. Liang, and Y. Yu, \"Fastfcn: Rethinking dilated convolution in the backbone for semantic segmentation,\" arXiv preprint arXiv:1903.11816, 2019."
+                          }
+                        },
+                        {
+                          "@position": "24",
+                          "rawText": {
+                            "$": "O. Ronneberger, P. Fischer, and T. Brox, \"U-net: Convolutional networks for biomedical image segmentation,\" in International Conference on Medical image computing and computer-assisted intervention, 2015: Springer, pp. 234-241."
+                          }
+                        },
+                        {
+                          "@position": "25",
+                          "rawText": {
+                            "$": "Z. Zhou, M. M. R. Siddiquee, N. Tajbakhsh, and J. Liang, \"Unet++: A nested u-net architecture for medical image segmentation,\" in Deep Learning in Medical Image Analysis and Multimodal Learning for Clinical Decision Support: Springer, 2018, pp. 3-11."
+                          }
+                        },
+                        {
+                          "@position": "26",
+                          "rawText": {
+                            "$": "H. Huang et al., \"UNet 3+: A Full-Scale Connected UNet for Medical Image Segmentation,\" in ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2020: IEEE, pp. 1055-1059."
+                          }
+                        },
+                        {
+                          "@position": "27",
+                          "rawText": {
+                            "$": "L. Rui, D. Cehnxi, and Z. Shunyi, \"MACU-Net Semantic Segmentation from High-Resolution Remote Sensing Images,\" arXiv preprint arXiv:2007.13083, 2020."
+                          }
+                        },
+                        {
+                          "@position": "28",
+                          "rawText": {
+                            "$": "G. Lin, A. Milan, C. Shen, and I. Reid, \"Refinenet: Multi-path refinement networks for high-resolution semantic segmentation,\" in Proceedings of the IEEE conference on computer vision and pattern recognition, 2017, pp. 1925-1934."
+                          }
+                        },
+                        {
+                          "@position": "29",
+                          "rawText": {
+                            "$": "Salakhutdinov, \"Transformer Dissection: An Unified Understanding for Transformer's Attention via the Lens of Kernel,\" arXiv preprint arXiv:1908.11775, 2019."
+                          }
+                        },
+                        {
+                          "@position": "30",
+                          "rawText": {
+                            "$": "X.-Y. Tong et al., \"Land-cover classification with high-resolution remote sensing images using transferable deep models,\" Remote Sensing of Environment, vol. 237, p. 111322, 2020."
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "@name": "result reference list",
+                    "@typology": "reference list",
+                    "@provenance": "iis::document_referencedDocuments",
+                    "@trust": "0.9",
+                    "references": {
+                      "reference": [
+                        {
+                          "@position": "1",
+                          "rawText": {
+                            "$": "[1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11] [12] X. Wang, R. Girshick, A. Gupta, and K. He, \"Non-local neural networks,\" in Proceedings of the IEEE conference on computer vision and pattern recognition, 2018, pp. 7794-7803."
+                          }
+                        },
+                        {
+                          "@position": "2",
+                          "rawText": {
+                            "$": "H. Zhang, I. Goodfellow, D. Metaxas, and A. Odena, \"Selfattention generative adversarial networks,\" in International Conference on Machine Learning, 2019, pp. 7354-7363."
+                          }
+                        },
+                        {
+                          "@position": "3",
+                          "rawText": {
+                            "$": "I. Bello, B. Zoph, A. Vaswani, J. Shlens, and Q. V. Le, \"Attention augmented convolutional networks,\" in Proceedings of the IEEE International Conference on Computer Vision, 2019, pp. 3286-3295."
+                          }
+                        },
+                        {
+                          "@position": "4",
+                          "rawText": {
+                            "$": "J. Fu et al., \"Dual attention network for scene segmentation,\" in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, 2019, pp. 3146-3154."
+                          }
+                        },
+                        {
+                          "@position": "5",
+                          "rawText": {
+                            "$": "Y. Li et al., \"Attention-guided unified network for panoptic segmentation,\" in Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, 2019, pp. 7026-7035."
+                          }
+                        },
+                        {
+                          "@position": "6",
+                          "rawText": {
+                            "$": "R. Child, S. Gray, A. Radford, and I. Sutskever, \"Generating long sequences with sparse transformers,\" arXiv preprint arXiv:1904.10509, 2019."
+                          }
+                        },
+                        {
+                          "@position": "7",
+                          "rawText": {
+                            "$": "N. Kitaev, \u0141. Kaiser, and A. Levskaya, \"Reformer: The efficient transformer,\" arXiv preprint arXiv:2001.04451, 2020."
+                          }
+                        },
+                        {
+                          "@position": "8",
+                          "rawText": {
+                            "$": "A. Katharopoulos, A. Vyas, N. Pappas, and F. Fleuret, \"Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention,\" arXiv preprint arXiv:2006.16236, 2020."
+                          }
+                        },
+                        {
+                          "@position": "9",
+                          "rawText": {
+                            "$": "Z. Shen, M. Zhang, H. Zhao, S. Yi, and H. Li, \"Efficient Attention: Attention with Linear Complexities,\" arXiv preprint arXiv:1812.01243, 2018."
+                          }
+                        },
+                        {
+                          "@position": "10",
+                          "rawText": {
+                            "$": "D. Bahdanau, K. Cho, and Y. Bengio, \"Neural machine translation by jointly learning to align and translate,\" arXiv preprint arXiv:1409.0473, 2014."
+                          }
+                        },
+                        {
+                          "@position": "11",
+                          "rawText": {
+                            "$": "A. Vaswani et al., \"Attention is all you need,\" in Advances in neural information processing systems, 2017, pp. 5998-6008."
+                          }
+                        },
+                        {
+                          "@position": "12",
+                          "rawText": {
+                            "$": "L. Dong, S. Xu, and B. Xu, \"Speech-transformer: a no-recurrence sequence-to-sequence model for speech recognition,\" in 2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2018: IEEE, pp. 5884-5888."
+                          }
+                        },
+                        {
+                          "@position": "13",
+                          "rawText": {
+                            "$": "[13] [14] [15] [16] [17] [18] [19] [20] [21] [22] [23] [24] [25] [26] [27] [28] [29] N.-Q. Pham, T.-S. Nguyen, J. Niehues, M. M\u00fcller, S. St\u00fcker, and A."
+                          }
+                        },
+                        {
+                          "@position": "14",
+                          "rawText": {
+                            "$": "Waibel, \"Very deep self-attention networks for end-to-end speech recognition,\" arXiv preprint arXiv:1904.13377, 2019."
+                          }
+                        },
+                        {
+                          "@position": "15",
+                          "rawText": {
+                            "$": "J. Hu, L. Shen, and G. Sun, \"Squeeze-and-excitation networks,\" in Proceedings of the IEEE conference on computer vision and pattern recognition, 2018, pp. 7132-7141."
+                          }
+                        },
+                        {
+                          "@position": "16",
+                          "rawText": {
+                            "$": "S. Woo, J. Park, J.-Y. Lee, and I. So Kweon, \"Cbam: Convolutional block attention module,\" in Proceedings of the European conference on computer vision (ECCV), 2018, pp. 3-19."
+                          }
+                        },
+                        {
+                          "@position": "17",
+                          "rawText": {
+                            "$": "F. Yu and V. Koltun, \"Multi-scale context aggregation by dilated convolutions,\" arXiv preprint arXiv:1511.07122, 2015."
+                          }
+                        },
+                        {
+                          "@position": "18",
+                          "rawText": {
+                            "$": "Yuille, \"Semantic image segmentation with deep convolutional nets and fully connected crfs,\" arXiv preprint arXiv:1412.7062, 2014."
+                          }
+                        },
+                        {
+                          "@position": "19",
+                          "rawText": {
+                            "$": "L.-C. Chen, G. Papandreou, F. Schroff, and H. Adam, \"Rethinking atrous convolution for semantic image segmentation,\" arXiv preprint arXiv:1706.05587, 2017."
+                          }
+                        },
+                        {
+                          "@position": "20",
+                          "rawText": {
+                            "$": "L.-C. Chen, Y. Zhu, G. Papandreou, F. Schroff, and H. Adam, \"Encoder-decoder with atrous separable convolution for semantic image segmentation,\" in Proceedings of the European conference on computer vision (ECCV), 2018, pp. 801-818."
+                          }
+                        },
+                        {
+                          "@position": "21",
+                          "rawText": {
+                            "$": "H. Zhao, J. Shi, X. Qi, X. Wang, and J. Jia, \"Pyramid scene parsing network,\" in Proceedings of the IEEE conference on computer vision and pattern recognition, 2017, pp. 2881-2890."
+                          }
+                        },
+                        {
+                          "@position": "22",
+                          "rawText": {
+                            "$": "H. Zhang et al., \"Context encoding for semantic segmentation,\" in Proceedings of the IEEE conference on Computer Vision and Pattern Recognition, 2018, pp. 7151-7160."
+                          }
+                        },
+                        {
+                          "@position": "23",
+                          "rawText": {
+                            "$": "H. Wu, J. Zhang, K. Huang, K. Liang, and Y. Yu, \"Fastfcn: Rethinking dilated convolution in the backbone for semantic segmentation,\" arXiv preprint arXiv:1903.11816, 2019."
+                          }
+                        },
+                        {
+                          "@position": "24",
+                          "rawText": {
+                            "$": "O. Ronneberger, P. Fischer, and T. Brox, \"U-net: Convolutional networks for biomedical image segmentation,\" in International Conference on Medical image computing and computer-assisted intervention, 2015: Springer, pp. 234-241."
+                          }
+                        },
+                        {
+                          "@position": "25",
+                          "rawText": {
+                            "$": "Z. Zhou, M. M. R. Siddiquee, N. Tajbakhsh, and J. Liang, \"Unet++: A nested u-net architecture for medical image segmentation,\" in Deep Learning in Medical Image Analysis and Multimodal Learning for Clinical Decision Support: Springer, 2018, pp. 3-11."
+                          }
+                        },
+                        {
+                          "@position": "26",
+                          "rawText": {
+                            "$": "H. Huang et al., \"UNet 3+: A Full-Scale Connected UNet for Medical Image Segmentation,\" in ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 2020: IEEE, pp. 1055-1059."
+                          }
+                        },
+                        {
+                          "@position": "27",
+                          "rawText": {
+                            "$": "L. Rui, D. Cehnxi, and Z. Shunyi, \"MACU-Net Semantic Segmentation from High-Resolution Remote Sensing Images,\" arXiv preprint arXiv:2007.13083, 2020."
+                          }
+                        },
+                        {
+                          "@position": "28",
+                          "rawText": {
+                            "$": "G. Lin, A. Milan, C. Shen, and I. Reid, \"Refinenet: Multi-path refinement networks for high-resolution semantic segmentation,\" in Proceedings of the IEEE conference on computer vision and pattern recognition, 2017, pp. 1925-1934."
+                          }
+                        },
+                        {
+                          "@position": "29",
+                          "rawText": {
+                            "$": "Salakhutdinov, \"Transformer Dissection: An Unified Understanding for Transformer's Attention via the Lens of Kernel,\" arXiv preprint arXiv:1908.11775, 2019."
+                          }
+                        },
+                        {
+                          "@position": "30",
+                          "rawText": {
+                            "$": "X.-Y. Tong et al., \"Land-cover classification with high-resolution remote sensing images using transferable deep models,\" Remote Sensing of Environment, vol. 237, p. 111322, 2020."
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "header": {
+            "dri:objIdentifier": {
+              "$": "doi_dedup___::1f8fe26680294a54707e38a4e252bd43"
+            },
+            "dri:dateOfCollection": {
+              "$": "2025-12-20T13:43:31.279719586"
+            },
+            "dri:dateOfTransformation": null
+          },
+          "metadata": {
+            "oaf:entity": {
+              "@xsi:schemaLocation": "http://namespace.openaire.eu/oaf https://www.openaire.eu/schema/1.0/oaf-1.0.xsd",
+              "oaf:result": {
+                "collectedfrom": [
+                  {
+                    "@name": "Datacite",
+                    "@id": "openaire____::9e3be59865b2c1c335d32dae2fe7b254"
+                  },
+                  {
+                    "@name": "arXiv.org e-Print Archive",
+                    "@id": "opendoar____::6f4922f45568161a8cdf4ad2299f6d23"
+                  }
+                ],
+                "originalId": [
+                  {
+                    "$": "50|datacite____::1f8fe26680294a54707e38a4e252bd43"
+                  },
+                  {
+                    "$": "10.48550/arxiv.2511.06044"
+                  },
+                  {
+                    "$": "oai:arXiv.org:2511.06044"
+                  },
+                  {
+                    "$": "50|od________18::89a1d96f3500ef15c32e3765bdb5e542"
+                  }
+                ],
+                "pid": [
+                  {
+                    "@classid": "doi",
+                    "@classname": "Digital Object Identifier",
+                    "@schemeid": "dnet:pid_types",
+                    "@schemename": "dnet:pid_types",
+                    "@inferred": false,
+                    "@provenanceaction": "sysimport:actionset",
+                    "@trust": "0.9",
+                    "$": "10.48550/arxiv.2511.06044"
+                  },
+                  {
+                    "@classid": "arXiv",
+                    "@classname": "arXiv",
+                    "@schemeid": "dnet:pid_types",
+                    "@schemename": "dnet:pid_types",
+                    "@inferred": false,
+                    "@provenanceaction": "sysimport:crosswalk:repository",
+                    "@trust": "0.9",
+                    "$": 2511.06044
+                  }
+                ],
+                "measure": [
+                  {
+                    "@id": "influence",
+                    "@score": "2.5152056E-9",
+                    "@class": "C5"
+                  },
+                  {
+                    "@id": "popularity",
+                    "@score": "2.8097327E-9",
+                    "@class": "C5"
+                  },
+                  {
+                    "@id": "influence_alt",
+                    "@score": "0",
+                    "@class": "C5"
+                  },
+                  {
+                    "@id": "popularity_alt",
+                    "@score": "0.0",
+                    "@class": "C5"
+                  },
+                  {
+                    "@id": "impulse",
+                    "@score": "0",
+                    "@class": "C5"
+                  }
+                ],
+                "title": {
+                  "@classid": "main title",
+                  "@classname": "main title",
+                  "@schemeid": "dnet:dataCite_title",
+                  "@schemename": "dnet:dataCite_title",
+                  "$": "How Particle-System Random Batch Methods Enhance Graph Transformer: Memory Efficiency and Parallel Computing Strategy"
+                },
+                "bestaccessright": {
+                  "@classid": "OPEN",
+                  "@classname": "Open Access",
+                  "@schemeid": "dnet:access_modes",
+                  "@schemename": "dnet:access_modes"
+                },
+                "creator": [
+                  {
+                    "@rank": "1",
+                    "@name": "Hanwen",
+                    "@surname": "Liu",
+                    "$": "Liu, Hanwen"
+                  },
+                  {
+                    "@rank": "2",
+                    "@name": "Yixuan",
+                    "@surname": "Ma",
+                    "$": "Ma, Yixuan"
+                  },
+                  {
+                    "@rank": "3",
+                    "@name": "Shi",
+                    "@surname": "Jin",
+                    "$": "Jin, Shi"
+                  },
+                  {
+                    "@rank": "4",
+                    "@name": "Yuguang",
+                    "@surname": "Wang",
+                    "$": "Wang, Yuguang"
+                  }
+                ],
+                "dateofacceptance": {
+                  "$": "2025-01-01"
+                },
+                "description": {
+                  "$": "Attention mechanism is a significant part of Transformer models. It helps extract features from embedded vectors by adding global information and its expressivity has been proved to be powerful. Nevertheless, the quadratic complexity restricts its practicability. Although several researches have provided attention mechanism in sparse form, they are lack of theoretical analysis about the expressivity of their mechanism while reducing complexity. In this paper, we put forward Random Batch Attention (RBA), a linear self-attention mechanism, which has theoretical support of the ability to maintain its expressivity. Random Batch Attention has several significant strengths as follows: (1) Random Batch Attention has linear time complexity. Other than this, it can be implemented in parallel on a new dimension, which contributes to much memory saving. (2) Random Batch Attention mechanism can improve most of the existing models by replacing their attention mechanisms, even many previously improved attention mechanisms. (3) Random Batch Attention mechanism has theoretical explanation in convergence, as it comes from Random Batch Methods on computation mathematics. Experiments on large graphs have proved advantages mentioned above. Also, the theoretical modeling of self-attention mechanism is a new tool for future research on attention-mechanism analysis."
+                },
+                "embargoenddate": {
+                  "$": "2025-01-01"
+                },
+                "subject": [
+                  {
+                    "@classid": "keyword",
+                    "@classname": "keyword",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "@inferred": false,
+                    "@provenanceaction": "sysimport:crosswalk:repository",
+                    "@trust": "0.9",
+                    "$": "Machine Learning"
+                  },
+                  {
+                    "@classid": "keyword",
+                    "@classname": "keyword",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "$": "FOS: Computer and information sciences"
+                  },
+                  {
+                    "@classid": "keyword",
+                    "@classname": "keyword",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "$": "Artificial Intelligence (cs.AI)"
+                  },
+                  {
+                    "@classid": "keyword",
+                    "@classname": "keyword",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "@inferred": false,
+                    "@provenanceaction": "sysimport:crosswalk:repository",
+                    "@trust": "0.9",
+                    "$": "Artificial Intelligence"
+                  },
+                  {
+                    "@classid": "keyword",
+                    "@classname": "keyword",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "@inferred": false,
+                    "@provenanceaction": "sysimport:crosswalk:repository",
+                    "@trust": "0.9",
+                    "$": "Statistics Theory"
+                  },
+                  {
+                    "@classid": "keyword",
+                    "@classname": "keyword",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "$": "FOS: Mathematics"
+                  },
+                  {
+                    "@classid": "keyword",
+                    "@classname": "keyword",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "$": "Statistics Theory (math.ST)"
+                  },
+                  {
+                    "@classid": "keyword",
+                    "@classname": "keyword",
+                    "@schemeid": "dnet:subject_classification_typologies",
+                    "@schemename": "dnet:subject_classification_typologies",
+                    "$": "Machine Learning (cs.LG)"
+                  }
+                ],
+                "language": {
+                  "@classid": "und",
+                  "@classname": "Undetermined",
+                  "@schemeid": "dnet:languages",
+                  "@schemename": "dnet:languages"
+                },
+                "relevantdate": [
+                  {
+                    "@classid": "submitted",
+                    "@classname": "submitted",
+                    "@schemeid": "dnet:dataCite_date",
+                    "@schemename": "dnet:dataCite_date",
+                    "$": "2025-11-08"
+                  },
+                  {
+                    "@classid": "updated",
+                    "@classname": "updated",
+                    "@schemeid": "dnet:dataCite_date",
+                    "@schemename": "dnet:dataCite_date",
+                    "$": "2025-11-11"
+                  },
+                  {
+                    "@classid": "available",
+                    "@classname": "available",
+                    "@schemeid": "dnet:dataCite_date",
+                    "@schemename": "dnet:dataCite_date",
+                    "$": "2025-01-01"
+                  },
+                  {
+                    "@classid": "issued",
+                    "@classname": "issued",
+                    "@schemeid": "dnet:dataCite_date",
+                    "@schemename": "dnet:dataCite_date",
+                    "$": "2025-01-01"
+                  }
+                ],
+                "publisher": {
+                  "$": "arXiv"
+                },
+                "resulttype": {
+                  "@classid": "publication",
+                  "@classname": "publication",
+                  "@schemeid": "dnet:result_typologies",
+                  "@schemename": "dnet:result_typologies"
+                },
+                "resourcetype": {
+                  "@classid": "UNKNOWN",
+                  "@classname": "UNKNOWN",
+                  "@schemeid": "dnet:dataCite_resource",
+                  "@schemename": "dnet:dataCite_resource"
+                },
+                "isgreen": {
+                  "$": true
+                },
+                "isindiamondjournal": {
+                  "$": false
+                },
+                "publiclyfunded": {
+                  "$": false
+                },
+                "context": {
+                  "@id": "knowmad",
+                  "@label": "Knowmad Institut",
+                  "@type": "community"
+                },
+                "datainfo": {
+                  "inferred": {
+                    "$": true
+                  },
+                  "deletedbyinference": {
+                    "$": false
+                  },
+                  "trust": {
+                    "$": "0.8"
+                  },
+                  "inferenceprovenance": {
+                    "$": "dedup-result-decisiontree-v4"
+                  },
+                  "provenanceaction": {
+                    "@classid": "sysimport:dedup",
+                    "@classname": "Inferred by OpenAIRE",
+                    "@schemeid": "dnet:provenanceActions",
+                    "@schemename": "dnet:provenanceActions"
+                  }
+                },
+                "rels": null,
+                "children": {
+                  "result": [
+                    {
+                      "@objidentifier": "doi_________::1f8fe26680294a54707e38a4e252bd43",
+                      "creator": [
+                        {
+                          "$": "Ma, Yixuan"
+                        },
+                        {
+                          "$": "Jin, Shi"
+                        },
+                        {
+                          "$": "Wang, Yuguang"
+                        },
+                        {
+                          "$": "Liu, Hanwen"
+                        }
+                      ],
+                      "dateofacceptance": {
+                        "$": "2025-01-01"
+                      },
+                      "collectedfrom": {
+                        "@name": "Datacite",
+                        "@id": "openaire____::9e3be59865b2c1c335d32dae2fe7b254"
+                      },
+                      "instance": {
+                        "accessright": {
+                          "@classid": "UNKNOWN",
+                          "@classname": "unspecified",
+                          "@schemeid": "dnet:access_modes",
+                          "@schemename": "dnet:access_modes"
+                        },
+                        "hostedby": {
+                          "@name": "Unknown Repository",
+                          "@id": "openaire____::55045bd2a65019fd8e6741a755395c8c"
+                        },
+                        "dateofacceptance": {
+                          "$": "2025-01-01"
+                        },
+                        "instancetype": {
+                          "@classid": "0001",
+                          "@classname": "Article",
+                          "@schemeid": "dnet:publication_resource",
+                          "@schemename": "dnet:publication_resource"
+                        },
+                        "refereed": {
+                          "@classid": "0002",
+                          "@classname": "nonPeerReviewed",
+                          "@schemeid": "dnet:review_levels",
+                          "@schemename": "dnet:review_levels"
+                        },
+                        "license": {
+                          "$": "arXiv Non-Exclusive Distribution"
+                        },
+                        "url": {
+                          "$": "https://dx.doi.org/10.48550/arxiv.2511.06044"
+                        },
+                        "webresource": {
+                          "url": {
+                            "$": "https://dx.doi.org/10.48550/arxiv.2511.06044"
+                          }
+                        }
+                      },
+                      "pid": {
+                        "@classid": "doi",
+                        "@classname": "Digital Object Identifier",
+                        "@schemeid": "dnet:pid_types",
+                        "@schemename": "dnet:pid_types",
+                        "@inferred": false,
+                        "@provenanceaction": "sysimport:actionset",
+                        "@trust": "0.9",
+                        "$": "10.48550/arxiv.2511.06044"
+                      },
+                      "publisher": {
+                        "$": "arXiv"
+                      },
+                      "title": {
+                        "@classid": "main title",
+                        "@classname": "main title",
+                        "@schemeid": "dnet:dataCite_title",
+                        "@schemename": "dnet:dataCite_title",
+                        "$": "How Particle-System Random Batch Methods Enhance Graph Transformer: Memory Efficiency and Parallel Computing Strategy"
+                      },
+                      "resulttype": {
+                        "@classid": "publication",
+                        "@classname": "publication",
+                        "@schemeid": "dnet:result_typologies",
+                        "@schemename": "dnet:result_typologies"
+                      },
+                      "description": {
+                        "$": "Attention mechanism is a significant part of Transformer models. It helps extract features from embedded vectors by adding global information and its expressivity has been proved to be powerful. Nevertheless, the quadratic complexity restricts its practicability. Although several researches have provided attention mechanism in sparse form, they are lack of theoretical analysis about the expressivity of their mechanism while reducing complexity. In this paper, we put forward Random Batch Attentio"
+                      }
+                    },
+                    {
+                      "@objidentifier": "arXiv_______::db0722e1f0cceaf3c08b1f04f37233f8",
+                      "title": {
+                        "@classid": "main title",
+                        "@classname": "main title",
+                        "@schemeid": "dnet:dataCite_title",
+                        "@schemename": "dnet:dataCite_title",
+                        "@inferred": false,
+                        "@provenanceaction": "sysimport:crosswalk:repository",
+                        "@trust": "0.9",
+                        "$": "How Particle-System Random Batch Methods Enhance Graph Transformer: Memory Efficiency and Parallel Computing Strategy"
+                      },
+                      "creator": [
+                        {
+                          "$": "Ma, Yixuan"
+                        },
+                        {
+                          "$": "Jin, Shi"
+                        },
+                        {
+                          "$": "Wang, Yuguang"
+                        },
+                        {
+                          "$": "Liu, Hanwen"
+                        }
+                      ],
+                      "collectedfrom": {
+                        "@name": "arXiv.org e-Print Archive",
+                        "@id": "opendoar____::6f4922f45568161a8cdf4ad2299f6d23"
+                      },
+                      "resulttype": {
+                        "@classid": "publication",
+                        "@classname": "publication",
+                        "@schemeid": "dnet:result_typologies",
+                        "@schemename": "dnet:result_typologies"
+                      },
+                      "pid": {
+                        "@classid": "arXiv",
+                        "@classname": "arXiv",
+                        "@schemeid": "dnet:pid_types",
+                        "@schemename": "dnet:pid_types",
+                        "@inferred": false,
+                        "@provenanceaction": "sysimport:crosswalk:repository",
+                        "@trust": "0.9",
+                        "$": 2511.06044
+                      },
+                      "instance": {
+                        "accessright": {
+                          "@classid": "OPEN",
+                          "@classname": "Open Access",
+                          "@schemeid": "dnet:access_modes",
+                          "@schemename": "dnet:access_modes"
+                        },
+                        "hostedby": {
+                          "@name": "arXiv.org e-Print Archive",
+                          "@id": "opendoar____::6f4922f45568161a8cdf4ad2299f6d23"
+                        },
+                        "dateofacceptance": {
+                          "$": "2025-11-08"
+                        },
+                        "instancetype": {
+                          "@classid": "0016",
+                          "@classname": "Preprint",
+                          "@schemeid": "dnet:publication_resource",
+                          "@schemename": "dnet:publication_resource"
+                        },
+                        "refereed": {
+                          "@classid": "0002",
+                          "@classname": "nonPeerReviewed",
+                          "@schemeid": "dnet:review_levels",
+                          "@schemename": "dnet:review_levels"
+                        },
+                        "url": {
+                          "$": "http://arxiv.org/abs/2511.06044"
+                        },
+                        "webresource": {
+                          "url": {
+                            "$": "http://arxiv.org/abs/2511.06044"
+                          }
+                        }
+                      },
+                      "dateofacceptance": {
+                        "$": "2025-11-08"
+                      },
+                      "description": {
+                        "$": "Attention mechanism is a significant part of Transformer models. It helps extract features from embedded vectors by adding global information and its expressivity has been proved to be powerful. Nevertheless, the quadratic complexity restricts its practicability. Although several researches have provided attention mechanism in sparse form, they are lack of theoretical analysis about the expressivity of their mechanism while reducing complexity. In this paper, we put forward Random Batch Attentio"
+                      }
+                    }
+                  ],
+                  "instance": [
+                    {
+                      "accessright": {
+                        "@classid": "UNKNOWN",
+                        "@classname": "unspecified",
+                        "@schemeid": "dnet:access_modes",
+                        "@schemename": "dnet:access_modes"
+                      },
+                      "collectedfrom": {
+                        "@name": "Datacite",
+                        "@id": "openaire____::9e3be59865b2c1c335d32dae2fe7b254"
+                      },
+                      "hostedby": {
+                        "@name": "Unknown Repository",
+                        "@id": "openaire____::55045bd2a65019fd8e6741a755395c8c"
+                      },
+                      "dateofacceptance": {
+                        "$": "2025-01-01"
+                      },
+                      "instancetype": {
+                        "@classid": "0001",
+                        "@classname": "Article",
+                        "@schemeid": "dnet:publication_resource",
+                        "@schemename": "dnet:publication_resource"
+                      },
+                      "pid": {
+                        "@classid": "doi",
+                        "@classname": "Digital Object Identifier",
+                        "@schemeid": "dnet:pid_types",
+                        "@schemename": "dnet:pid_types",
+                        "@inferred": false,
+                        "@provenanceaction": "sysimport:actionset",
+                        "@trust": "0.9",
+                        "$": "10.48550/arxiv.2511.06044"
+                      },
+                      "refereed": {
+                        "@classid": "0002",
+                        "@classname": "nonPeerReviewed",
+                        "@schemeid": "dnet:review_levels",
+                        "@schemename": "dnet:review_levels"
+                      },
+                      "license": {
+                        "$": "arXiv Non-Exclusive Distribution"
+                      },
+                      "webresource": {
+                        "url": {
+                          "$": "https://doi.org/10.48550/arxiv.2511.06044"
+                        }
+                      }
+                    },
+                    {
+                      "accessright": {
+                        "@classid": "OPEN",
+                        "@classname": "Open Access",
+                        "@schemeid": "dnet:access_modes",
+                        "@schemename": "dnet:access_modes"
+                      },
+                      "collectedfrom": {
+                        "@name": "arXiv.org e-Print Archive",
+                        "@id": "opendoar____::6f4922f45568161a8cdf4ad2299f6d23"
+                      },
+                      "hostedby": {
+                        "@name": "arXiv.org e-Print Archive",
+                        "@id": "opendoar____::6f4922f45568161a8cdf4ad2299f6d23"
+                      },
+                      "dateofacceptance": {
+                        "$": "2025-11-08"
+                      },
+                      "instancetype": {
+                        "@classid": "0016",
+                        "@classname": "Preprint",
+                        "@schemeid": "dnet:publication_resource",
+                        "@schemename": "dnet:publication_resource"
+                      },
+                      "pid": {
+                        "@classid": "arXiv",
+                        "@classname": "arXiv",
+                        "@schemeid": "dnet:pid_types",
+                        "@schemename": "dnet:pid_types",
+                        "@inferred": false,
+                        "@provenanceaction": "sysimport:crosswalk:repository",
+                        "@trust": "0.9",
+                        "$": 2511.06044
+                      },
+                      "refereed": {
+                        "@classid": "0002",
+                        "@classname": "nonPeerReviewed",
+                        "@schemeid": "dnet:review_levels",
+                        "@schemename": "dnet:review_levels"
+                      },
+                      "webresource": {
+                        "url": {
+                          "$": "http://arxiv.org/abs/2511.06044"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "browseResults": null
+  }
+}

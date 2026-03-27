@@ -3,6 +3,7 @@ pub mod core;
 pub mod crossref;
 pub mod dblp;
 pub mod europepmc;
+pub mod openaire;
 pub mod openalex;
 pub mod pmc;
 pub mod pubmed;
