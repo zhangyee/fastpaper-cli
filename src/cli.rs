@@ -44,12 +44,6 @@ pub enum Commands {
     /// List available sources and capabilities
     Sources(SourcesArgs),
 
-    /// Export agent skill for AI assistants
-    Skill {
-        #[command(subcommand)]
-        action: SkillAction,
-    },
-
     /// Generate shell completions
     Completions {
         shell: clap_complete::Shell,
@@ -218,24 +212,6 @@ pub struct SourcesArgs {
     pub capabilities: bool,
 }
 
-// ── skill ───────────────────────────────────────
-
-#[derive(Subcommand)]
-pub enum SkillAction {
-    /// Export SKILL.md to stdout
-    Export {
-        #[arg(long)]
-        agent: Option<AgentTarget>,
-    },
-    /// Install skill to agent's skill directory
-    Install {
-        #[arg(long)]
-        agent: Option<AgentTarget>,
-    },
-    /// Print bundled SKILL.md content
-    Show,
-}
-
 // ── enums ───────────────────────────────────────
 
 #[derive(ValueEnum, Clone, Debug)]
@@ -355,13 +331,4 @@ pub enum Section {
     Conclusion,
     References,
     Full,
-}
-
-#[derive(ValueEnum, Clone, Debug)]
-pub enum AgentTarget {
-    Claude,
-    Codex,
-    Cursor,
-    Gemini,
-    Qwen,
 }
