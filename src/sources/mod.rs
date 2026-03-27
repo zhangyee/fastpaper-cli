@@ -36,14 +36,3 @@ pub struct Paper {
     pub open_access: Option<bool>,
     pub source: String,
 }
-
-/// Result of a search operation.
-#[derive(Debug, Clone, Serialize)]
-pub struct SearchResult {
-    pub source: String,
-    pub query: String,
-    pub total: Option<u32>,
-    pub offset: u32,
-    pub limit: u32,
-    pub results: Vec<Paper>,
-}
