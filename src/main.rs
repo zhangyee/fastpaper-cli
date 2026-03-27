@@ -114,7 +114,6 @@ fn main() {
             println!("europepmc      ✓       ✓         ✓");
             println!("scholar        ✓       ✗         ✗");
             println!("semantic       ✓       ✓         ✓");
-            println!("base           ✓       ✓         ✓");
             println!("citeseerx      ✓       ✓         ✓");
             println!("crossref       ✓       ✗         ✗");
             println!("openalex       ✓       ✗         ✗");
