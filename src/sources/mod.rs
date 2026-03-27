@@ -2,6 +2,7 @@ pub mod arxiv;
 pub mod core;
 pub mod crossref;
 pub mod dblp;
+pub mod doaj;
 pub mod europepmc;
 pub mod openaire;
 pub mod openalex;

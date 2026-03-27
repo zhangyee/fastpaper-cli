@@ -1,0 +1,263 @@
+{
+    "total": 33928,
+    "page": 1,
+    "pageSize": 3,
+    "timestamp": "2026-03-27T03:19:42.602198Z",
+    "query": "attention mechanism",
+    "results": [
+        {
+            "last_updated": "2025-08-19T18:43:53Z",
+            "bibjson": {
+                "identifier": [
+                    {
+                        "id": "1664-1078",
+                        "type": "eissn"
+                    },
+                    {
+                        "id": "10.3389/fpsyg.2021.700180",
+                        "type": "doi"
+                    }
+                ],
+                "journal": {
+                    "volume": "12",
+                    "country": "CH",
+                    "issns": [
+                        "1664-1078"
+                    ],
+                    "publisher": "Frontiers Media S.A.",
+                    "language": [
+                        "EN"
+                    ],
+                    "title": "Frontiers in Psychology"
+                },
+                "month": "9",
+                "keywords": [
+                    "social commerce",
+                    "visual aesthetics",
+                    "visual communication",
+                    "micro-celebrity",
+                    "self-construal",
+                    "visual information adoption unimodel"
+                ],
+                "year": "2021",
+                "subject": [
+                    {
+                        "code": "BF1-990",
+                        "scheme": "LCC",
+                        "term": "Psychology"
+                    }
+                ],
+                "author": [
+                    {
+                        "name": "Yongzhong Yang"
+                    },
+                    {
+                        "name": "Yunyan Tang"
+                    },
+                    {
+                        "name": "Yu Zhang"
+                    },
+                    {
+                        "name": "Ruo Yang"
+                    }
+                ],
+                "link": [
+                    {
+                        "content_type": "HTML",
+                        "type": "fulltext",
+                        "url": "https://www.frontiersin.org/articles/10.3389/fpsyg.2021.700180/full"
+                    }
+                ],
+                "abstract": "The visual revolution and attention economy of the digital world have put visual aesthetic communication into the primary position of social media marketing. However, this phenomenon remains underexplored within social commerce research. This study thus develops a visual information adoption unimodel (VIAUM), to explore the relationship between visual aesthetics and social commerce intentions. Users with social commerce experience are invited to complete our online survey, and 321 valid data are collected. The results reveal that visual aesthetics has direct and indirect (via perceived usefulness) effects on the social commerce intention of users. Besides, interdependent self-construal (InterSC) strengthens the direct effect between visual aesthetics and social commerce intention. In contrast, independent self-construal weakens the mediation effects of perceived usefulness. This study is among the first attempts to empirically examine the intervening mechanism and boundary conditions between the visual aesthetics of self-presentation of micro-celebrity and the social commerce intention of consumers.",
+                "title": "Exploring the Relationship Between Visual Aesthetics and Social Commerce Through Visual Information Adoption Unimodel"
+            },
+            "id": "0001f707d4ab493dbcacb42e1990518e",
+            "created_date": "2021-09-06T05:25:02Z"
+        },
+        {
+            "last_updated": "2025-08-19T21:36:48Z",
+            "bibjson": {
+                "identifier": [
+                    {
+                        "id": "2151-1535",
+                        "type": "eissn"
+                    },
+                    {
+                        "id": "10.1109/JSTARS.2023.3339235",
+                        "type": "doi"
+                    }
+                ],
+                "journal": {
+                    "volume": "17",
+                    "country": "US",
+                    "issns": [
+                        "1939-1404",
+                        "2151-1535"
+                    ],
+                    "publisher": "IEEE",
+                    "language": [
+                        "EN"
+                    ],
+                    "title": "IEEE Journal of Selected Topics in Applied Earth Observations and Remote Sensing"
+                },
+                "end_page": "1747",
+                "keywords": [
+                    "Attention mechanism",
+                    "detection algorithms",
+                    "remote sensing",
+                    "vision transformer",
+                    "YOLOv8"
+                ],
+                "year": "2024",
+                "start_page": "1734",
+                "subject": [
+                    {
+                        "code": "TC1501-1800",
+                        "scheme": "LCC",
+                        "term": "Ocean engineering"
+                    },
+                    {
+                        "code": "QC801-809",
+                        "scheme": "LCC",
+                        "term": "Geophysics. Cosmic physics"
+                    }
+                ],
+                "author": [
+                    {
+                        "orcid_id": "https://orcid.org/0009-0007-5808-0161",
+                        "affiliation": "National Key Laboratory of Optical Field Manipulation Science and Technology, Chinese Academy of Sciences, Chengdu, China",
+                        "name": "Hao Yi"
+                    },
+                    {
+                        "orcid_id": "https://orcid.org/0000-0003-3084-0126",
+                        "affiliation": "National Key Laboratory of Optical Field Manipulation Science and Technology, Chinese Academy of Sciences, Chengdu, China",
+                        "name": "Bo Liu"
+                    },
+                    {
+                        "orcid_id": "https://orcid.org/0000-0002-2959-3968",
+                        "affiliation": "National Key Laboratory of Optical Field Manipulation Science and Technology, Chinese Academy of Sciences, Chengdu, China",
+                        "name": "Bin Zhao"
+                    },
+                    {
+                        "affiliation": "National Key Laboratory of Optical Field Manipulation Science and Technology, Chinese Academy of Sciences, Chengdu, China",
+                        "name": "Enhai Liu"
+                    }
+                ],
+                "link": [
+                    {
+                        "type": "fulltext",
+                        "url": "https://ieeexplore.ieee.org/document/10342786/"
+                    }
+                ],
+                "abstract": "Due to the limitations of small targets in remote sensing images, such as background noise, poor information, and so on, the results of commonly used detection algorithms in small target detection is not satisfactory. To improve the accuracy of detection results, we develop an improved algorithm based on YOLOv8, called LAR-YOLOv8. First, in the feature extraction network, the local module is enhanced by using the dual-branch architecture attention mechanism, while the vision transformer block is used to maximize the representation of the feature map. Second, an attention-guided bidirectional feature pyramid network is designed to generate more discriminative information by efficiently extracting feature from the shallow network through a dynamic sparse attention mechanism, and adding top&#x2013;down paths to guide the subsequent network modules for feature fusion. Finally, the RIOU loss function is proposed to avoid the failure of the loss function and improve the shape consistency between the predicted and ground-truth box. Experimental results on NWPU VHR-10, RSOD, and CARPK datasets verify that LAR-YOLOv8 achieves satisfactory results in terms of mAP (small), mAP, model parameters, and FPS, and can prove that our modifications made to the original YOLOv8 model are effective.",
+                "title": "Small Object Detection Algorithm Based on Improved YOLOv8 for Remote Sensing"
+            },
+            "id": "000467184ca2468f921d08c2074a7fab",
+            "created_date": "2023-12-28T00:02:11Z"
+        },
+        {
+            "last_updated": "2025-08-19T23:12:41Z",
+            "bibjson": {
+                "identifier": [
+                    {
+                        "id": "10.3390/app14124996",
+                        "type": "doi"
+                    },
+                    {
+                        "id": "2076-3417",
+                        "type": "eissn"
+                    }
+                ],
+                "journal": {
+                    "volume": "14",
+                    "number": "12",
+                    "country": "CH",
+                    "issns": [
+                        "2076-3417"
+                    ],
+                    "publisher": "MDPI AG",
+                    "language": [
+                        "EN"
+                    ],
+                    "title": "Applied Sciences"
+                },
+                "month": "06",
+                "keywords": [
+                    "LDA model",
+                    "research frontier",
+                    "agricultural resources and the environment",
+                    "frontier indicators",
+                    "theme fusion"
+                ],
+                "year": "2024",
+                "start_page": "4996",
+                "subject": [
+                    {
+                        "code": "T",
+                        "scheme": "LCC",
+                        "term": "Technology"
+                    },
+                    {
+                        "code": "TA1-2040",
+                        "scheme": "LCC",
+                        "term": "Engineering (General). Civil engineering (General)"
+                    },
+                    {
+                        "code": "QH301-705.5",
+                        "scheme": "LCC",
+                        "term": "Biology (General)"
+                    },
+                    {
+                        "code": "QC1-999",
+                        "scheme": "LCC",
+                        "term": "Physics"
+                    },
+                    {
+                        "code": "QD1-999",
+                        "scheme": "LCC",
+                        "term": "Chemistry"
+                    }
+                ],
+                "author": [
+                    {
+                        "affiliation": "Institute of Data Science and Agricultural Economics, Beijing Academy of Agriculture and Forestry Sciences, Beijing 100097, China",
+                        "name": "Limin Chuan"
+                    },
+                    {
+                        "affiliation": "Institute of Data Science and Agricultural Economics, Beijing Academy of Agriculture and Forestry Sciences, Beijing 100097, China",
+                        "name": "Jingjuan Zhao"
+                    },
+                    {
+                        "affiliation": "Institute of Data Science and Agricultural Economics, Beijing Academy of Agriculture and Forestry Sciences, Beijing 100097, China",
+                        "name": "Shijie Qi"
+                    },
+                    {
+                        "affiliation": "Institute of Data Science and Agricultural Economics, Beijing Academy of Agriculture and Forestry Sciences, Beijing 100097, China",
+                        "name": "Qian Jia"
+                    },
+                    {
+                        "affiliation": "Institute of Data Science and Agricultural Economics, Beijing Academy of Agriculture and Forestry Sciences, Beijing 100097, China",
+                        "name": "Hui Zhang"
+                    },
+                    {
+                        "affiliation": "Key Laboratory of Knowledge Mining and Knowledge Services in Agricultural Converging Publishing, National Press and Publication Administration, Agricultural Information Institute, Chinese Academy of Agricultural Sciences, Beijing 100081, China",
+                        "name": "Sa Ye"
+                    }
+                ],
+                "link": [
+                    {
+                        "content_type": "text/html",
+                        "type": "fulltext",
+                        "url": "https://www.mdpi.com/2076-3417/14/12/4996"
+                    }
+                ],
+                "abstract": "From the perspective of project and paper datasets, research frontier recognition in the field of agricultural resources and the environment using the Latent Dirichlet Allocation (LDA) topic extraction model was studied. By combining the wisdom of domain experts to judge the similarities and differences of clustering topics between the two data sources, multidimensional indicators, such as the emerging degree, attention degree, innovation degree, and intersection degree, were comprehensively constructed for frontier identification. The methods for hot research frontiers, emerging research frontiers, extinction research frontiers, and potential research frontiers were proposed. The empirical research in the field of agricultural resources and the environment showed that the \u201cinteraction mechanism of plant\u2013rhizosphere\u2013microbial diversity\u201d was a hot research frontier in the years 2016\u20132021. The themes of \u201cwastewater treatment technology and efficient utilization of water resources\u201d, the \u201cvalue-added utilization of agricultural wastes and sustainable development\u201d, the \u201csoil ecological response mechanism under agronomic management measures\u201d, and the \u201cmechanism of soil landslide, erosion, degradation and prediction evaluation\u201d were judged as potential research frontiers. The theme of \u201cecosystems management and pollution control of agricultural and animal husbandry\u201d was recognized as an emerging research frontier. The results confirm that the fusion method of extracting topics from project and paper data, combined with expert intelligence and frontier indicators for fine classification of frontiers, is an optional approach. This study provides strong support for accurately identifying the forefront of scientific research, grasping the latest research progress, efficiently allocating scientific and technological resources, and promoting technological innovation.",
+                "title": "Research Frontiers in the Field of Agricultural Resources and the Environment"
+            },
+            "id": "000532909295448499efcc6d9bf4c604",
+            "created_date": "2024-06-26T14:00:59Z"
+        }
+    ],
+    "next": "https://doaj.org/api/v4/search/articles/attention%20mechanism?page=2&pageSize=3",
+    "last": "https://doaj.org/api/v4/search/articles/attention%20mechanism?page=11310&pageSize=3"
+}
