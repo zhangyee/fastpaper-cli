@@ -267,47 +267,33 @@ fn main() {
         }
         cli::Commands::Get(args) => {
             let id_type = identifier::detect_id_type(&args.identifier);
-            match id_type {
+            let result: Result<Option<sources::Paper>, String> = match id_type {
                 identifier::IdType::Arxiv | identifier::IdType::ArxivOld => {
-                    // TODO: call arxiv get by id
-                    eprintln!("arXiv source not yet implemented for get");
-                    std::process::exit(1);
+                    let base_url = std::env::var("FASTPAPER_ARXIV_URL")
+                        .unwrap_or_else(|_| "https://export.arxiv.org".to_string());
+                    sources::arxiv::get_by_id(&base_url, &args.identifier)
                 }
                 identifier::IdType::Doi => {
-                    match sources::crossref::get_by_doi(
-                        "https://api.crossref.org",
-                        &args.identifier,
-                    ) {
-                        Ok(Some(paper)) => {
-                            let out = match cli.global.format {
-                                cli::OutputFormat::Json => output::to_json(&[paper]),
-                                cli::OutputFormat::Csv => output::to_csv(&[paper]),
-                                cli::OutputFormat::Bibtex => output::to_bibtex(&[paper]),
-                                _ => output::to_table(&[paper]),
-                            };
-                            print!("{}", out);
-                        }
-                        Ok(None) => {
-                            eprintln!("Paper not found: {}", args.identifier);
-                            std::process::exit(4);
-                        }
-                        Err(e) => {
-                            eprintln!("Error: {}", e);
-                            std::process::exit(3);
-                        }
-                    }
+                    let base_url = std::env::var("FASTPAPER_CROSSREF_URL")
+                        .unwrap_or_else(|_| "https://api.crossref.org".to_string());
+                    sources::crossref::get_by_doi(&base_url, &args.identifier)
                 }
                 identifier::IdType::Pmc => {
-                    eprintln!("pmc source not yet implemented");
-                    std::process::exit(1);
+                    let base_url = std::env::var("FASTPAPER_PMC_URL")
+                        .unwrap_or_else(|_| "https://eutils.ncbi.nlm.nih.gov".to_string());
+                    sources::pmc::get_by_pmc_id(&base_url, &args.identifier)
                 }
                 identifier::IdType::Pmid => {
-                    eprintln!("pubmed source not yet implemented");
-                    std::process::exit(1);
+                    let base_url = std::env::var("FASTPAPER_PUBMED_URL")
+                        .unwrap_or_else(|_| "https://eutils.ncbi.nlm.nih.gov".to_string());
+                    let pmid = args.identifier.strip_prefix("PMID:").unwrap_or(&args.identifier);
+                    sources::pubmed::get_by_pmid(&base_url, pmid)
                 }
                 identifier::IdType::S2 => {
-                    eprintln!("semantic scholar source not yet implemented for get");
-                    std::process::exit(1);
+                    let base_url = std::env::var("FASTPAPER_SEMANTIC_URL")
+                        .unwrap_or_else(|_| "https://api.semanticscholar.org".to_string());
+                    let s2_id = args.identifier.strip_prefix("S2:").unwrap_or(&args.identifier);
+                    sources::semantic::get_by_id(&base_url, s2_id)
                 }
                 identifier::IdType::Url => {
                     eprintln!("URL-based lookup not yet implemented");
@@ -318,6 +304,25 @@ fn main() {
                         "Unrecognized identifier format: '{}'\nSupported formats: arXiv ID, DOI, PMC ID, PMID, S2 ID, URL",
                         args.identifier
                     );
+                    std::process::exit(1);
+                }
+            };
+            match result {
+                Ok(Some(paper)) => {
+                    let out = match cli.global.format {
+                        cli::OutputFormat::Json => output::to_json(&[paper]),
+                        cli::OutputFormat::Csv => output::to_csv(&[paper]),
+                        cli::OutputFormat::Bibtex => output::to_bibtex(&[paper]),
+                        _ => output::to_table(&[paper]),
+                    };
+                    print!("{}", out);
+                }
+                Ok(None) => {
+                    eprintln!("Paper not found: {}", args.identifier);
+                    std::process::exit(4);
+                }
+                Err(e) => {
+                    eprintln!("Error: {}", e);
                     std::process::exit(1);
                 }
             }

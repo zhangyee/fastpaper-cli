@@ -75,6 +75,19 @@ fn http_get(url: &str) -> Result<String, String> {
     Err(last_err)
 }
 
+/// Fetch a single paper by PMC ID.
+pub fn get_by_pmc_id(base_url: &str, pmc_id: &str) -> Result<Option<Paper>, String> {
+    // Strip "PMC" prefix if present to get numeric ID
+    let numeric_id = pmc_id.strip_prefix("PMC").unwrap_or(pmc_id);
+    let url = format!(
+        "{}/entrez/eutils/efetch.fcgi?db=pmc&id={}&rettype=xml&tool=fastpaper&email=yee.zhang@gmail.com",
+        base_url, numeric_id
+    );
+    let body = http_get(&url)?;
+    let papers = parse_efetch_response(&body)?;
+    Ok(papers.into_iter().next())
+}
+
 /// Parse PMC efetch XML response into a list of Papers.
 pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
     let mut reader = Reader::from_str(xml);

@@ -98,14 +98,12 @@ fn get_unknown_identifier_fails() {
 
 #[test]
 fn get_arxiv_id_routes_to_arxiv() {
-    // arXiv get not implemented yet, but should recognize the ID
     let output = cmd()
         .args(["get", "2301.08745"])
         .output()
         .unwrap();
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("arXiv"), "should route to arXiv, got: {}", stderr);
-    assert!(!stderr.contains("Unrecognized"));
+    assert!(!stderr.contains("Unrecognized"), "should recognize arXiv ID");
 }
 
 #[test]
@@ -115,8 +113,7 @@ fn get_pmc_id_routes_to_pmc() {
         .output()
         .unwrap();
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("pmc"), "should route to pmc, got: {}", stderr);
-    assert!(!stderr.contains("Unrecognized"));
+    assert!(!stderr.contains("Unrecognized"), "should recognize PMC ID");
 }
 
 #[test]
@@ -645,4 +642,89 @@ fn search_crossref_mock_outputs_title() {
     assert!(!results.is_empty());
     let title = results[0]["title"].as_str().unwrap_or("");
     assert!(!title.is_empty(), "title should not be empty");
+}
+
+// ── get command integration tests ───────────────
+
+#[test]
+fn get_arxiv_id_returns_paper() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["get", "2301.08745", "--format", "json"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    assert!(!v["results"][0]["title"].as_str().unwrap_or("").is_empty());
+}
+
+#[test]
+fn get_pmc_id_returns_paper() {
+    let efetch = include_str!("fixtures/pmc_efetch.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(efetch)
+        .create();
+    let output = cmd()
+        .args(["get", "PMC7318926", "--format", "json"])
+        .env("FASTPAPER_PMC_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    assert!(!v["results"][0]["title"].as_str().unwrap_or("").is_empty());
+}
+
+#[test]
+fn get_pmid_returns_paper() {
+    let efetch = include_str!("fixtures/pubmed_efetch.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(efetch)
+        .create();
+    let output = cmd()
+        .args(["get", "PMID:33475315", "--format", "json"])
+        .env("FASTPAPER_PUBMED_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    assert!(!v["results"][0]["title"].as_str().unwrap_or("").is_empty());
+}
+
+#[test]
+fn get_s2_id_returns_paper() {
+    // S2 get returns a single paper object, extract first from search fixture
+    let fixture = include_str!("fixtures/semantic_search.json");
+    let v: serde_json::Value = serde_json::from_str(fixture).unwrap();
+    let single_paper = serde_json::to_string(&v["data"][0]).unwrap();
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(single_paper)
+        .create();
+    let output = cmd()
+        .args(["get", "S2:649def34f8be52c8b66281af98ae884c09aef38b", "--format", "json"])
+        .env("FASTPAPER_SEMANTIC_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    assert!(!v["results"][0]["title"].as_str().unwrap_or("").is_empty());
 }

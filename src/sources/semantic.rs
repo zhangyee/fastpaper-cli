@@ -43,6 +43,33 @@ pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper
     Err(last_err)
 }
 
+/// Fetch a single paper by S2 paper ID.
+pub fn get_by_id(base_url: &str, s2_id: &str) -> Result<Option<Paper>, String> {
+    let url = format!(
+        "{}/graph/v1/paper/{}?fields={}",
+        base_url, s2_id, FIELDS
+    );
+    let api_key = std::env::var("SEMANTIC_SCHOLAR_API_KEY").ok();
+    let mut req = ureq::get(&url);
+    if let Some(ref key) = api_key {
+        req = req.header("x-api-key", key);
+    }
+    match req.call() {
+        Ok(resp) => {
+            let body = resp
+                .into_body()
+                .read_to_string()
+                .map_err(|e| format!("Failed to read response: {}", e))?;
+            // Reuse parse logic: wrap single result in search-like structure
+            let wrapped = format!(r#"{{"data":[{}]}}"#, body);
+            let papers = parse_search_response(&wrapped)?;
+            Ok(papers.into_iter().next())
+        }
+        Err(ureq::Error::StatusCode(404)) => Ok(None),
+        Err(e) => Err(format!("HTTP error: {}", e)),
+    }
+}
+
 /// Parse Semantic Scholar JSON search response into a list of Papers.
 pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
     let root: serde_json::Value =

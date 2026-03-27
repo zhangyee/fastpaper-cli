@@ -75,6 +75,17 @@ fn http_get(url: &str) -> Result<String, String> {
     Err(last_err)
 }
 
+/// Fetch a single paper by PMID.
+pub fn get_by_pmid(base_url: &str, pmid: &str) -> Result<Option<Paper>, String> {
+    let url = format!(
+        "{}/entrez/eutils/efetch.fcgi?db=pubmed&id={}&retmode=xml&tool=fastpaper&email=yee.zhang@gmail.com",
+        base_url, pmid
+    );
+    let body = http_get(&url)?;
+    let papers = parse_efetch_response(&body)?;
+    Ok(papers.into_iter().next())
+}
+
 /// Parse PubMed efetch XML response into a list of Papers.
 pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
     let mut reader = Reader::from_str(xml);
