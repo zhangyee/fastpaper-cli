@@ -728,3 +728,253 @@ fn get_s2_id_returns_paper() {
     let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
     assert!(!v["results"][0]["title"].as_str().unwrap_or("").is_empty());
 }
+
+// ── read remote full text integration tests ─────
+
+#[test]
+fn read_arxiv_fulltext_outputs_text() {
+    let pdf_bytes = include_bytes!("fixtures/test.pdf");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(pdf_bytes.as_slice())
+        .create();
+    let output = cmd()
+        .args(["read", "arxiv", "2301.08745"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.trim().is_empty(), "should output extracted text");
+}
+
+#[test]
+fn read_arxiv_fulltext_json_has_full_text() {
+    let pdf_bytes = include_bytes!("fixtures/test.pdf");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(pdf_bytes.as_slice())
+        .create();
+    let output = cmd()
+        .args(["read", "arxiv", "2301.08745", "--format", "json"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
+    let full_text = v["content"]["full_text"].as_str().unwrap_or("");
+    assert!(!full_text.is_empty(), "full_text should not be empty");
+}
+
+#[test]
+fn read_pmc_fulltext_outputs_text() {
+    let pdf_bytes = include_bytes!("fixtures/test.pdf");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(pdf_bytes.as_slice())
+        .create();
+    let output = cmd()
+        .args(["read", "pmc", "PMC7318926"])
+        .env("FASTPAPER_PMC_DL_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.trim().is_empty(), "should output extracted text");
+}
+
+#[test]
+fn read_hal_fulltext_outputs_text() {
+    let pdf_bytes = include_bytes!("fixtures/test.pdf");
+    let mut server = mockito::Server::new();
+    let mock_pdf_url = format!("{}/fake.pdf", server.url());
+    let hal_json = serde_json::json!({
+        "response": {
+            "docs": [{
+                "halId_s": "hal-01234567",
+                "title_s": ["Test Paper"],
+                "authFullName_s": ["Grace"],
+                "abstract_s": "abstract text",
+                "doiId_s": "10.1234/test",
+                "publicationDateY_i": 2024,
+                "fileMain_s": mock_pdf_url,
+                "uri_s": "https://hal.science/hal-01234567"
+            }]
+        }
+    });
+    server
+        .mock("GET", mockito::Matcher::Regex("search".to_string()))
+        .with_status(200)
+        .with_body(hal_json.to_string())
+        .create();
+    server
+        .mock("GET", "/fake.pdf")
+        .with_status(200)
+        .with_body(pdf_bytes.as_slice())
+        .create();
+    let output = cmd()
+        .args(["read", "hal", "hal-01234567"])
+        .env("FASTPAPER_HAL_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.trim().is_empty(), "should output extracted text");
+}
+
+#[test]
+fn read_zenodo_fulltext_outputs_text() {
+    let pdf_bytes = include_bytes!("fixtures/test.pdf");
+    let mut server = mockito::Server::new();
+    let mock_pdf_url = format!("{}/fake.pdf", server.url());
+    let zenodo_json = serde_json::json!({
+        "hits": {"hits": [{
+            "id": 99999,
+            "doi": "10.5281/zenodo.99999",
+            "metadata": {
+                "title": "Test",
+                "creators": [{"name": "Frank"}],
+                "description": "abstract",
+                "publication_date": "2024-01-01",
+                "access_right": "open"
+            },
+            "files": [{"key": "paper.pdf", "links": {"self": mock_pdf_url}}]
+        }]}
+    });
+    server
+        .mock("GET", mockito::Matcher::Regex("records".to_string()))
+        .with_status(200)
+        .with_body(zenodo_json.to_string())
+        .create();
+    server
+        .mock("GET", "/fake.pdf")
+        .with_status(200)
+        .with_body(pdf_bytes.as_slice())
+        .create();
+    let output = cmd()
+        .args(["read", "zenodo", "99999"])
+        .env("FASTPAPER_ZENODO_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.trim().is_empty(), "should output extracted text");
+}
+
+#[test]
+fn read_doaj_fulltext_outputs_text() {
+    let pdf_bytes = include_bytes!("fixtures/test.pdf");
+    let mut server = mockito::Server::new();
+    let mock_pdf_url = format!("{}/fake.pdf", server.url());
+    let doaj_json = serde_json::json!({
+        "results": [{
+            "bibjson": {
+                "title": "Test",
+                "author": [{"name": "Eve"}],
+                "year": "2024",
+                "abstract": "test abstract",
+                "identifier": [{"type": "doi", "id": "10.1234/test"}],
+                "link": [{"type": "fulltext", "url": mock_pdf_url}],
+                "journal": {"title": "Test Journal"}
+            }
+        }]
+    });
+    server
+        .mock("GET", mockito::Matcher::Regex("search/articles".to_string()))
+        .with_status(200)
+        .with_body(doaj_json.to_string())
+        .create();
+    server
+        .mock("GET", "/fake.pdf")
+        .with_status(200)
+        .with_body(pdf_bytes.as_slice())
+        .create();
+    let output = cmd()
+        .args(["read", "doaj", "10.1234/test"])
+        .env("FASTPAPER_DOAJ_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.trim().is_empty(), "should output extracted text");
+}
+
+#[test]
+fn read_core_fulltext_outputs_text() {
+    let pdf_bytes = include_bytes!("fixtures/test.pdf");
+    let mut server = mockito::Server::new();
+    let mock_pdf_url = format!("{}/fake.pdf", server.url());
+    let core_json = serde_json::json!({
+        "results": [{
+            "id": "12345",
+            "title": "Test Paper",
+            "authors": [{"name": "Bob"}],
+            "abstract": "test",
+            "doi": "10.1234/test",
+            "downloadUrl": mock_pdf_url,
+            "yearPublished": 2024
+        }]
+    });
+    server
+        .mock("GET", mockito::Matcher::Regex("search/works".to_string()))
+        .with_status(200)
+        .with_body(core_json.to_string())
+        .create();
+    server
+        .mock("GET", "/fake.pdf")
+        .with_status(200)
+        .with_body(pdf_bytes.as_slice())
+        .create();
+    let output = cmd()
+        .args(["read", "core", "12345"])
+        .env("FASTPAPER_CORE_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.trim().is_empty(), "should output extracted text");
+}
+
+#[test]
+fn read_semantic_fulltext_outputs_text() {
+    let pdf_bytes = include_bytes!("fixtures/test.pdf");
+    let mut server = mockito::Server::new();
+    let mock_pdf_url = format!("{}/fake.pdf", server.url());
+    let paper_json = serde_json::json!({
+        "paperId": "abc123",
+        "title": "Test Paper",
+        "authors": [{"name": "Alice"}],
+        "year": 2024,
+        "openAccessPdf": {"url": mock_pdf_url},
+        "externalIds": {},
+        "fieldsOfStudy": [],
+        "venue": "",
+        "citationCount": 0,
+        "url": "https://example.com"
+    });
+    server
+        .mock("GET", mockito::Matcher::Regex("graph/v1/paper".to_string()))
+        .with_status(200)
+        .with_body(paper_json.to_string())
+        .create();
+    server
+        .mock("GET", "/fake.pdf")
+        .with_status(200)
+        .with_body(pdf_bytes.as_slice())
+        .create();
+    let output = cmd()
+        .args(["read", "semantic", "abc123"])
+        .env("FASTPAPER_SEMANTIC_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.trim().is_empty(), "should output extracted text");
+}

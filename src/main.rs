@@ -159,11 +159,7 @@ fn main() {
                         .unwrap_or_else(|_| "https://www.ncbi.nlm.nih.gov".to_string());
                     download::download_pmc(&base_url, &args.identifier, &args.dir, args.overwrite)
                 }
-                cli::Source::Europepmc => {
-                    let base_url = std::env::var("FASTPAPER_EUROPEPMC_URL")
-                        .unwrap_or_else(|_| "https://www.ebi.ac.uk".to_string());
-                    download::download_europepmc(&base_url, &args.identifier, &args.dir, args.overwrite)
-                }
+
                 cli::Source::Semantic => {
                     let base_url = std::env::var("FASTPAPER_SEMANTIC_URL")
                         .unwrap_or_else(|_| "https://api.semanticscholar.org".to_string());
@@ -246,61 +242,139 @@ fn main() {
                     }
                 }
             } else {
-                // Full text mode
-                match args.source {
+                // Full text mode: get text from local file or remote PDF
+                let full_text = match args.source {
                     cli::Source::Local => {
                         let path = std::path::Path::new(&args.identifier);
-                        match read::extract_text(path) {
-                            Ok(full_text) => {
-                                let text = match args.section {
-                                    cli::Section::Abstract => {
-                                        read::extract_section_abstract(&full_text)
-                                            .unwrap_or_default()
+                        read::extract_text(path)
+                    }
+                    _ => {
+                        // Download PDF bytes, then extract text
+                        let bytes = match args.source {
+                            cli::Source::Arxiv => {
+                                let base_url = std::env::var("FASTPAPER_ARXIV_URL")
+                                    .unwrap_or_else(|_| "https://arxiv.org".to_string());
+                                sources::arxiv::download_pdf(&base_url, &args.identifier)
+                            }
+                            cli::Source::Biorxiv => {
+                                let base_url = std::env::var("FASTPAPER_BIORXIV_DL_URL")
+                                    .unwrap_or_else(|_| "https://www.biorxiv.org".to_string());
+                                let url = format!("{}/content/{}v1.full.pdf", base_url, args.identifier);
+                                download::fetch_pdf(&url)
+                            }
+                            cli::Source::Medrxiv => {
+                                let base_url = std::env::var("FASTPAPER_MEDRXIV_DL_URL")
+                                    .unwrap_or_else(|_| "https://www.medrxiv.org".to_string());
+                                let url = format!("{}/content/{}v1.full.pdf", base_url, args.identifier);
+                                download::fetch_pdf(&url)
+                            }
+                            cli::Source::Pmc => {
+                                let base_url = std::env::var("FASTPAPER_PMC_DL_URL")
+                                    .unwrap_or_else(|_| "https://www.ncbi.nlm.nih.gov".to_string());
+                                let numeric = args.identifier.strip_prefix("PMC").unwrap_or(&args.identifier);
+                                let url = format!("{}/pmc/articles/PMC{}/pdf/", base_url, numeric);
+                                download::fetch_pdf(&url)
+                            }
+                            cli::Source::Hal => {
+                                let base_url = std::env::var("FASTPAPER_HAL_URL")
+                                    .unwrap_or_else(|_| "https://api.archives-ouvertes.fr".to_string());
+                                sources::hal::search(&base_url, &args.identifier, 1)
+                                    .and_then(|papers| papers.first()
+                                        .and_then(|p| p.pdf_url.clone())
+                                        .ok_or_else(|| "No PDF URL found".to_string()))
+                                    .and_then(|url| download::fetch_pdf(&url))
+                            }
+                            cli::Source::Zenodo => {
+                                let base_url = std::env::var("FASTPAPER_ZENODO_URL")
+                                    .unwrap_or_else(|_| "https://zenodo.org".to_string());
+                                sources::zenodo::search(&base_url, &args.identifier, 1)
+                                    .and_then(|papers| papers.first()
+                                        .and_then(|p| p.pdf_url.clone())
+                                        .ok_or_else(|| "No PDF URL found".to_string()))
+                                    .and_then(|url| download::fetch_pdf(&url))
+                            }
+                            cli::Source::Doaj => {
+                                let base_url = std::env::var("FASTPAPER_DOAJ_URL")
+                                    .unwrap_or_else(|_| "https://doaj.org".to_string());
+                                sources::doaj::search(&base_url, &args.identifier, 1)
+                                    .and_then(|papers| papers.first()
+                                        .and_then(|p| p.pdf_url.clone())
+                                        .ok_or_else(|| "No PDF URL found".to_string()))
+                                    .and_then(|url| download::fetch_pdf(&url))
+                            }
+                            cli::Source::Core => {
+                                let base_url = std::env::var("FASTPAPER_CORE_URL")
+                                    .unwrap_or_else(|_| "https://api.core.ac.uk".to_string());
+                                sources::core::search(&base_url, &args.identifier, 1)
+                                    .and_then(|papers| papers.first()
+                                        .and_then(|p| p.pdf_url.clone())
+                                        .ok_or_else(|| "No PDF URL found".to_string()))
+                                    .and_then(|url| download::fetch_pdf(&url))
+                            }
+                            cli::Source::Semantic => {
+                                let base_url = std::env::var("FASTPAPER_SEMANTIC_URL")
+                                    .unwrap_or_else(|_| "https://api.semanticscholar.org".to_string());
+                                sources::semantic::get_by_id(&base_url, &args.identifier)
+                                    .and_then(|opt| opt.ok_or_else(|| format!("Paper not found: {}", args.identifier)))
+                                    .and_then(|p| p.pdf_url.ok_or_else(|| "No open access PDF available".to_string()))
+                                    .and_then(|url| download::fetch_pdf(&url))
+                            }
+                            _ => {
+                                eprintln!("read: full text for source '{}' not yet implemented", args.source.name());
+                                std::process::exit(1);
+                            }
+                        };
+                        match bytes {
+                            Ok(b) => read::extract_text_from_bytes(&b),
+                            Err(e) => Err(e),
+                        }
+                    }
+                };
+                match full_text {
+                    Ok(full_text) => {
+                        let text = match args.section {
+                            cli::Section::Abstract => {
+                                read::extract_section_abstract(&full_text)
+                                    .unwrap_or_default()
+                            }
+                            _ => full_text,
+                        };
+                        let text = if let Some(max) = args.max_length {
+                            text.chars().take(max).collect::<String>()
+                        } else {
+                            text
+                        };
+                        match cli.global.format {
+                            cli::OutputFormat::Json => {
+                                let out = serde_json::json!({
+                                    "content": {
+                                        "full_text": text,
                                     }
-                                    _ => full_text.clone(),
-                                };
-                                let text = if let Some(max) = args.max_length {
-                                    text.chars().take(max).collect::<String>()
+                                });
+                                let json_str = serde_json::to_string_pretty(&out).unwrap();
+                                if let Some(ref out_path) = args.output {
+                                    std::fs::write(out_path, &json_str).unwrap_or_else(|e| {
+                                        eprintln!("Error writing file: {}", e);
+                                        std::process::exit(1);
+                                    });
                                 } else {
-                                    text
-                                };
-                                match cli.global.format {
-                                    cli::OutputFormat::Json => {
-                                        let out = serde_json::json!({
-                                            "content": {
-                                                "full_text": text,
-                                            }
-                                        });
-                                        let json_str = serde_json::to_string_pretty(&out).unwrap();
-                                        if let Some(ref out_path) = args.output {
-                                            std::fs::write(out_path, &json_str).unwrap_or_else(|e| {
-                                                eprintln!("Error writing file: {}", e);
-                                                std::process::exit(1);
-                                            });
-                                        } else {
-                                            print!("{}", json_str);
-                                        }
-                                    }
-                                    _ => {
-                                        if let Some(ref out_path) = args.output {
-                                            std::fs::write(out_path, &text).unwrap_or_else(|e| {
-                                                eprintln!("Error writing file: {}", e);
-                                                std::process::exit(1);
-                                            });
-                                        } else {
-                                            print!("{}", text);
-                                        }
-                                    }
+                                    print!("{}", json_str);
                                 }
                             }
-                            Err(e) => {
-                                eprintln!("Error: {}", e);
-                                std::process::exit(1);
+                            _ => {
+                                if let Some(ref out_path) = args.output {
+                                    std::fs::write(out_path, &text).unwrap_or_else(|e| {
+                                        eprintln!("Error writing file: {}", e);
+                                        std::process::exit(1);
+                                    });
+                                } else {
+                                    print!("{}", text);
+                                }
                             }
                         }
                     }
-                    _ => {
-                        eprintln!("read: full text for source '{}' not yet implemented", args.source.name());
+                    Err(e) => {
+                        eprintln!("Error: {}", e);
                         std::process::exit(1);
                     }
                 }
@@ -376,7 +450,7 @@ fn main() {
             println!("medrxiv        ✓       ✓         ✓");
             println!("pubmed         ✓       ✗         ✗");
             println!("pmc            ✓       ✓         ✓");
-            println!("europepmc      ✓       ✓         ✓");
+            println!("europepmc      ✓       ✗         ✗");
             println!("scholar        ✓       ✗         ✗");
             println!("semantic       ✓       ✓         ✓");
             println!("crossref       ✓       ✗         ✗");

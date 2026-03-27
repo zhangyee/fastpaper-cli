@@ -62,31 +62,6 @@ pub fn download_pmc(
     save_pdf(&bytes, dir, identifier, overwrite)
 }
 
-/// Download a PDF from Europe PMC (fetch metadata first to get full text URL).
-pub fn download_europepmc(
-    base_url: &str,
-    identifier: &str,
-    dir: &Path,
-    overwrite: bool,
-) -> Result<PathBuf, String> {
-    let meta_url = format!(
-        "{}/europepmc/webservices/rest/search?query={}&pageSize=1&format=json&resultType=core",
-        base_url, identifier
-    );
-    let body = ureq::get(&meta_url)
-        .call()
-        .map_err(|e| format!("HTTP error: {}", e))?
-        .into_body()
-        .read_to_string()
-        .map_err(|e| format!("Read error: {}", e))?;
-    let papers = sources::europepmc::parse_search_response(&body)?;
-    let pdf_url = papers
-        .first()
-        .and_then(|p| p.url.as_deref())
-        .ok_or_else(|| "No PDF URL found".to_string())?;
-    let bytes = fetch_pdf(pdf_url)?;
-    save_pdf(&bytes, dir, identifier, overwrite)
-}
 
 /// Download a PDF from Semantic Scholar (fetch metadata to get openAccessPdf URL).
 pub fn download_semantic(

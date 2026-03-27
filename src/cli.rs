@@ -272,7 +272,6 @@ impl Source {
                 | Source::Biorxiv
                 | Source::Medrxiv
                 | Source::Pmc
-                | Source::Europepmc
                 | Source::Semantic
                 | Source::Core
                 | Source::Doaj

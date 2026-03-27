@@ -2,7 +2,13 @@ use std::path::Path;
 
 /// Extract full text from a local PDF file.
 pub fn extract_text(path: &Path) -> Result<String, String> {
-    let mut doc = pdf_oxide::PdfDocument::open(path)
+    let bytes = std::fs::read(path).map_err(|e| format!("Failed to read file: {}", e))?;
+    extract_text_from_bytes(&bytes)
+}
+
+/// Extract full text from PDF bytes in memory.
+pub fn extract_text_from_bytes(bytes: &[u8]) -> Result<String, String> {
+    let mut doc = pdf_oxide::PdfDocument::from_bytes(bytes.to_vec())
         .map_err(|e| format!("Failed to open PDF: {}", e))?;
     let text = doc
         .extract_all_text()
@@ -85,6 +91,13 @@ mod tests {
             "abstract should not contain introduction heading, got: {}",
             abs
         );
+    }
+
+    #[test]
+    fn extract_text_from_bytes_works() {
+        let bytes = std::fs::read(fixture_path()).unwrap();
+        let text = extract_text_from_bytes(&bytes).unwrap();
+        assert!(!text.is_empty());
     }
 
     #[test]
