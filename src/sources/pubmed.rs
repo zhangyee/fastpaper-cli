@@ -217,6 +217,7 @@ fn local_name(name: &[u8]) -> &str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     const FIXTURE: &str = include_str!("../../tests/fixtures/pubmed_efetch.xml");
 
@@ -370,6 +371,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn search_with_api_key() {
         unsafe { std::env::set_var("NCBI_API_KEY", "test-ncbi-key") };
         let mut server = mockito::Server::new();
@@ -390,6 +392,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn search_works_without_api_key() {
         unsafe { std::env::remove_var("NCBI_API_KEY") };
         let mut server = mockito::Server::new();

@@ -240,6 +240,7 @@ fn local_name(name: &[u8]) -> &str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     const FIXTURE: &str = include_str!("../../tests/fixtures/pmc_efetch.xml");
 
@@ -378,6 +379,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn search_with_api_key() {
         unsafe { std::env::set_var("NCBI_API_KEY", "pmc-test-key") };
         let mut server = mockito::Server::new();

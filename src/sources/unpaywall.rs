@@ -77,6 +77,7 @@ pub fn lookup_doi(base_url: &str, doi: &str) -> Result<Paper, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     const FIXTURE: &str = include_str!("../../tests/fixtures/unpaywall_lookup.json");
 
@@ -127,6 +128,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn lookup_without_email_returns_err() {
         unsafe { std::env::remove_var("UNPAYWALL_EMAIL") };
         let result = lookup_doi("http://localhost", "10.1038/nature12373");

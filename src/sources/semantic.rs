@@ -110,6 +110,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     const FIXTURE: &str = include_str!("../../tests/fixtures/semantic_search.json");
 
@@ -226,6 +227,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn search_sends_api_key_header_when_set() {
         let mut server = mockito::Server::new();
         let mock = server
@@ -241,6 +243,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn search_works_without_api_key() {
         unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
         let mut server = mockito::Server::new();

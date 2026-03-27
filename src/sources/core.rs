@@ -131,6 +131,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     const FIXTURE: &str = include_str!("../../tests/fixtures/core_search.json");
 
@@ -239,6 +240,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn search_with_api_key_sends_bearer() {
         unsafe { std::env::set_var("CORE_API_KEY", "core-test-key") };
         let mut server = mockito::Server::new();
@@ -255,6 +257,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn search_works_without_api_key() {
         unsafe { std::env::remove_var("CORE_API_KEY") };
         let mut server = mockito::Server::new();
@@ -268,6 +271,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn search_403_with_key_retries_without() {
         unsafe { std::env::set_var("CORE_API_KEY", "bad-key") };
         let mut server = mockito::Server::new();
