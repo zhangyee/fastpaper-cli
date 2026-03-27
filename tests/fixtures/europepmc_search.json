@@ -1,0 +1,503 @@
+{
+    "version": "6.9",
+    "hitCount": 993768,
+    "nextCursorMark": "AoIIQYg13Sg1NTE5MTg0MQ==",
+    "nextPageUrl": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=attention mechanism&cursorMark=AoIIQYg13Sg1NTE5MTg0MQ==&resultType=core&pageSize=3&format=json",
+    "request": {
+        "queryString": "attention mechanism",
+        "resultType": "core",
+        "cursorMark": "*",
+        "pageSize": 3,
+        "sort": "",
+        "synonym": false
+    },
+    "resultList": {
+        "result": [
+            {
+                "id": "41792208",
+                "source": "MED",
+                "pmid": "41792208",
+                "doi": "10.1038/s41598-026-43147-x",
+                "title": "Object tracking algorithm based on deformable attention mechanism.",
+                "authorString": "Liu Q, Yu N, Cheng J.",
+                "authorList": {
+                    "author": [
+                        {
+                            "fullName": "Liu Q",
+                            "firstName": "Qiaoling",
+                            "lastName": "Liu",
+                            "initials": "Q",
+                            "authorAffiliationDetailsList": {
+                                "authorAffiliation": [
+                                    {
+                                        "affiliation": "School of Electronic Information and Electrical Engineering, Chengdu University, Chengdu, 610106, China. liuqiaolingg2023@126.com."
+                                    },
+                                    {
+                                        "affiliation": "Entrepreneurship College, Chengdu University, Chengdu, 610106, China. liuqiaolingg2023@126.com."
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "fullName": "Yu N",
+                            "firstName": "Na",
+                            "lastName": "Yu",
+                            "initials": "N",
+                            "authorAffiliationDetailsList": {
+                                "authorAffiliation": [
+                                    {
+                                        "affiliation": "School of Electronic Information and Electrical Engineering, Chengdu University, Chengdu, 610106, China."
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "fullName": "Cheng J",
+                            "firstName": "Jinfu",
+                            "lastName": "Cheng",
+                            "initials": "J",
+                            "authorAffiliationDetailsList": {
+                                "authorAffiliation": [
+                                    {
+                                        "affiliation": "Department Engineering, Datong Vocational and Technical College of Coal, Datong, 037000, China."
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "journalInfo": {
+                    "journalIssueId": 4127634,
+                    "dateOfPublication": "2026 Mar",
+                    "monthOfPublication": 3,
+                    "yearOfPublication": 2026,
+                    "printPublicationDate": "2026-03-01",
+                    "journal": {
+                        "title": "Scientific reports",
+                        "medlineAbbreviation": "Sci Rep",
+                        "essn": "2045-2322",
+                        "isoabbreviation": "Sci Rep",
+                        "issn": "2045-2322",
+                        "nlmid": "101563288"
+                    }
+                },
+                "pubYear": "2026",
+                "abstractText": "Occlusion, sudden illumination changes, and rapid motion in complex scenes severely degrade the robustness of existing object tracking methods. To address this issue, this paper proposes a novel object tracking algorithm that integrates a deformable attention mechanism. The method first embeds a deformable attention module into the ResNet-18 feature extraction network to enable adaptive enhancement of target key features. Second, the method adopts an improved Bidirectional Feature Pyramid Network as the feature fusion module to enhance the representational capability of multi-scale features. Finally, the method incorporates a dynamic Kalman filtering prediction module to improve the algorithm's adaptability to changes in the target's motion state and its continuous tracking capability. Experimental results show that the improved feature extraction network achieves an average overlap rate and success rate of 61.5% and 68.4%, respectively, on the GOT-10k dataset, with a computational load of only 1.96 GFLOPs and an increase of only 0.23 M in parameters. On the MOT20 dataset, the proposed object tracking network achieves a Multiple Object Tracking Accuracy of 77.5%, an Identity F1 Score of 77.0%, with 54.6% Majority of Tracked Trajectories and 12.5% Majority of Lost Trajectories. Its tracking performance surpasses that of the compared object tracking algorithms. These results confirm the efficacy of the Deformable Attention Mechanism and present a robust solution for complex dynamic tracking scenarios.",
+                "affiliation": "School of Electronic Information and Electrical Engineering, Chengdu University, Chengdu, 610106, China. liuqiaolingg2023@126.com.",
+                "publicationStatus": "aheadofprint",
+                "language": "eng",
+                "pubModel": "Print-Electronic",
+                "pubTypeList": {
+                    "pubType": [
+                        "Journal Article"
+                    ]
+                },
+                "grantsList": {
+                    "grant": [
+                        {
+                            "grantId": "No. 2025ZNSFSC1513",
+                            "agency": "Sichuan Province Science and Technology Plan Project",
+                            "orderIn": 0
+                        }
+                    ]
+                },
+                "keywordList": {
+                    "keyword": [
+                        "Kalman Filter",
+                        "Resnet-18",
+                        "Object Tracking Algorithm",
+                        "Bidirectional Feature Pyramid Network",
+                        "Deformable Attention Mechanism"
+                    ]
+                },
+                "subsetList": {
+                    "subset": [
+                        {
+                            "code": "IM",
+                            "name": "Index Medicus"
+                        }
+                    ]
+                },
+                "fullTextUrlList": {
+                    "fullTextUrl": [
+                        {
+                            "availability": "Subscription required",
+                            "availabilityCode": "S",
+                            "documentStyle": "doi",
+                            "site": "DOI",
+                            "url": "https://doi.org/10.1038/s41598-026-43147-x"
+                        }
+                    ]
+                },
+                "isOpenAccess": "N",
+                "inEPMC": "N",
+                "inPMC": "N",
+                "hasPDF": "N",
+                "hasBook": "N",
+                "hasSuppl": "N",
+                "citedByCount": 0,
+                "hasData": "N",
+                "hasReferences": "Y",
+                "hasTextMinedTerms": "N",
+                "hasDbCrossReferences": "N",
+                "hasLabsLinks": "N",
+                "license": "cc by",
+                "hasEvaluations": "N",
+                "authMan": "N",
+                "epmcAuthMan": "N",
+                "nihAuthMan": "N",
+                "hasTMAccessionNumbers": "N",
+                "dateOfCreation": "2026-03-06",
+                "firstIndexDate": "2026-03-07",
+                "dateOfRevision": "2026-03-06",
+                "electronicPublicationDate": "2026-03-06",
+                "firstPublicationDate": "2026-03-06"
+            },
+            {
+                "id": "41744547",
+                "source": "MED",
+                "pmid": "41744547",
+                "pmcid": "PMC12938590",
+                "fullTextIdList": {
+                    "fullTextId": [
+                        "PMC12938590"
+                    ]
+                },
+                "doi": "10.3390/biomimetics11020103",
+                "title": "Space Human-Robot Interaction with Gaze Tracking Based on Attention Mechanism.",
+                "authorString": "Dai L, Liu J, Ju Z.",
+                "authorList": {
+                    "author": [
+                        {
+                            "fullName": "Dai L",
+                            "firstName": "Lihong",
+                            "lastName": "Dai",
+                            "initials": "L",
+                            "authorId": {
+                                "type": "ORCID",
+                                "value": "0000-0003-3617-2691"
+                            },
+                            "authorAffiliationDetailsList": {
+                                "authorAffiliation": [
+                                    {
+                                        "affiliation": "School of Electrical and Electronics Engineering, Hubei Polytechnic University, Huangshi 435003, China."
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "fullName": "Liu J",
+                            "firstName": "Jinguo",
+                            "lastName": "Liu",
+                            "initials": "J",
+                            "authorId": {
+                                "type": "ORCID",
+                                "value": "0000-0002-6790-6582"
+                            },
+                            "authorAffiliationDetailsList": {
+                                "authorAffiliation": [
+                                    {
+                                        "affiliation": "State Key Laboratory of Robotics, Shenyang Institute of Automation, Chinese Academy of Sciences, Shenyang 110016, China."
+                                    },
+                                    {
+                                        "affiliation": "Institutes for Robotics and Intelligent Manufacturing, Chinese Academy of Sciences, Shenyang 110169, China."
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "fullName": "Ju Z",
+                            "firstName": "Zhaojie",
+                            "lastName": "Ju",
+                            "initials": "Z",
+                            "authorAffiliationDetailsList": {
+                                "authorAffiliation": [
+                                    {
+                                        "affiliation": "Key Laboratory for Biomedical Engineering of Ministry of Education, College of Biomedical Engineering and Instrument Science, Zhejiang University, Hangzhou 310007, China."
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "authorIdList": {
+                    "authorId": [
+                        {
+                            "type": "ORCID",
+                            "value": "0000-0002-6790-6582"
+                        },
+                        {
+                            "type": "ORCID",
+                            "value": "0000-0003-3617-2691"
+                        }
+                    ]
+                },
+                "dataLinksTagsList": {
+                    "dataLinkstag": [
+                        "altmetrics"
+                    ]
+                },
+                "journalInfo": {
+                    "issue": "2",
+                    "volume": "11",
+                    "journalIssueId": 4132597,
+                    "dateOfPublication": "2026 Feb",
+                    "monthOfPublication": 2,
+                    "yearOfPublication": 2026,
+                    "printPublicationDate": "2026-02-01",
+                    "journal": {
+                        "title": "Biomimetics (Basel, Switzerland)",
+                        "medlineAbbreviation": "Biomimetics (Basel)",
+                        "essn": "2313-7673",
+                        "isoabbreviation": "Biomimetics (Basel)",
+                        "issn": "2313-7673",
+                        "nlmid": "101719189"
+                    }
+                },
+                "pubYear": "2026",
+                "pageInfo": "103",
+                "abstractText": "Gaze is a natural and rapid non-verbal interaction mode, particularly well-suited for human-robot interaction in busy space environments. However, the space human-robot interaction based on gaze is still in its infancy. Therefore, this paper conducts a preliminary exploration in this area. Using the AAR-2, a free-flying astronaut-assistant robot, as the platform, we establish a gaze tracking database, construct a gaze tracking model based on an attention mechanism, and develop a human-robot interface. When the astronaut gazes at a control button on the interface, the corresponding control instruction is transmitted to the STM32 controller within the AAR-2 via radio frequency communication. Subsequently, the AAR-2 is propelled by ducted fans to perform the corresponding action. At the same time, the AAR-2 feeds back its operational state to the astronaut, thereby enabling space human-robot interaction. In the system, we achieve an effective gaze tracking model with high accuracy and implement an efficient image preprocessing method with high real-time performance. The experimental results demonstrate that the system can meet the actual requirements for accuracy and real-time processing.",
+                "affiliation": "School of Electrical and Electronics Engineering, Hubei Polytechnic University, Huangshi 435003, China.",
+                "publicationStatus": "epublish",
+                "language": "eng",
+                "pubModel": "Electronic",
+                "pubTypeList": {
+                    "pubType": [
+                        "research-article",
+                        "Journal Article"
+                    ]
+                },
+                "grantsList": {
+                    "grant": [
+                        {
+                            "grantId": "2018YFB1304600",
+                            "agency": "National Key Research and Development Program of China",
+                            "orderIn": 0
+                        },
+                        {
+                            "grantId": "co-financed by the European Regional Development Fund",
+                            "agency": "AiBle project",
+                            "orderIn": 0
+                        },
+                        {
+                            "grantId": "52075530",
+                            "agency": "National Natural Science Foundation of China",
+                            "orderIn": 0
+                        },
+                        {
+                            "grantId": "JCTD-2018-11",
+                            "agency": "CAS Interdisciplinary Innovation Team",
+                            "orderIn": 0
+                        },
+                        {
+                            "grantId": "23xjz13R",
+                            "agency": "Talent Introduction Project of Hubei Polytechnic University",
+                            "orderIn": 0
+                        }
+                    ]
+                },
+                "keywordList": {
+                    "keyword": [
+                        "Gaze Tracking",
+                        "Attention Mechanism",
+                        "Radio Frequency Communication",
+                        "Space Human–robot Interaction"
+                    ]
+                },
+                "fullTextUrlList": {
+                    "fullTextUrl": [
+                        {
+                            "availability": "Subscription required",
+                            "availabilityCode": "S",
+                            "documentStyle": "doi",
+                            "site": "DOI",
+                            "url": "https://doi.org/10.3390/biomimetics11020103"
+                        },
+                        {
+                            "availability": "Open access",
+                            "availabilityCode": "OA",
+                            "documentStyle": "html",
+                            "site": "Europe_PMC",
+                            "url": "https://europepmc.org/articles/PMC12938590"
+                        },
+                        {
+                            "availability": "Open access",
+                            "availabilityCode": "OA",
+                            "documentStyle": "pdf",
+                            "site": "Europe_PMC",
+                            "url": "https://europepmc.org/articles/PMC12938590?pdf=render"
+                        }
+                    ]
+                },
+                "isOpenAccess": "Y",
+                "inEPMC": "Y",
+                "inPMC": "Y",
+                "hasPDF": "Y",
+                "hasBook": "N",
+                "hasSuppl": "Y",
+                "citedByCount": 0,
+                "hasData": "Y",
+                "hasReferences": "N",
+                "hasTextMinedTerms": "Y",
+                "hasDbCrossReferences": "N",
+                "hasLabsLinks": "Y",
+                "license": "cc by",
+                "hasEvaluations": "N",
+                "authMan": "N",
+                "epmcAuthMan": "N",
+                "nihAuthMan": "N",
+                "hasTMAccessionNumbers": "N",
+                "dateOfCompletion": "2026-02-26",
+                "dateOfCreation": "2026-02-26",
+                "firstIndexDate": "2026-02-26",
+                "fullTextReceivedDate": "2026-02-27",
+                "dateOfRevision": "2026-02-28",
+                "electronicPublicationDate": "2026-02-02",
+                "firstPublicationDate": "2026-02-02"
+            },
+            {
+                "id": "PMC13013079",
+                "source": "PMC",
+                "pmcid": "PMC13013079",
+                "fullTextIdList": {
+                    "fullTextId": [
+                        "PMC13013079"
+                    ]
+                },
+                "title": "Interactive behavior recognition and feedback optimization strategy for medical teaching based on attention mechanism",
+                "authorString": "Li H, Zhai L, Li W.",
+                "authorList": {
+                    "author": [
+                        {
+                            "fullName": "Li H",
+                            "firstName": "Hongwei",
+                            "lastName": "Li",
+                            "initials": "H",
+                            "authorAffiliationDetailsList": {
+                                "authorAffiliation": [
+                                    {
+                                        "affiliation": "School of Humanities and Foreign Languages, Gansu University of Chinese Medicine , , ,"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "fullName": "Zhai L",
+                            "firstName": "Lihua",
+                            "lastName": "Zhai",
+                            "initials": "L",
+                            "authorAffiliationDetailsList": {
+                                "authorAffiliation": [
+                                    {
+                                        "affiliation": "School of Health Management, Gansu University of Chinese Medicine , , ,"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "fullName": "Li W",
+                            "firstName": "Weixia",
+                            "lastName": "Li",
+                            "initials": "W",
+                            "authorAffiliationDetailsList": {
+                                "authorAffiliation": [
+                                    {
+                                        "affiliation": "Medical Imaging Center, Affiliated Hospital of Gansu University of Chinese Medicine , , ,"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "journalInfo": {
+                    "volume": "13",
+                    "journalIssueId": 4160418,
+                    "dateOfPublication": " ",
+                    "monthOfPublication": 0,
+                    "yearOfPublication": 0,
+                    "journal": {
+                        "title": "Frontiers in medicine",
+                        "medlineAbbreviation": "Front Med (Lausanne)",
+                        "essn": "2296-858X",
+                        "isoabbreviation": "Front Med (Lausanne)",
+                        "issn": "2296-858X",
+                        "nlmid": "101648047"
+                    }
+                },
+                "language": "eng",
+                "pubModel": "Undetermined",
+                "pubTypeList": {
+                    "pubType": [
+                        "research-article",
+                        "Journal Article"
+                    ]
+                },
+                "keywordList": {
+                    "keyword": [
+                        "Educational Technology",
+                        "Medical Teaching",
+                        "Multimodal Learning",
+                        "Attention Mechanism",
+                        "Adaptive Feedback Optimization",
+                        "Interactive Behavior Recognition"
+                    ]
+                },
+                "fullTextUrlList": {
+                    "fullTextUrl": [
+                        {
+                            "availability": "Free",
+                            "availabilityCode": "F",
+                            "documentStyle": "html",
+                            "site": "PubMedCentral",
+                            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC13013079/?tool=EBI"
+                        },
+                        {
+                            "availability": "Free",
+                            "availabilityCode": "F",
+                            "documentStyle": "pdf",
+                            "site": "PubMedCentral",
+                            "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC13013079/pdf/?tool=EBI"
+                        },
+                        {
+                            "availability": "Free",
+                            "availabilityCode": "F",
+                            "documentStyle": "html",
+                            "site": "Europe_PMC",
+                            "url": "https://europepmc.org/articles/PMC13013079"
+                        },
+                        {
+                            "availability": "Free",
+                            "availabilityCode": "F",
+                            "documentStyle": "pdf",
+                            "site": "Europe_PMC",
+                            "url": "https://europepmc.org/articles/PMC13013079?pdf=render"
+                        }
+                    ]
+                },
+                "isOpenAccess": "Y",
+                "inEPMC": "Y",
+                "inPMC": "Y",
+                "hasPDF": "Y",
+                "hasBook": "N",
+                "hasSuppl": "N",
+                "citedByCount": 0,
+                "hasData": "N",
+                "hasReferences": "N",
+                "hasTextMinedTerms": "N",
+                "hasDbCrossReferences": "N",
+                "hasLabsLinks": "N",
+                "license": "cc by",
+                "hasEvaluations": "N",
+                "authMan": "N",
+                "epmcAuthMan": "N",
+                "nihAuthMan": "N",
+                "hasTMAccessionNumbers": "N",
+                "dateOfCreation": "2026-03-26",
+                "firstIndexDate": "2026-03-26",
+                "fullTextReceivedDate": "2026-03-26",
+                "dateOfRevision": "2026-03-26",
+                "firstPublicationDate": "2026-03-26"
+            }
+        ]
+    }
+}

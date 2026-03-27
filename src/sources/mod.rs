@@ -1,5 +1,6 @@
 pub mod arxiv;
 pub mod crossref;
+pub mod europepmc;
 pub mod openalex;
 pub mod pmc;
 pub mod pubmed;
