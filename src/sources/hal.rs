@@ -1,5 +1,42 @@
 use super::Paper;
 
+const FIELDS: &str = "halId_s,title_s,authFullName_s,abstract_s,doiId_s,publicationDateY_i,fileMain_s,uri_s";
+
+/// Search HAL API.
+pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let url = format!(
+        "{}/search/?q={}&rows={}&wt=json&fl={}",
+        base_url, query, max_results, FIELDS
+    );
+
+    let mut last_err = String::new();
+    for attempt in 0..3 {
+        if attempt > 0 {
+            std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
+        }
+        match ureq::get(&url).call() {
+            Ok(resp) => {
+                let body = resp
+                    .into_body()
+                    .read_to_string()
+                    .map_err(|e| format!("Failed to read response: {}", e))?;
+                return parse_search_response(&body);
+            }
+            Err(ureq::Error::StatusCode(429)) => {
+                last_err = "rate limited (429)".to_string();
+                continue;
+            }
+            Err(ureq::Error::StatusCode(code)) if code >= 500 => {
+                return Err(format!("Server error: {}", code));
+            }
+            Err(e) => {
+                return Err(format!("HTTP error: {}", e));
+            }
+        }
+    }
+    Err(last_err)
+}
+
 /// Parse HAL JSON search response into a list of Papers.
 pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
     let root: serde_json::Value =
@@ -154,5 +191,66 @@ mod tests {
         for p in &papers {
             assert_eq!(p.open_access, Some(true), "HAL papers are always OA");
         }
+    }
+
+    #[test]
+    fn search_returns_papers() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let papers = search(&server.url(), "test", 3).unwrap();
+        assert!(!papers.is_empty());
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_path() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("/search/".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_contains_wt_json() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("wt=json".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_contains_rows() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("rows=3".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_contains_fl() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("fl=".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
     }
 }
