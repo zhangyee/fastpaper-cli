@@ -5,6 +5,7 @@ edition = "2024"
 authors = ["Yee Zhang <yee.zhang@gmail.com>"]
 license = "GPL-3.0"
 description = "CLI tool for searching, downloading and reading academic papers"
+repository = "https://github.com/zhangyee/fastpaper-cli"
 
 [lib]
 name = "fastpaper"
@@ -29,3 +30,8 @@ assert_cmd = "2.2.0"
 mockito = "1"
 predicates = "3.1.4"
 serial_test = "3.4.0"
+
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
