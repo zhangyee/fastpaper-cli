@@ -2,11 +2,13 @@
 
 # fastpaper CLI with Skill
 
-A CLI tool that gives AI coding agents (Claude Code, Codex, Gemini CLI, etc.) the ability to search, download, and read academic papers and scientific literature. Ships with a [SKILL](skills/fastpaper/SKILL.md) that teaches agents how to pick sources and construct commands.
+A CLI tool that gives AI agents (Claude Code, Codex, Opencode, etc.) the ability to search, download, and read academic papers and scientific literature. Ships with a [SKILL](skills/fastpaper/SKILL.md) that teaches agents how to pick sources and construct commands.
 
 One command, one source, zero configuration. Parallel multi-source search is handled by the agent spawning multiple processes.
 
 ## Install
+
+### CLI
 
 **Homebrew (macOS / Linux)**
 
@@ -31,6 +33,16 @@ powershell -ExecutionPolicy Bypass -c "irm https://github.com/zhangyee/fastpaper
 ```sh
 cargo install fastpaper-cli
 ```
+
+### Skill
+
+Install the skill so your AI agent knows how to use fastpaper. Uses [Vercel Skills](https://github.com/vercel-labs/skills), a tool that installs SKILL.md files into agents:
+
+```sh
+npx skills add zhangyee/fastpaper-cli --skill fastpaper
+```
+
+The SKILL.md teaches the agent how to pick sources by domain and construct commands. Use `--format json` for structured output. All JSON fields use `null` for missing values (never omitted), so the schema is stable.
 
 ## Quick start
 
@@ -190,16 +202,6 @@ All optional except where noted. 19 of 20 sources work with zero configuration.
 | `3` | Source error (API error, rate limit exhausted) |
 | `4` | No results found |
 | `5` | Permission error (not open access, missing env var) |
-
-## Install skill
-
-Install the skill so your AI coding agent knows how to use fastpaper. Uses [Vercel Skills](https://github.com/vercel-labs/skills), a tool that installs SKILL.md files into coding agents (Claude Code, Codex, Cursor, Gemini CLI, etc.):
-
-```sh
-npx skills add zhangyee/fastpaper-cli
-```
-
-The SKILL.md teaches the agent how to pick sources by domain and construct commands. Use `--format json` for structured output. All JSON fields use `null` for missing values (never omitted), so the schema is stable.
 
 ## License
 

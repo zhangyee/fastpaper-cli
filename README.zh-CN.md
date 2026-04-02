@@ -2,11 +2,13 @@
 
 # fastpaper CLI with Skill
 
-一个为 AI 编程智能体（Claude Code、Codex、Gemini CLI 等）提供学术论文及科技文献快速检索、下载和阅读能力的 CLI 工具。配套 [SKILL](skills/fastpaper/SKILL.md) 文件，教会智能体按领域选择数据源并构造命令。
+一个为 AI 智能体（Claude Code、Codex、Opencode 等）提供学术论文及科技文献快速检索、下载和阅读能力的 CLI 工具。配套 [SKILL](skills/fastpaper/SKILL.md) 文件，教会智能体按领域选择数据源并构造命令。
 
 单条命令、单个数据源、零配置。多源并行检索由智能体启动多个进程实现。
 
 ## 安装
+
+### CLI
 
 **Homebrew (macOS / Linux)**
 
@@ -31,6 +33,16 @@ powershell -ExecutionPolicy Bypass -c "irm https://github.com/zhangyee/fastpaper
 ```sh
 cargo install fastpaper-cli
 ```
+
+### Skill
+
+安装 Skill 文件，让 AI 智能体学会使用 fastpaper。使用 [Vercel Skills](https://github.com/vercel-labs/skills)，一个将 SKILL.md 安装到各智能体的工具：
+
+```sh
+npx skills add zhangyee/fastpaper-cli --skill fastpaper
+```
+
+SKILL.md 教会智能体按研究领域选择数据源并构造命令。使用 `--format json` 获取结构化输出。所有 JSON 字段缺失时统一输出 `null`（不省略），保证 schema 稳定。
 
 ## 快速开始
 
@@ -190,16 +202,6 @@ fastpaper completions bash >> ~/.bashrc
 | `3` | 数据源错误（API 报错、频率限制重试耗尽） |
 | `4` | 未找到结果 |
 | `5` | 权限错误（论文未开放获取、缺少必需环境变量） |
-
-## 安装 Skill
-
-安装 Skill 文件，让 AI 编程智能体学会使用 fastpaper。使用 [Vercel Skills](https://github.com/vercel-labs/skills)，一个将 SKILL.md 安装到各编程智能体（Claude Code、Codex、Cursor、Gemini CLI 等）的工具：
-
-```sh
-npx skills add zhangyee/fastpaper-cli
-```
-
-SKILL.md 教会智能体按研究领域选择数据源并构造命令。使用 `--format json` 获取结构化输出。所有 JSON 字段缺失时统一输出 `null`（不省略），保证 schema 稳定。
 
 ## 许可证
 
