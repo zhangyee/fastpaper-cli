@@ -45,7 +45,6 @@ enum FetchOutcome {
 
 static LAST_CALL: OnceLock<Mutex<Option<Instant>>> = OnceLock::new();
 // Task 7 search 限流降级路径使用。
-#[allow(dead_code)]
 static WARNED: OnceLock<()> = OnceLock::new();
 
 // 解析 HTTP Retry-After 头。
@@ -148,7 +147,43 @@ pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper
     };
     match http_get_with_retry_cfg(&url, api_key, &cfg) {
         FetchOutcome::Ok(body) => parse_search_response(&body),
-        FetchOutcome::RateLimited => Err(format!("rate limited after {} retries", cfg.max_retries)),
+        FetchOutcome::RateLimited => {
+            if WARNED.set(()).is_ok() {
+                eprintln!(
+                    "[semantic] rate-limited after {} retries, skipping this source",
+                    cfg.max_retries
+                );
+            }
+            Ok(vec![])
+        }
+        FetchOutcome::Err(e) => Err(e),
+    }
+}
+
+#[cfg(test)]
+fn search_with_cfg_for_test(
+    base_url: &str,
+    query: &str,
+    max_results: u32,
+    cfg: &BackoffConfig,
+) -> Result<Vec<Paper>, String> {
+    let encoded = super::encode_query(query);
+    let url = format!(
+        "{}/graph/v1/paper/search?query={}&limit={}&fields={}",
+        base_url, encoded, max_results, FIELDS
+    );
+    let api_key = std::env::var("SEMANTIC_SCHOLAR_API_KEY").ok();
+    match http_get_with_retry_cfg(&url, api_key, cfg) {
+        FetchOutcome::Ok(body) => parse_search_response(&body),
+        FetchOutcome::RateLimited => {
+            if WARNED.set(()).is_ok() {
+                eprintln!(
+                    "[semantic] rate-limited after {} retries, skipping this source",
+                    cfg.max_retries
+                );
+            }
+            Ok(vec![])
+        }
         FetchOutcome::Err(e) => Err(e),
     }
 }
@@ -502,6 +537,28 @@ mod tests {
             .create();
         let _ = search(&server.url(), "test", 3);
         mock.assert();
+    }
+
+    #[test]
+    #[serial]
+    fn rate_limit_exhausted_returns_empty_vec() {
+        unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
+        let mut server = mockito::Server::new();
+        let _m = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(429)
+            .expect_at_least(4)
+            .create();
+
+        let cfg = BackoffConfig {
+            base: Duration::from_millis(10),
+            max: Duration::from_millis(50),
+            max_retries: 3,
+        };
+        let result = search_with_cfg_for_test(&server.url(), "test", 3, &cfg);
+
+        assert!(result.is_ok(), "expected Ok(vec![]), got {:?}", result);
+        assert!(result.unwrap().is_empty(), "expected empty Vec on exhausted retries");
     }
 
     #[test]
