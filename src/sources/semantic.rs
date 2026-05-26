@@ -223,6 +223,28 @@ pub fn get_by_id(base_url: &str, s2_id: &str) -> Result<Option<Paper>, String> {
     }
 }
 
+#[cfg(test)]
+fn get_by_id_with_cfg_for_test(
+    base_url: &str,
+    s2_id: &str,
+    cfg: &BackoffConfig,
+) -> Result<Option<Paper>, String> {
+    let url = format!("{}/graph/v1/paper/{}?fields={}", base_url, s2_id, FIELDS);
+    let api_key = std::env::var("SEMANTIC_SCHOLAR_API_KEY").ok();
+    match http_get_with_retry_cfg(&url, api_key, cfg) {
+        FetchOutcome::Ok(body) => {
+            let wrapped = format!(r#"{{"data":[{}]}}"#, body);
+            Ok(parse_search_response(&wrapped)?.into_iter().next())
+        }
+        FetchOutcome::Err(e) if e.contains("404") => Ok(None),
+        FetchOutcome::Err(e) => Err(e),
+        FetchOutcome::RateLimited => Err(format!(
+            "rate limited after {} retries",
+            cfg.max_retries
+        )),
+    }
+}
+
 /// Parse Semantic Scholar JSON search response into a list of Papers.
 pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
     let root: serde_json::Value =
@@ -604,6 +626,31 @@ mod tests {
         );
         m1.assert();
         m2.assert();
+    }
+
+    #[test]
+    #[serial]
+    fn get_by_id_returns_err_on_rate_limit_exhausted() {
+        unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
+        let mut server = mockito::Server::new();
+        let _m = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(429)
+            .expect_at_least(4)
+            .create();
+
+        let cfg = BackoffConfig {
+            base: Duration::from_millis(10),
+            max: Duration::from_millis(50),
+            max_retries: 3,
+        };
+        let result = get_by_id_with_cfg_for_test(&server.url(), "abc123", &cfg);
+
+        assert!(
+            matches!(result, Err(ref e) if e.contains("rate limited")),
+            "expected Err on rate-limit exhausted, got {:?}",
+            result
+        );
     }
 
     #[test]
