@@ -11,16 +11,12 @@ const USER_AGENT: &str = concat!(
     " (+https://github.com/zhangyee/fastpaper-cli)"
 );
 
-// 节流间隔（带 key）。Task 6 接入 throttle() 时启用。
-#[allow(dead_code)]
+// 节流间隔（带 key）。
 const MIN_INTERVAL_AUTH: Duration = Duration::from_millis(1000);
-// 节流间隔（匿名）。Task 6 接入 throttle() 时启用。
-#[allow(dead_code)]
+// 节流间隔（匿名）。
 const MIN_INTERVAL_ANON: Duration = Duration::from_millis(100);
 const MAX_RETRIES: u32 = 5;
 
-// 字段 base/max/max_retries 由 Task 3 的 backoff_delay 与 Task 6 的 http_get_with_retry_cfg 启用。
-#[allow(dead_code)]
 #[derive(Clone, Copy)]
 struct BackoffConfig {
     base: Duration,
@@ -41,23 +37,18 @@ impl BackoffConfig {
     };
 }
 
-// RateLimited 由 Task 6（429 重试耗尽路径）构造。
-#[allow(dead_code)]
 enum FetchOutcome {
     Ok(String),
     RateLimited,
     Err(String),
 }
 
-// Task 6 throttle() 使用。
-#[allow(dead_code)]
 static LAST_CALL: OnceLock<Mutex<Option<Instant>>> = OnceLock::new();
 // Task 7 search 限流降级路径使用。
 #[allow(dead_code)]
 static WARNED: OnceLock<()> = OnceLock::new();
 
-// 解析 HTTP Retry-After 头。Task 6 接入 429 重试时使用。
-#[allow(dead_code)]
+// 解析 HTTP Retry-After 头。
 fn parse_retry_after(headers: &ureq::http::HeaderMap, max: Duration) -> Option<Duration> {
     headers
         .get("retry-after")
@@ -67,8 +58,7 @@ fn parse_retry_after(headers: &ureq::http::HeaderMap, max: Duration) -> Option<D
         .map(|d| d.min(max))
 }
 
-// 指数退避（带 0-10% jitter）。Task 6 接入 429 重试时使用。
-#[allow(dead_code)]
+// 指数退避（带 0-10% jitter）。
 fn backoff_delay(attempt: u32, cfg: &BackoffConfig) -> Duration {
     let shift = attempt.min(10);
     let exp_ms = (cfg.base.as_millis() as u64).saturating_mul(1u64 << shift);
@@ -80,8 +70,7 @@ fn backoff_delay(attempt: u32, cfg: &BackoffConfig) -> Duration {
     exp + Duration::from_millis(jitter_ms)
 }
 
-// 进程级节流。第二次连续调用会 sleep 到至少 min_interval。Task 6 接入 http_get_with_retry_cfg 时使用。
-#[allow(dead_code)]
+// 进程级节流。第二次连续调用会 sleep 到至少 min_interval。
 fn throttle_with(state: &Mutex<Option<Instant>>, min_interval: Duration) {
     let mut guard = state.lock().unwrap();
     if let Some(last) = *guard {
@@ -93,39 +82,55 @@ fn throttle_with(state: &Mutex<Option<Instant>>, min_interval: Duration) {
     *guard = Some(Instant::now());
 }
 
+fn throttle(has_key: bool) {
+    let min = if has_key { MIN_INTERVAL_AUTH } else { MIN_INTERVAL_ANON };
+    let state = LAST_CALL.get_or_init(|| Mutex::new(None));
+    throttle_with(state, min);
+}
+
 fn http_get_with_retry_cfg(
     url: &str,
     api_key: Option<String>,
-    _cfg: &BackoffConfig,
+    cfg: &BackoffConfig,
 ) -> FetchOutcome {
-    // Task 1 占位：保持原有简单行为，后续任务渐进替换。
-    // - 切到 Agent + http_status_as_error(false)
-    // - 加 User-Agent
-    // - 429 / 5xx / 其它错误一律按 Err 返回（保留旧行为）
     let agent: ureq::Agent = ureq::Agent::config_builder()
         .http_status_as_error(false)
         .build()
         .into();
 
-    let mut req = agent.get(url).header("User-Agent", USER_AGENT);
-    if let Some(ref k) = api_key {
-        req = req.header("x-api-key", k);
+    for attempt in 0..=cfg.max_retries {
+        throttle(api_key.is_some());
+
+        let mut req = agent.get(url).header("User-Agent", USER_AGENT);
+        if let Some(ref k) = api_key {
+            req = req.header("x-api-key", k);
+        }
+        let resp = match req.call() {
+            Ok(r) => r,
+            Err(e) => return FetchOutcome::Err(format!("HTTP error: {e}")),
+        };
+        let status = resp.status().as_u16();
+        match status {
+            200 => {
+                return match resp.into_body().read_to_string() {
+                    Ok(body) => FetchOutcome::Ok(body),
+                    Err(e) => FetchOutcome::Err(format!("read body: {e}")),
+                };
+            }
+            404 => return FetchOutcome::Err("HTTP 404".to_string()),
+            429 => {
+                if attempt == cfg.max_retries {
+                    return FetchOutcome::RateLimited;
+                }
+                let wait = parse_retry_after(resp.headers(), cfg.max)
+                    .unwrap_or_else(|| backoff_delay(attempt, cfg));
+                std::thread::sleep(wait);
+            }
+            500..=599 => return FetchOutcome::Err(format!("Server error: {status}")),
+            _ => return FetchOutcome::Err(format!("HTTP {status}")),
+        }
     }
-    let resp = match req.call() {
-        Ok(r) => r,
-        Err(e) => return FetchOutcome::Err(format!("HTTP error: {e}")),
-    };
-    let status = resp.status().as_u16();
-    match status {
-        200 => match resp.into_body().read_to_string() {
-            Ok(body) => FetchOutcome::Ok(body),
-            Err(e) => FetchOutcome::Err(format!("read body: {e}")),
-        },
-        404 => FetchOutcome::Err("HTTP 404".to_string()),
-        429 => FetchOutcome::Err("rate limited (429)".to_string()),
-        500..=599 => FetchOutcome::Err(format!("Server error: {status}")),
-        _ => FetchOutcome::Err(format!("HTTP {status}")),
-    }
+    FetchOutcome::RateLimited
 }
 
 /// Search Semantic Scholar API and return parsed papers.
@@ -143,7 +148,7 @@ pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper
     };
     match http_get_with_retry_cfg(&url, api_key, &cfg) {
         FetchOutcome::Ok(body) => parse_search_response(&body),
-        FetchOutcome::RateLimited => Err("rate limited (429)".to_string()),
+        FetchOutcome::RateLimited => Err(format!("rate limited after {} retries", cfg.max_retries)),
         FetchOutcome::Err(e) => Err(e),
     }
 }
@@ -167,7 +172,10 @@ pub fn get_by_id(base_url: &str, s2_id: &str) -> Result<Option<Paper>, String> {
         }
         FetchOutcome::Err(e) if e.contains("404") => Ok(None),
         FetchOutcome::Err(e) => Err(e),
-        FetchOutcome::RateLimited => Err("rate limited (429)".to_string()),
+        FetchOutcome::RateLimited => Err(format!(
+            "rate limited after {} retries",
+            cfg.max_retries
+        )),
     }
 }
 
@@ -494,5 +502,41 @@ mod tests {
             .create();
         let _ = search(&server.url(), "test", 3);
         mock.assert();
+    }
+
+    #[test]
+    #[serial]
+    fn rate_limit_then_success_respects_retry_after() {
+        unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
+        let mut server = mockito::Server::new();
+
+        // 第 1 次：429 + Retry-After: 1
+        let m1 = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(429)
+            .with_header("retry-after", "1")
+            .expect(1)
+            .create();
+        // 第 2 次：200
+        let m2 = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .expect(1)
+            .create();
+
+        let t0 = Instant::now();
+        let result = search(&server.url(), "test", 3);
+        let elapsed = t0.elapsed();
+
+        assert!(result.is_ok(), "expected Ok, got {:?}", result);
+        assert!(!result.unwrap().is_empty());
+        assert!(
+            elapsed >= Duration::from_secs(1) && elapsed < Duration::from_secs(3),
+            "expected ~1s wait (got {:?})",
+            elapsed
+        );
+        m1.assert();
+        m2.assert();
     }
 }
