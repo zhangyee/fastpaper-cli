@@ -89,15 +89,17 @@ fn throttle(has_key: bool) {
 
 fn http_get_with_retry_cfg(
     url: &str,
-    api_key: Option<String>,
+    mut api_key: Option<String>,
     cfg: &BackoffConfig,
 ) -> FetchOutcome {
+    let mut tried_without_key = api_key.is_none();
     let agent: ureq::Agent = ureq::Agent::config_builder()
         .http_status_as_error(false)
         .build()
         .into();
 
-    for attempt in 0..=cfg.max_retries {
+    let mut attempt: u32 = 0;
+    while attempt <= cfg.max_retries {
         throttle(api_key.is_some());
 
         let mut req = agent.get(url).header("User-Agent", USER_AGENT);
@@ -116,6 +118,12 @@ fn http_get_with_retry_cfg(
                     Err(e) => FetchOutcome::Err(format!("read body: {e}")),
                 };
             }
+            403 if api_key.is_some() && !tried_without_key => {
+                eprintln!("[semantic] API key rejected (403), retrying without key");
+                api_key = None;
+                tried_without_key = true;
+                continue; // 不计 attempt
+            }
             404 => return FetchOutcome::Err("HTTP 404".to_string()),
             429 => {
                 if attempt == cfg.max_retries {
@@ -128,6 +136,7 @@ fn http_get_with_retry_cfg(
             500..=599 => return FetchOutcome::Err(format!("Server error: {status}")),
             _ => return FetchOutcome::Err(format!("HTTP {status}")),
         }
+        attempt += 1;
     }
     FetchOutcome::RateLimited
 }
@@ -595,5 +604,36 @@ mod tests {
         );
         m1.assert();
         m2.assert();
+    }
+
+    #[test]
+    #[serial]
+    fn forbidden_with_key_strips_key_and_retries() {
+        unsafe { std::env::set_var("SEMANTIC_SCHOLAR_API_KEY", "bad-key") };
+
+        let mut server = mockito::Server::new();
+        // 带 key → 403
+        let m_403 = server
+            .mock("GET", mockito::Matcher::Any)
+            .match_header("x-api-key", "bad-key")
+            .with_status(403)
+            .expect(1)
+            .create();
+        // 不带 key → 200
+        let m_200 = server
+            .mock("GET", mockito::Matcher::Any)
+            .match_header("x-api-key", mockito::Matcher::Missing)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .expect(1)
+            .create();
+
+        let result = search(&server.url(), "test", 3);
+        unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
+
+        assert!(result.is_ok(), "expected Ok after key-strip retry, got {:?}", result);
+        assert!(!result.unwrap().is_empty());
+        m_403.assert();
+        m_200.assert();
     }
 }
