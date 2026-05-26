@@ -6,6 +6,10 @@ authors = ["Yee Zhang <yee.zhang@gmail.com>"]
 license = "GPL-3.0"
 description = "CLI tool for searching, downloading and reading academic papers"
 repository = "https://github.com/zhangyee/fastpaper-cli"
+homepage = "https://github.com/zhangyee/fastpaper-cli"
+readme = "README.md"
+keywords = ["academic", "paper", "arxiv", "pubmed", "cli"]
+categories = ["command-line-utilities"]
 
 [lib]
 name = "fastpaper"

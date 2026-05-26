@@ -8,7 +8,7 @@ pub fn extract_text(path: &Path) -> Result<String, String> {
 
 /// Extract full text from PDF bytes in memory.
 pub fn extract_text_from_bytes(bytes: &[u8]) -> Result<String, String> {
-    let mut doc = pdf_oxide::PdfDocument::from_bytes(bytes.to_vec())
+    let doc = pdf_oxide::PdfDocument::from_bytes(bytes.to_vec())
         .map_err(|e| format!("Failed to open PDF: {}", e))?;
     let text = doc
         .extract_all_text()
