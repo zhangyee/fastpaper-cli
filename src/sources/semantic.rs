@@ -44,8 +44,6 @@ enum FetchOutcome {
 }
 
 static LAST_CALL: OnceLock<Mutex<Option<Instant>>> = OnceLock::new();
-// Task 7 search 限流降级路径使用。
-static WARNED: OnceLock<()> = OnceLock::new();
 
 // 解析 HTTP Retry-After 头。
 fn parse_retry_after(headers: &ureq::http::HeaderMap, max: Duration) -> Option<Duration> {
@@ -160,15 +158,10 @@ pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper
     };
     match http_get_with_retry_cfg(&url, api_key, &cfg) {
         FetchOutcome::Ok(body) => parse_search_response(&body),
-        FetchOutcome::RateLimited => {
-            if WARNED.set(()).is_ok() {
-                eprintln!(
-                    "[semantic] rate-limited after {} retries, skipping this source",
-                    cfg.max_retries
-                );
-            }
-            Ok(vec![])
-        }
+        FetchOutcome::RateLimited => Err(format!(
+            "rate limited after {} retries",
+            cfg.max_retries
+        )),
         FetchOutcome::Err(e) => Err(e),
     }
 }
@@ -188,15 +181,10 @@ fn search_with_cfg_for_test(
     let api_key = std::env::var("SEMANTIC_SCHOLAR_API_KEY").ok();
     match http_get_with_retry_cfg(&url, api_key, cfg) {
         FetchOutcome::Ok(body) => parse_search_response(&body),
-        FetchOutcome::RateLimited => {
-            if WARNED.set(()).is_ok() {
-                eprintln!(
-                    "[semantic] rate-limited after {} retries, skipping this source",
-                    cfg.max_retries
-                );
-            }
-            Ok(vec![])
-        }
+        FetchOutcome::RateLimited => Err(format!(
+            "rate limited after {} retries",
+            cfg.max_retries
+        )),
         FetchOutcome::Err(e) => Err(e),
     }
 }
@@ -562,7 +550,7 @@ mod tests {
 
     #[test]
     #[serial]
-    fn rate_limit_exhausted_returns_empty_vec() {
+    fn search_returns_err_on_rate_limit_exhausted() {
         unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
         let mut server = mockito::Server::new();
         let _m = server
@@ -578,10 +566,10 @@ mod tests {
         };
         let result = search_with_cfg_for_test(&server.url(), "test", 3, &cfg);
 
-        assert!(result.is_ok(), "expected Ok(vec![]), got {:?}", result);
         assert!(
-            result.unwrap().is_empty(),
-            "expected empty Vec on exhausted retries"
+            matches!(result, Err(ref e) if e.contains("rate limited")),
+            "expected Err on rate-limit exhausted (consistent with other sources), got {:?}",
+            result
         );
     }
 
