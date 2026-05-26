@@ -80,6 +80,19 @@ fn backoff_delay(attempt: u32, cfg: &BackoffConfig) -> Duration {
     exp + Duration::from_millis(jitter_ms)
 }
 
+// 进程级节流。第二次连续调用会 sleep 到至少 min_interval。Task 6 接入 http_get_with_retry_cfg 时使用。
+#[allow(dead_code)]
+fn throttle_with(state: &Mutex<Option<Instant>>, min_interval: Duration) {
+    let mut guard = state.lock().unwrap();
+    if let Some(last) = *guard {
+        let elapsed = last.elapsed();
+        if elapsed < min_interval {
+            std::thread::sleep(min_interval - elapsed);
+        }
+    }
+    *guard = Some(Instant::now());
+}
+
 fn http_get_with_retry_cfg(
     url: &str,
     api_key: Option<String>,
@@ -427,6 +440,23 @@ mod tests {
         // attempt = 20 不应导致左移溢出
         let d = backoff_delay(20, &cfg);
         assert!(d <= cfg.max + cfg.max / 10);
+    }
+
+    #[test]
+    fn throttle_with_sleeps_when_called_back_to_back() {
+        let state: Mutex<Option<Instant>> = Mutex::new(None);
+        let interval = Duration::from_millis(80);
+
+        let t0 = Instant::now();
+        throttle_with(&state, interval);
+        throttle_with(&state, interval);
+        let elapsed = t0.elapsed();
+
+        assert!(
+            elapsed >= interval,
+            "second call should wait at least one interval (got {:?})",
+            elapsed
+        );
     }
 
     #[test]
