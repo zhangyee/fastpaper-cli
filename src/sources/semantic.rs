@@ -460,6 +460,23 @@ mod tests {
     }
 
     #[test]
+    fn throttle_with_does_not_sleep_after_long_gap() {
+        let past = Instant::now() - Duration::from_secs(3600);
+        let state: Mutex<Option<Instant>> = Mutex::new(Some(past));
+        let interval = Duration::from_millis(100);
+
+        let t0 = Instant::now();
+        throttle_with(&state, interval);
+        let elapsed = t0.elapsed();
+
+        assert!(
+            elapsed < Duration::from_millis(20),
+            "should return immediately after long gap (got {:?})",
+            elapsed
+        );
+    }
+
+    #[test]
     #[serial]
     fn request_sends_user_agent_header() {
         unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
