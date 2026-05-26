@@ -56,6 +56,16 @@ static LAST_CALL: OnceLock<Mutex<Option<Instant>>> = OnceLock::new();
 #[allow(dead_code)]
 static WARNED: OnceLock<()> = OnceLock::new();
 
+#[allow(dead_code)] // Task 6 wires this in
+fn parse_retry_after(headers: &ureq::http::HeaderMap, max: Duration) -> Option<Duration> {
+    headers
+        .get("retry-after")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|s| s.trim().parse::<u64>().ok())
+        .map(Duration::from_secs)
+        .map(|d| d.min(max))
+}
+
 fn http_get_with_retry_cfg(
     url: &str,
     api_key: Option<String>,
@@ -346,6 +356,38 @@ mod tests {
         let result = search(&server.url(), "test", 3);
         assert!(result.is_ok());
         mock.assert();
+    }
+
+    #[test]
+    fn parse_retry_after_seconds() {
+        let cap = Duration::from_secs(30);
+
+        // helper 构造一个只含 retry-after 的 HeaderMap
+        fn headers_with_retry_after(value: &str) -> ureq::http::HeaderMap {
+            let mut h = ureq::http::HeaderMap::new();
+            h.insert(
+                ureq::http::header::HeaderName::from_static("retry-after"),
+                ureq::http::HeaderValue::from_str(value).unwrap(),
+            );
+            h
+        }
+
+        assert_eq!(
+            parse_retry_after(&headers_with_retry_after("5"), cap),
+            Some(Duration::from_secs(5))
+        );
+        assert_eq!(
+            parse_retry_after(&headers_with_retry_after("abc"), cap),
+            None
+        );
+        assert_eq!(
+            parse_retry_after(&ureq::http::HeaderMap::new(), cap),
+            None
+        );
+        assert_eq!(
+            parse_retry_after(&headers_with_retry_after("9999"), cap),
+            Some(cap)
+        );
     }
 
     #[test]
