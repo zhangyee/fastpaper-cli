@@ -82,7 +82,11 @@ fn throttle_with(state: &Mutex<Option<Instant>>, min_interval: Duration) {
 }
 
 fn throttle(has_key: bool) {
-    let min = if has_key { MIN_INTERVAL_AUTH } else { MIN_INTERVAL_ANON };
+    let min = if has_key {
+        MIN_INTERVAL_AUTH
+    } else {
+        MIN_INTERVAL_ANON
+    };
     let state = LAST_CALL.get_or_init(|| Mutex::new(None));
     throttle_with(state, min);
 }
@@ -199,10 +203,7 @@ fn search_with_cfg_for_test(
 
 /// Fetch a single paper by S2 paper ID.
 pub fn get_by_id(base_url: &str, s2_id: &str) -> Result<Option<Paper>, String> {
-    let url = format!(
-        "{}/graph/v1/paper/{}?fields={}",
-        base_url, s2_id, FIELDS
-    );
+    let url = format!("{}/graph/v1/paper/{}?fields={}", base_url, s2_id, FIELDS);
     let api_key = std::env::var("SEMANTIC_SCHOLAR_API_KEY").ok();
     let cfg = if api_key.is_some() {
         BackoffConfig::DEFAULT_AUTH
@@ -216,10 +217,7 @@ pub fn get_by_id(base_url: &str, s2_id: &str) -> Result<Option<Paper>, String> {
         }
         FetchOutcome::Err(e) if e.contains("404") => Ok(None),
         FetchOutcome::Err(e) => Err(e),
-        FetchOutcome::RateLimited => Err(format!(
-            "rate limited after {} retries",
-            cfg.max_retries
-        )),
+        FetchOutcome::RateLimited => Err(format!("rate limited after {} retries", cfg.max_retries)),
     }
 }
 
@@ -238,10 +236,7 @@ fn get_by_id_with_cfg_for_test(
         }
         FetchOutcome::Err(e) if e.contains("404") => Ok(None),
         FetchOutcome::Err(e) => Err(e),
-        FetchOutcome::RateLimited => Err(format!(
-            "rate limited after {} retries",
-            cfg.max_retries
-        )),
+        FetchOutcome::RateLimited => Err(format!("rate limited after {} retries", cfg.max_retries)),
     }
 }
 
@@ -250,9 +245,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
     let root: serde_json::Value =
         serde_json::from_str(json).map_err(|e| format!("JSON parse error: {}", e))?;
 
-    let data = root["data"]
-        .as_array()
-        .ok_or("missing 'data' array")?;
+    let data = root["data"].as_array().ok_or("missing 'data' array")?;
 
     let mut papers = Vec::new();
     for item in data {
@@ -301,7 +294,9 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
             venue: item["venue"].as_str().map(|s| s.to_string()),
             citations,
             fields,
-            open_access: Some(item["openAccessPdf"].is_object() && !item["openAccessPdf"].is_null()),
+            open_access: Some(
+                item["openAccessPdf"].is_object() && !item["openAccessPdf"].is_null(),
+            ),
             source: "semantic".to_string(),
         });
     }
@@ -367,10 +362,7 @@ mod tests {
         let papers = parse_search_response(FIXTURE).unwrap();
         // First paper has DOI in externalIds
         let first = &papers[0];
-        assert_eq!(
-            first.doi.as_deref(),
-            Some("10.1016/J.NEUCOM.2021.03.091")
-        );
+        assert_eq!(first.doi.as_deref(), Some("10.1016/J.NEUCOM.2021.03.091"));
     }
 
     #[test]
@@ -481,10 +473,7 @@ mod tests {
             parse_retry_after(&headers_with_retry_after("abc"), cap),
             None
         );
-        assert_eq!(
-            parse_retry_after(&ureq::http::HeaderMap::new(), cap),
-            None
-        );
+        assert_eq!(parse_retry_after(&ureq::http::HeaderMap::new(), cap), None);
         assert_eq!(
             parse_retry_after(&headers_with_retry_after("9999"), cap),
             Some(cap)
@@ -501,7 +490,10 @@ mod tests {
         let d0 = backoff_delay(0, &cfg);
         let d2 = backoff_delay(2, &cfg);
         assert!(d0 < d2, "delay should grow with attempt");
-        assert!(d2 <= cfg.max + cfg.max / 10, "delay should respect max (with up-to-10% jitter)");
+        assert!(
+            d2 <= cfg.max + cfg.max / 10,
+            "delay should respect max (with up-to-10% jitter)"
+        );
     }
 
     #[test]
@@ -559,9 +551,7 @@ mod tests {
             .mock("GET", mockito::Matcher::Any)
             .match_header(
                 "user-agent",
-                mockito::Matcher::Regex(
-                    r"^fastpaper-cli/\d+\.\d+\.\d+ \(\+https://".to_string(),
-                ),
+                mockito::Matcher::Regex(r"^fastpaper-cli/\d+\.\d+\.\d+ \(\+https://".to_string()),
             )
             .with_status(200)
             .with_body(FIXTURE)
@@ -589,7 +579,10 @@ mod tests {
         let result = search_with_cfg_for_test(&server.url(), "test", 3, &cfg);
 
         assert!(result.is_ok(), "expected Ok(vec![]), got {:?}", result);
-        assert!(result.unwrap().is_empty(), "expected empty Vec on exhausted retries");
+        assert!(
+            result.unwrap().is_empty(),
+            "expected empty Vec on exhausted retries"
+        );
     }
 
     #[test]
@@ -678,7 +671,11 @@ mod tests {
         let result = search(&server.url(), "test", 3);
         unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
 
-        assert!(result.is_ok(), "expected Ok after key-strip retry, got {:?}", result);
+        assert!(
+            result.is_ok(),
+            "expected Ok after key-strip retry, got {:?}",
+            result
+        );
         assert!(!result.unwrap().is_empty());
         m_403.assert();
         m_200.assert();
