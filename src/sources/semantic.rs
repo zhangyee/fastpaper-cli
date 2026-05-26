@@ -11,10 +11,16 @@ const USER_AGENT: &str = concat!(
     " (+https://github.com/zhangyee/fastpaper-cli)"
 );
 
+// 节流间隔（带 key）。Task 6 接入 throttle() 时启用。
+#[allow(dead_code)]
 const MIN_INTERVAL_AUTH: Duration = Duration::from_millis(1000);
+// 节流间隔（匿名）。Task 6 接入 throttle() 时启用。
+#[allow(dead_code)]
 const MIN_INTERVAL_ANON: Duration = Duration::from_millis(100);
 const MAX_RETRIES: u32 = 5;
 
+// 字段 base/max/max_retries 由 Task 3 的 backoff_delay 与 Task 6 的 http_get_with_retry_cfg 启用。
+#[allow(dead_code)]
 #[derive(Clone, Copy)]
 struct BackoffConfig {
     base: Duration,
@@ -35,13 +41,19 @@ impl BackoffConfig {
     };
 }
 
+// RateLimited 由 Task 6（429 重试耗尽路径）构造。
+#[allow(dead_code)]
 enum FetchOutcome {
     Ok(String),
     RateLimited,
     Err(String),
 }
 
+// Task 6 throttle() 使用。
+#[allow(dead_code)]
 static LAST_CALL: OnceLock<Mutex<Option<Instant>>> = OnceLock::new();
+// Task 7 search 限流降级路径使用。
+#[allow(dead_code)]
 static WARNED: OnceLock<()> = OnceLock::new();
 
 fn http_get_with_retry_cfg(
@@ -345,7 +357,9 @@ mod tests {
             .mock("GET", mockito::Matcher::Any)
             .match_header(
                 "user-agent",
-                mockito::Matcher::Regex("fastpaper-cli/".to_string()),
+                mockito::Matcher::Regex(
+                    r"^fastpaper-cli/\d+\.\d+\.\d+ \(\+https://".to_string(),
+                ),
             )
             .with_status(200)
             .with_body(FIXTURE)
