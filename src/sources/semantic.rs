@@ -56,7 +56,8 @@ static LAST_CALL: OnceLock<Mutex<Option<Instant>>> = OnceLock::new();
 #[allow(dead_code)]
 static WARNED: OnceLock<()> = OnceLock::new();
 
-#[allow(dead_code)] // Task 6 wires this in
+// 解析 HTTP Retry-After 头。Task 6 接入 429 重试时使用。
+#[allow(dead_code)]
 fn parse_retry_after(headers: &ureq::http::HeaderMap, max: Duration) -> Option<Duration> {
     headers
         .get("retry-after")
@@ -64,6 +65,19 @@ fn parse_retry_after(headers: &ureq::http::HeaderMap, max: Duration) -> Option<D
         .and_then(|s| s.trim().parse::<u64>().ok())
         .map(Duration::from_secs)
         .map(|d| d.min(max))
+}
+
+// 指数退避（带 0-10% jitter）。Task 6 接入 429 重试时使用。
+#[allow(dead_code)]
+fn backoff_delay(attempt: u32, cfg: &BackoffConfig) -> Duration {
+    let shift = attempt.min(10);
+    let exp_ms = (cfg.base.as_millis() as u64).saturating_mul(1u64 << shift);
+    let exp = Duration::from_millis(exp_ms).min(cfg.max);
+    // 轻量 jitter：用 Instant nanos 做伪随机 0..=10%
+    let nanos = Instant::now().elapsed().subsec_nanos() as u64;
+    let jitter_pct = nanos % 11; // 0..=10
+    let jitter_ms = (exp.as_millis() as u64).saturating_mul(jitter_pct) / 100;
+    exp + Duration::from_millis(jitter_ms)
 }
 
 fn http_get_with_retry_cfg(
@@ -388,6 +402,31 @@ mod tests {
             parse_retry_after(&headers_with_retry_after("9999"), cap),
             Some(cap)
         );
+    }
+
+    #[test]
+    fn backoff_delay_grows_exponentially() {
+        let cfg = BackoffConfig {
+            base: Duration::from_millis(100),
+            max: Duration::from_secs(5),
+            max_retries: 5,
+        };
+        let d0 = backoff_delay(0, &cfg);
+        let d2 = backoff_delay(2, &cfg);
+        assert!(d0 < d2, "delay should grow with attempt");
+        assert!(d2 <= cfg.max + cfg.max / 10, "delay should respect max (with up-to-10% jitter)");
+    }
+
+    #[test]
+    fn backoff_delay_does_not_overflow() {
+        let cfg = BackoffConfig {
+            base: Duration::from_secs(1),
+            max: Duration::from_secs(30),
+            max_retries: 5,
+        };
+        // attempt = 20 不应导致左移溢出
+        let d = backoff_delay(20, &cfg);
+        assert!(d <= cfg.max + cfg.max / 10);
     }
 
     #[test]
