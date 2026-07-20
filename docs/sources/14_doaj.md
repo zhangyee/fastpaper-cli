@@ -30,5 +30,5 @@
 
 ## 注意
 
-- 端点必须带 `/api` 前缀:`https://doaj.org/search/articles/...` 返回 403 HTML(2026-07 实测)。当前 `search()` 拼 URL 不带 `/api`(默认 base `https://doaj.org`,`FASTPAPER_DOAJ_URL` 可覆盖),而 `download_doaj` 带,两处不一致。
+- 端点必须带 `/api` 前缀:`https://doaj.org/search/articles/...` 返回 403 HTML(2026-07 实测),须用 `https://doaj.org/api/search/articles/...`。默认 base `https://doaj.org`(`FASTPAPER_DOAJ_URL` 可覆盖);`search()` 与 `download_doaj` 均在路径中拼 `/api`。
 - 429 → 指数退避重试(实现内置 3 次);5xx → 直接报错。

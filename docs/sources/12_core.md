@@ -27,4 +27,4 @@
 
 ## 注意
 
-- 路径不一致(疑似 bug):`core.rs::search` 拼 `{base}/search/works`(缺 `/v3`),而 `download.rs::download_core` 拼 `{base}/v3/search/works`;修改前先对照真实 API 验证。
+- 端点必须带 `/v3` 前缀:`{base}/search/works`(缺 `/v3`)对真实 API 返回 404。`core.rs::search` 与 `download.rs::download_core` 均拼 `{base}/v3/search/works`。

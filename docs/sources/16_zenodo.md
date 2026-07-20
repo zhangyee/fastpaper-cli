@@ -31,5 +31,5 @@
 
 ## 注意
 
-- 端点必须带 `/api`:`https://zenodo.org/records?q=...` 返回 404 HTML(2026-07 实测)。当前 `search()` 拼 URL 不带 `/api`(默认 base `https://zenodo.org`,`FASTPAPER_ZENODO_URL` 可覆盖),而 `download_zenodo` 带,两处不一致。
+- 端点必须带 `/api`:`https://zenodo.org/records?q=...` 返回 404 HTML(2026-07 实测),须用 `/api/records`。默认 base `https://zenodo.org`(`FASTPAPER_ZENODO_URL` 可覆盖);`search()` 与 `download_zenodo` 均拼 `/api`。
 - 429 → 指数退避重试(实现内置 3 次);5xx → 直接报错。
