@@ -204,6 +204,10 @@ fastpaper completions bash >> ~/.bashrc
 | `4` | 未找到结果 |
 | `5` | 权限错误（论文未开放获取、缺少必需环境变量） |
 
+## 参与贡献
+
+欢迎贡献!请阅读 [CONTRIBUTING.zh-CN.md](CONTRIBUTING.zh-CN.md) 与 [docs/](docs/) 下的开发者文档。
+
 ## 致谢
 
 本项目受 [paper-search-mcp](https://github.com/openags/paper-search-mcp)（一个支持多数据源学术论文搜索与下载的 MCP 服务器）启发，在此向其作者致以诚挚感谢。
