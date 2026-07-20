@@ -1,114 +1,35 @@
 # Zenodo
 
-- **API类型**: REST JSON
-- **基础URL**: `https://zenodo.org/api`
+- **API 类型**: REST JSON
+- **基础 URL**: `https://zenodo.org/api`
 - **认证**: 无需
-- **能力**: search + download + read
-- **特点**: CERN 运营, 通用型存储库, 支持论文/数据集/软件
+- **能力**: search + download + read;CERN 运营的通用存储库(论文/数据集/软件)
+- **实现**: `src/sources/zenodo.rs`(以代码为准)
 
-## search(args: &SearchArgs) -> SearchResult
+## 搜索
 
-```
-limit = clamp(args.limit, 1, 200)
+`GET /api/records`,参数:`q`(Elasticsearch 查询语法)、`size`、`page`、`type=publication`(只取论文)、`sort`(如 `mostrecent`)、`access_right=open`。
 
-params = {
-    q: args.query,
-    size: limit,
-    page: (args.offset / limit) + 1,
-    type: "publication",
-}
+- 日期过滤写进查询串:`... AND publication_date:[2020-01-01 TO *]`。
+- 不支持按引用数排序。单条详情:`GET /api/records/{id}`。
 
-// sort 映射
-match args.sort {
-    Relevance  => {},                             // 默认
-    Date       => params["sort"] = "mostrecent",
-    Citations  => warn("zenodo: --sort citations not supported, ignored"),
-}
+## 响应映射(→ Paper)
 
-// 过滤参数映射 (Zenodo 用 Elasticsearch query syntax)
-if args.year:
-    params["q"] = "{args.query} AND publication_date:[{args.year}-01-01 TO {args.year}-12-31]"
-if args.after:
-    params["q"] = "{args.query} AND publication_date:[{args.after} TO *]"
-if args.before:
-    params["q"] = "{args.query} AND publication_date:[* TO {args.before}]"
-if args.open_access:
-    params["access_right"] = "open"
+顶层 `hits.hits[]`,总数在 `hits.total`。每条 hit:
 
-// 指数退避重试
-response = request_with_retry("{BASE_URL}/records", params, timeout=20s)
-data = response.json()
-total = data["hits"]["total"]
+- `id`:`hit.id`(数字 record id;落地页模式 `https://zenodo.org/record/{id}`)
+- `title` / `description`(→ abstract,可能含 HTML 标签,实现未剥离)/ `creators[].name` / `publication_date`(取前 4 位为 year)/ `access_right`:均在 `hit.metadata` 下
+- `doi`:hit 顶层 `doi`;Zenodo 自身 DOI 形如 `10.5281/zenodo.{record_id}`
+- `url`:`hit.links.html`
+- `pdf_url`:`hit.files[]` 中 `key` 以 `.pdf` 结尾者的 `links.self`
+- `open_access`:`metadata.access_right == "open"`
+- `venue` / `citations`:无
 
-for hit in data["hits"]["hits"]:
-    paper = parse_record(hit)
+## 下载
 
-    // 本地过滤
-    if args.author && !paper.authors.any(|a| a.contains(args.author)): continue
-    if args.field && !paper.fields.any(|f| f.contains(args.field)): continue
+无直接 PDF 端点:按 identifier 调 `/api/records?q={id}&size=1&type=publication` 拿 `pdf_url` 再下载,见 `src/download.rs::download_zenodo`;read = 下载后本地提取 PDF 文本。
 
-    papers.push(paper)
+## 注意
 
-// 不支持的 filter 发 stderr 警告
-if args.peer_reviewed: warn("zenodo: --peer-reviewed not supported, ignored")
-
-return SearchResult { results: papers, total: Some(total), ... }
-```
-
-### parse_record(hit) -> Paper
-
-```
-meta = hit["metadata"]
-record_id = hit["id"]
-doi = hit["doi"] || meta["doi"]
-title = meta["title"]
-authors = meta["creators"].map(|c| c["name"] || "{c.given_name} {c.family_name}")
-abstract_text = meta["description"]  // 可能含 HTML 标签, 需 strip_tags
-
-pub_date = meta["publication_date"][..10]  // "YYYY-MM-DD"
-year = pub_date[..4].parse().ok()
-
-// PDF URL: hit["files"][] 中 key 以 .pdf 结尾的, 取 links.self 或 links.download
-pdf_url = hit["files"].find(|f| f["key"].ends_with(".pdf"))
-          .map(|f| f["links"]["self"] || f["links"]["download"])
-
-record_url = hit["links"]["html"] || "https://zenodo.org/record/{record_id}"
-
-fields = meta["keywords"] || []
-
-return Paper {
-    id: "zenodo:{record_id}",
-    source: "zenodo",
-    open_access: Some(meta["access_right"] == "open"),
-    venue: None,
-    citations: None,
-    ...
-}
-```
-
-## download(identifier) -> DownloadResult
-
-```
-record_id = extract_record_id(identifier)
-//   "zenodo:" 前缀 → 去掉
-//   DOI 格式 "10.5281/zenodo.1234567" → 提取数字
-//   纯数字 → 直接用
-
-response = request_with_retry("{BASE_URL}/records/{record_id}", timeout=20s)
-record = response.json()
-
-pdf_file = record["files"].find(|f| f["key"].ends_with(".pdf"))
-if !pdf_file: return Err(CliError::NotFound("No open-access PDF in this Zenodo record"))
-
-pdf_url = pdf_file["links"]["self"] || pdf_file["links"]["download"]
-dl_response = request_with_retry(pdf_url, timeout=60s)
-return DownloadResult { content: dl_response.body, ... }
-```
-
-## read(identifier) -> ReadResult
-
-```
-pdf_bytes = download(identifier).content
-text = pdf_oxide::extract_text(pdf_bytes)
-return ReadResult { full_text: text, sections: None, ... }
-```
+- 端点必须带 `/api`:`https://zenodo.org/records?q=...` 返回 404 HTML(2026-07 实测)。当前 `search()` 拼 URL 不带 `/api`(默认 base `https://zenodo.org`,`FASTPAPER_ZENODO_URL` 可覆盖),而 `download_zenodo` 带,两处不一致。
+- 429 → 指数退避重试(实现内置 3 次);5xx → 直接报错。

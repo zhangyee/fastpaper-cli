@@ -1,113 +1,37 @@
 # HAL
 
-- **API类型**: REST JSON (Solr 接口)
-- **搜索URL**: `https://api.archives-ouvertes.fr/search/`
+- **API 类型**: REST JSON(Solr 接口)
+- **搜索 URL**: `https://api.archives-ouvertes.fr/search/`
 - **认证**: 无需
-- **能力**: search + download + read
-- **特点**: 法国国家开放存档
+- **能力**: search + download + read;法国国家开放存档
+- **实现**: `src/sources/hal.rs`(以代码为准)
 
-## search(args: &SearchArgs) -> SearchResult
+## 搜索
 
-```
-limit = clamp(args.limit, 1, 10000)
+`GET /search/?q={query}&rows={n}&wt=json&fl={字段列表}`。
 
-// 请求的字段列表 (最小化 payload):
-fields = "halId_s,title_s,authFullName_s,abstract_s,doiId_s,
-          publicationDateY_i,producedDateY_i,submittedDate_s,
-          linkExtUrl_s,fileMain_s,uri_s,docType_s"
+- `fl` 需显式列出要返回的字段;实现请求:`halId_s,title_s,authFullName_s,abstract_s,doiId_s,publicationDateY_i,fileMain_s,uri_s`。
+- 其他可用参数(实现未用):`start`(偏移)、`sort`(相关度 `score desc`、日期 `producedDateY_i desc`)、`fq`(Solr 过滤,如 `publicationDateY_i:[2018 TO *]`、`authFullName_s:"..."`、`domain_s:math`,多条件 ` AND ` 连接)。
+- 不支持按引用数排序。
 
-// 过滤参数映射 (Solr fq 语法)
-fq_parts = []
-if args.year:   fq_parts.push("publicationDateY_i:{args.year}")
-if args.after:  fq_parts.push("publicationDateY_i:[{parse_year(args.after)} TO *]")
-if args.before: fq_parts.push("publicationDateY_i:[* TO {parse_year(args.before)}]")
-if args.field:  fq_parts.push("domain_s:{args.field}")   // "spi", "math", "sdv" 等
-if args.author: fq_parts.push("authFullName_s:\"{args.author}\"")
+## 响应映射(→ Paper)
 
-// sort 映射
-sort = match args.sort {
-    Relevance  => "score desc",
-    Date       => if args.order == Asc { "producedDateY_i asc" } else { "producedDateY_i desc" },
-    Citations  => { warn("hal: --sort citations not supported, using relevance"); "score desc" },
-}
+顶层 `response.docs[]`,总数在 `response.numFound`。同一字段可能是数组或字符串:
 
-params = {
-    q: args.query,
-    fl: fields,
-    rows: limit,
-    start: args.offset,
-    wt: "json",
-    sort: sort,
-}
-if fq_parts.len() > 0: params["fq"] = fq_parts.join(" AND ")
+- `id`:`halId_s`(如 `hal-01234567`)
+- `title_s` / `abstract_s` / `doiId_s`:数组时取第一个元素
+- `authors`:`authFullName_s`(数组)
+- `year`:`publicationDateY_i`
+- `url`:`uri_s`
+- `pdf_url`:`fileMain_s`(仅记录带全文文件时存在)
+- `open_access`:恒 `true`;`venue` / `citations` / `fields`:无
 
-// 指数退避重试
-response = request_with_retry(SEARCH_URL, params, timeout=20s)
-data = response.json()
-total = data["response"]["numFound"]
+## 下载
 
-for doc in data["response"]["docs"]:
-    paper = parse_doc(doc)
-    papers.push(paper)
+按 identifier 调搜索接口(`rows=1`)拿 `fileMain_s` 再下载,见 `src/download.rs::download_hal`;read = 下载后本地提取 PDF 文本。备用 PDF 直链模式:`https://hal.archives-ouvertes.fr/{halId}/document`(实现未用;metadata-only 或禁运记录返回非 200)。
 
-// 不支持的 filter 发 stderr 警告
-if args.open_access:    warn("hal: --open-access ignored (all HAL content is open access)")
-if args.peer_reviewed:  warn("hal: --peer-reviewed not supported, ignored")
+## 注意
 
-return SearchResult { results: papers, total: Some(total), ... }
-```
-
-### parse_doc(doc) -> Paper
-
-```
-hal_id = doc["halId_s"]
-title = doc["title_s"]       // 可能是数组, 取第一个
-if title is array: title = title[0]
-authors = doc["authFullName_s"]  // 数组
-abstract_text = doc["abstract_s"]    // 数组 → join(" ")
-if abstract_text is array: abstract_text = abstract_text.join(" ")
-doi = doc["doiId_s"]            // 可能是数组, 取第一个
-if doi is array: doi = doi[0]
-
-year = doc["publicationDateY_i"] || doc["producedDateY_i"]
-pdf_url = doc["fileMain_s"]
-record_url = doc["uri_s"] || "https://hal.archives-ouvertes.fr/{hal_id}"
-
-return Paper {
-    id: "hal:{hal_id}",
-    source: "hal",
-    open_access: Some(true),
-    venue: None,
-    citations: None,
-    fields: [],
-    ...
-}
-```
-
-## download(identifier) -> DownloadResult
-
-```
-hal_id = normalise_id(identifier)  // 去掉 "hal:" 前缀
-
-// 解析 PDF URL
-pdf_url = "https://hal.archives-ouvertes.fr/{hal_id}/document"
-
-// HEAD 请求检查可用性
-head_response = ureq::head(pdf_url).call()
-if head_response.status() != 200:
-    return Err(CliError::NotFound("No open-access PDF, may be metadata-only or embargoed"))
-// 验证 content-type 含 "pdf"
-if "pdf" not in head_response.content_type():
-    return Err(CliError::NotFound("Resource is not a PDF"))
-
-dl_response = request_with_retry(pdf_url, timeout=60s)
-return DownloadResult { content: dl_response.body, ... }
-```
-
-## read(identifier) -> ReadResult
-
-```
-pdf_bytes = download(identifier).content
-text = pdf_oxide::extract_text(pdf_bytes)
-return ReadResult { full_text: text, sections: None, ... }
-```
+- 记录可能仅有元数据(无 `fileMain_s`),下载报 "No PDF URL found"。
+- 429 → 指数退避重试(实现内置 3 次);5xx → 直接报错。
+- 默认 base `https://api.archives-ouvertes.fr`,`FASTPAPER_HAL_URL` 可覆盖。

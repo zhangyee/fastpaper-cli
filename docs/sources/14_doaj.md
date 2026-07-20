@@ -1,118 +1,34 @@
 # DOAJ
 
-- **API类型**: REST JSON
-- **基础URL**: `https://doaj.org/api`
+- **API 类型**: REST JSON
+- **基础 URL**: `https://doaj.org/api`
 - **认证**: 无需
-- **能力**: search + download + read
-- **特点**: 全部为开放获取内容, 支持 Lucene 查询语法
+- **能力**: search + download + read;内容全部开放获取
+- **实现**: `src/sources/doaj.rs`(以代码为准)
 
-## search(args: &SearchArgs) -> SearchResult
+## 搜索
 
-```
-limit = clamp(args.limit, 1, 100)
+`GET /api/search/articles/{编码后的查询}`(查询在路径中),参数:`page`(从 1 起)、`pageSize`(最大 100)、`sort`(如 `created_date:desc`)。
 
-// 构建 Lucene 查询
-query = build_lucene_query(args)
+- 查询支持 Lucene 语法,可按字段限定并用 ` AND ` 连接:`bibjson.year:2020`、`bibjson.year:[2018 TO *]`、`bibjson.author.name:"..."`、`bibjson.subject.term:"..."`。
+- 不支持按引用数排序;无需 OA / peer-reviewed 过滤(DOAJ 全部 OA 且期刊均同行评审)。
 
-encoded_query = url_encode(query)
-search_url = "{BASE_URL}/search/articles/{encoded_query}"
-params = {
-    page: (args.offset / limit) + 1,
-    pageSize: limit,
-}
+## 响应映射(→ Paper)
 
-// sort 映射
-match args.sort {
-    Relevance  => {},
-    Date       => params["sort"] = "created_date:desc",
-    Citations  => warn("doaj: --sort citations not supported, ignored"),
-}
+顶层 `results[]`,总数在 `total`。每条 item:
 
-// 指数退避重试
-response = request_with_retry(search_url, params, timeout=30s)
-data = response.json()
-results = data["results"]
-total = data["total"]
+- `id`:`item.id`(DOAJ article id);落地页模式 `https://doaj.org/article/{id}`(实现未用)
+- `title` / `abstract` / `year`(字符串,需 parse)/ 作者 `author[].name`:均在 `item.bibjson` 下
+- `doi`:`bibjson.identifier[]` 中 `type=="doi"` 的 `id`
+- `venue`:`bibjson.journal.title`
+- `url` 与 `pdf_url`:`bibjson.link[]` 中 `type` 含 `fulltext` 的首个 `url`(实现两者取同一链接)
+- `citations`:无;`open_access`:恒 `true`
 
-for item in results:
-    paper = parse_doaj_item(item)
-    papers.push(paper)
+## 下载
 
-// 不支持的 filter 发 stderr 警告
-if args.peer_reviewed: warn("doaj: --peer-reviewed not supported (all DOAJ journals are peer-reviewed), ignored")
+无直接 PDF 端点:按 identifier 调搜索接口(`pageSize=1`)拿 `pdf_url` 再下载,见 `src/download.rs::download_doaj`;read = 下载后本地提取 PDF 文本。
 
-return SearchResult { results: papers, total: Some(total), ... }
-```
+## 注意
 
-### build_lucene_query(args)
-
-```
-query = "({args.query})"
-if args.year:   query += " AND bibjson.year:{args.year}"
-if args.after:  query += " AND bibjson.year:[{parse_year(args.after)} TO *]"
-if args.before: query += " AND bibjson.year:[* TO {parse_year(args.before)}]"
-if args.author: query += " AND bibjson.author.name:\"{args.author}\""
-if args.field:  query += " AND bibjson.subject.term:\"{args.field}\""
-// --open-access 忽略 (DOAJ 全部 OA)
-if args.open_access: warn("doaj: --open-access ignored (all DOAJ content is open access)")
-return query
-```
-
-### parse_doaj_item(item) -> Paper
-
-```
-bibjson = item["bibjson"]
-title = bibjson["title"]
-authors = bibjson["author"].map(|a| a["name"])
-abstract_text = bibjson["abstract"]  // 可能是 string 或 dict, 需处理
-
-// DOI: bibjson.identifier[] 中 type="doi" 的 id
-doi = bibjson["identifier"].find(|i| i["type"]=="doi")["id"]
-
-// 日期: bibjson 的 year/month/day 组合
-year = bibjson["year"].parse().ok()
-
-// 期刊
-venue = bibjson["journal"]["title"]
-
-// PDF URL: bibjson.link[] 中 type="fulltext" 且 url 以 .pdf 结尾
-pdf_url = bibjson["link"].find(|l| l["type"]=="fulltext" && l["url"].ends_with(".pdf"))["url"]
-
-url = bibjson["link"].find(|l| l["type"]=="fulltext")["url"]
-      || "https://doaj.org/article/{item['id']}"
-
-fields = bibjson["subject"].map(|s| s["term"]) || []
-
-return Paper {
-    id: item["id"],
-    source: "doaj",
-    open_access: Some(true),
-    venue: venue,
-    citations: None,
-    ...
-}
-```
-
-## download(identifier) -> DownloadResult
-
-```
-papers = search(SearchArgs { query: identifier, limit: 1, ... })
-if papers.is_empty(): return Err(CliError::NotFound("Paper not found in DOAJ"))
-paper = papers[0]
-
-pdf_url = paper.pdf_url
-if !pdf_url && paper.doi:
-    pdf_url = Some("https://doi.org/{doi}")  // 尝试
-if !pdf_url: return Err(CliError::NotFound("No PDF available"))
-
-response = request_with_retry(pdf_url, timeout=30s)
-return DownloadResult { content: response.body, ... }
-```
-
-## read(identifier) -> ReadResult
-
-```
-pdf_bytes = download(identifier).content
-text = pdf_oxide::extract_text(pdf_bytes)
-return ReadResult { full_text: text, sections: None, ... }
-```
+- 端点必须带 `/api` 前缀:`https://doaj.org/search/articles/...` 返回 403 HTML(2026-07 实测)。当前 `search()` 拼 URL 不带 `/api`(默认 base `https://doaj.org`,`FASTPAPER_DOAJ_URL` 可覆盖),而 `download_doaj` 带,两处不一致。
+- 429 → 指数退避重试(实现内置 3 次);5xx → 直接报错。

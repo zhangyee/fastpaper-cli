@@ -1,108 +1,30 @@
 # CORE
 
-- **API类型**: REST JSON (v3)
-- **基础URL**: `https://api.core.ac.uk/v3`
-- **认证**: 可选 `CORE_API_KEY` (提升 rate limit 和结果质量)
+- **API 类型**: REST JSON(v3)
+- **基础 URL**: `https://api.core.ac.uk`,搜索端点 `/v3/search/works`
+- **认证**: 可选 `CORE_API_KEY`,header `Authorization: Bearer {key}`(提升 rate limit 和结果质量)
 - **能力**: search + download + read
-- **重试**: 429/5xx 指数退避; 401/403 时尝试去掉 key 重试
+- **实现**: `src/sources/core.rs`(以代码为准)
 
-## search(args: &SearchArgs) -> SearchResult
+## 搜索
 
-```
-params = {
-    q: args.query,
-    limit: min(args.limit, 100),
-    offset: args.offset,
-}
+- 参数:`q`、`limit`(≤100)、`offset`。
+- 日期过滤走 `filter` 参数(`publishedDate>=YYYY-MM-DD` / `publishedDate<=YYYY-MM-DD`)。
+- 429 → 指数退避重试(最多 3 次);401/403 且带 key → 去掉 key 重试一次。
 
-// 过滤参数映射
-if args.year:        params["filter"] += "publishedDate>={args.year}-01-01,publishedDate<={args.year}-12-31"
-if args.after:       params["filter"] += "publishedDate>={args.after}"
-if args.before:      params["filter"] += "publishedDate<={args.before}"
+## 响应映射(results[] → Paper)
 
-headers = {}
-if env::var("CORE_API_KEY").is_ok():
-    headers["Authorization"] = "Bearer {CORE_API_KEY}"
+- `id` ← `id`(数字转字符串);`title` 为空的条目跳过;`authors` ← `authors[].name`
+- `abstract` ← `abstract`;`doi` ← `doi`;`year` ← `publishedDate` 前 4 位(fallback `yearPublished`)
+- `pdf_url` ← `downloadUrl`;`url` ← `links[0].url`;`fields` ← `fieldOfStudy`(单值字符串)
+- `citations` ← `citationCount`;`open_access` 恒 `Some(true)`(CORE 专注 OA 内容);`venue` 恒 None
+- 总数在 `totalHits`。
 
-// 指数退避重试 (最多3次)
-//   429/500/502/503/504 → sleep(min(8, 2^attempt))
-//   401/403 + 有 key → 去掉 key 重试一次
-response = request_with_retry("{BASE_URL}/search/works", params, headers, timeout=30s)
-data = response.json()
-results = data["results"]
-total = data["totalHits"]
+## 下载
 
-for item in results:
-    paper = parse_item(item)
+- 无独立 PDF 端点:按标识符 search 取第一条的 `downloadUrl` 再下载(见 `src/download.rs::download_core`)。
+- API 另有单篇详情 `GET /v3/works/{id}`(含 `fullText` 全文字段、`fullTextUrls`),当前实现未使用。
 
-    // 本地过滤
-    if args.author && !paper.authors.any(|a| a.contains(args.author)): continue
-    if args.open_access && paper.open_access != Some(true): continue
+## 注意
 
-    papers.push(paper)
-
-// 不支持的 filter 发 stderr 警告
-if args.sort != Relevance: warn("core: --sort not fully supported, ignored")
-if args.field:             warn("core: --field not supported, ignored")
-if args.peer_reviewed:     warn("core: --peer-reviewed not supported, ignored")
-
-return SearchResult { results: papers, total: Some(total), ... }
-```
-
-### parse_item(item) -> Paper
-
-```
-core_id = item["id"]
-title = item["title"]
-authors = item["authors"].map(|a| a["name"] or a as string)
-abstract_text = item["abstract"]
-doi = item["doi"] || extract_doi(abstract_text)
-
-year = parse_year_from_date(item["publishedDate"])
-
-url = item["url"] || "https://doi.org/{doi}"
-pdf_url = None
-if item["downloadUrl"] && item["downloadUrl"].ends_with(".pdf"):
-    pdf_url = Some(item["downloadUrl"])
-else:
-    // 检查 item["fullTextUrls"] 中 .pdf 结尾的
-    pdf_url = item["fullTextUrls"].find(|u| u.ends_with(".pdf"))
-
-fields = item["subjects"].map(|s| s["name"]) || []
-
-return Paper {
-    id: core_id.to_string(),
-    source: "core",
-    open_access: Some(true),  // CORE 专注 OA 内容
-    venue: None,
-    citations: item["citationCount"],
-    ...
-}
-```
-
-## download(identifier) -> DownloadResult
-
-```
-// 1. 先尝试 detail 接口: GET /works/{identifier}
-//    从 downloadUrl 或 fullTextUrls 找 .pdf
-// 2. 无 API key 时降级: search(identifier) 取第一条有 pdf_url 的
-// 3. 下载并验证 Content-Type 含 "pdf"
-
-if !pdf_url: return Err(CliError::NotFound("No open access PDF available"))
-response = request_with_retry(pdf_url, timeout=60s)
-return DownloadResult { content: response.body, ... }
-```
-
-## read(identifier) -> ReadResult
-
-```
-// 1. 先尝试 API 的 fullText 字段 (如果 >500 字符直接用)
-detail = GET /works/{identifier}
-if detail["fullText"] && detail["fullText"].len() > 500:
-    return ReadResult { full_text: detail["fullText"], sections: None, ... }
-
-// 2. 降级到 download → pdf_oxide 提取文本
-pdf_bytes = download(identifier).content
-text = pdf_oxide::extract_text(pdf_bytes)
-return ReadResult { full_text: text, sections: None, ... }
-```
+- 路径不一致(疑似 bug):`core.rs::search` 拼 `{base}/search/works`(缺 `/v3`),而 `download.rs::download_core` 拼 `{base}/v3/search/works`;修改前先对照真实 API 验证。

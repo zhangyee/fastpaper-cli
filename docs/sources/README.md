@@ -4,7 +4,7 @@ These are the research notes each source implementation was built from — endpo
 
 The sources fall into a few families: open preprint servers with free full text (arXiv, bioRxiv, medRxiv), biomedical databases run by NLM/EMBL-EBI (PubMed metadata, PMC/Europe PMC full text), academic search engines that index rather than host (Google Scholar, Semantic Scholar, Baidu Xueshu), metadata registries (CrossRef, OpenAlex, DBLP), and open-access aggregators/archives (CORE, OpenAIRE, DOAJ, Unpaywall, Zenodo, HAL).
 
-[00_base.md](00_base.md) documents the shared `Paper` contract and cross-source HTTP conventions (kept in sync with the code).
+[00_base.md](00_base.md) documents the shared `Paper` contract and cross-source HTTP conventions.
 
 | Note | Source | API type | Auth | Rate-limit / quirks |
 |---|---|---|---|---|

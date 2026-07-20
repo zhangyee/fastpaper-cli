@@ -1,121 +1,33 @@
 # PubMed
 
-- **API类型**: E-utilities REST (XML)
-- **搜索URL**: `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi`
-- **详情URL**: `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi`
-- **认证**: 无需 (可选 `NCBI_API_KEY` 提升 rate limit: 3→10 req/s)
-- **能力**: search only (不支持 download / read)
+- **API 类型**: E-utilities REST(两步:esearch → efetch)
+- **基础 URL**: `https://eutils.ncbi.nlm.nih.gov`
+- **认证**: 无需(可选 `NCBI_API_KEY`,rate limit 3→10 req/s)
+- **能力**: search only(不支持 download / read)
+- **实现**: `src/sources/pubmed.rs`(以代码为准)
 
-## search(args: &SearchArgs) -> SearchResult
+## 搜索(两步)
 
-```
-// 第1步: 搜索获取 PMID 列表
-search_params = {
-    db: "pubmed",
-    term: build_query(args),
-    retmax: args.limit,
-    retstart: args.offset,
-    retmode: "xml",
-    tool: "fastpaper",
-    email: FASTPAPER_EMAIL || "yee.zhang@gmail.com",
-}
-if env::var("NCBI_API_KEY").is_ok():
-    search_params["api_key"] = env::var("NCBI_API_KEY")
+1. **esearch** `GET /entrez/eutils/esearch.fcgi`,取 PMID 列表。
+   - 参数:`db=pubmed`、`term={encode(query)}`、`retmax={max_results}`、`retmode=json`、`tool=fastpaper`、`email=yee.zhang@gmail.com`;有 key 则追加 `&api_key=`。
+   - 解析 `esearchresult.idlist`;为空则返回空列表。
+2. **efetch** `GET /entrez/eutils/efetch.fcgi`,取详情。
+   - 参数:`db=pubmed`、`id={pmids join ","}`、`retmode=xml`、`tool`、`email`(+可选 `api_key`)。
+- `term` 接受 PubMed 原生检索语法(字段标签如 `[Author]`、`[pdat]`);CLI 把 query **原样传入**,不做本地字段拼接。
+- `get_by_pmid(base, pmid)`:单条 efetch。
 
-// sort 映射
-match args.sort {
-    Relevance => {},                        // PubMed 默认 relevance
-    Date      => search_params["sort"] = "pub+date",
-    Citations => warn("pubmed: --sort citations not supported, using relevance"),
-}
+## 响应映射(PubmedArticle → Paper)
 
-// 指数退避重试
-search_response = request_with_retry(SEARCH_URL, search_params, timeout=30s)
-search_root = parse_xml(search_response.body)
-ids = search_root.find_all(".//Id").map(|id| id.text)
-if ids.is_empty(): return SearchResult { results: [], ... }
+- `id`:`PMID`(首个)
+- `title`:`ArticleTitle`
+- `authors`:每个 `Author` 取 `LastName` + `Initials`,拼为 `"Last Init"`
+- `abstract_text`:所有 `AbstractText` 文本以空格拼接(空则 `None`)
+- `year`:`PubDate/Year`
+- `doi`:`ELocationID[@EIdType="doi"]`
+- `url`:`https://pubmed.ncbi.nlm.nih.gov/{pmid}/`
+- `pdf_url` / `venue` / `citations` / `open_access`:均无;`fields`:空
 
-// 第2步: 用 PMID 列表批量获取详情
-fetch_params = {
-    db: "pubmed",
-    id: ids.join(","),
-    retmode: "xml",
-    tool: "fastpaper",
-    email: FASTPAPER_EMAIL || "yee.zhang@gmail.com",
-}
-if env::var("NCBI_API_KEY").is_ok():
-    fetch_params["api_key"] = env::var("NCBI_API_KEY")
+## 注意
 
-fetch_response = request_with_retry(FETCH_URL, fetch_params, timeout=30s)
-fetch_root = parse_xml(fetch_response.body)
-
-for article in fetch_root.find_all(".//PubmedArticle"):
-    pmid = article.find(".//PMID").text.trim()
-    title = article.find(".//ArticleTitle").all_text().trim()
-    if !pmid || !title: continue
-
-    authors = []
-    for author in article.find_all(".//Author"):
-        last = author.find("LastName").text
-        init = author.find("Initials").text
-        authors.push("{last} {init}")
-
-    abstract_text = article.find_all(".//AbstractText")
-                    .map(|e| e.all_text().trim()).join(" ")
-
-    year = article.find(".//PubDate/Year").text
-    doi = article.find(".//ELocationID[@EIdType='doi']").text
-    if !doi && abstract_text: doi = extract_doi(abstract_text)
-
-    paper = Paper {
-        id: pmid,
-        title: title,
-        authors: authors,
-        abstract_text: if abstract_text.is_empty() { None } else { Some(abstract_text) },
-        year: year.parse().ok(),
-        doi: if doi.is_empty() { None } else { Some(doi) },
-        url: Some("https://pubmed.ncbi.nlm.nih.gov/{pmid}/"),
-        pdf_url: None,             // PubMed 无直接 PDF
-        venue: None,
-        citations: None,
-        fields: [],
-        open_access: None,
-        source: "pubmed",
-    }
-
-    // 本地日期过滤
-    if args.after  && paper.year < parse_year(args.after):  continue
-    if args.before && paper.year > parse_year(args.before): continue
-
-    papers.push(paper)
-
-// 不支持的 filter 发 stderr 警告
-if args.field:          warn("pubmed: --field not supported, ignored")
-if args.open_access:    warn("pubmed: --open-access not supported, ignored")
-if args.peer_reviewed:  warn("pubmed: --peer-reviewed not supported, ignored")
-
-return SearchResult { results: papers, ... }
-```
-
-### build_query(args)
-
-```
-// 将 CLI 过滤参数映射为 PubMed 查询语法
-query = args.query
-if args.author: query += " AND {args.author}[Author]"
-if args.year:   query += " AND {args.year}[pdat]"
-if args.after:  query += " AND {args.after}:3000[pdat]"
-if args.before: query += " AND 1900:{args.before}[pdat]"
-return query
-```
-
-## download / read
-
-```
-// 均不支持
-return Err(CliError::NotSupported {
-    source: "pubmed",
-    action: "download" / "read",
-    hint: "PubMed only provides metadata. Try:\n  fastpaper download pmc <PMCID>\n  fastpaper get <PMID> --resolve",
-})
-```
+- HTTP 429 退避重试(最多 3 次);5xx 直接报错。
+- PubMed 仅元数据,无 PDF;正文需转 PMC(`download pmc <PMCID>`)。
