@@ -182,7 +182,7 @@ fastpaper completions bash >> ~/.bashrc
 
 ## Environment variables
 
-All optional except where noted. 20 of 21 sources work with zero configuration.
+All optional except where noted. 17 of 18 sources work with zero configuration.
 
 | Variable | Purpose |
 |----------|---------|

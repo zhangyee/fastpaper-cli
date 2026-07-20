@@ -82,7 +82,7 @@ Sections: abstract, introduction, methods, results, discussion, conclusion, refe
 fastpaper download <source> <id>
 ```
 
-Download-capable sources: arxiv, pmc, semantic, biorxiv, medrxiv, europepmc, core, doaj, zenodo, hal, openaire.
+Download-capable sources: arxiv, biorxiv, medrxiv, pmc, semantic, core, doaj, zenodo, hal.
 
 ## All output uses --format json for structured agent consumption.
 ## Exit code 0 = success, non-zero = error (see --help for codes).
