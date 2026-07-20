@@ -1,6 +1,6 @@
 # 发布与分发
 
-> English: [release.md](release.md) — 与英文版保持同步。
+> English: [release.md](release.md)
 
 发版由 maintainer 执行。Contributor 不修改 `Cargo.toml` 的 `version`、不推 tag——本页的目的是让你了解 PR 合并之后会发生什么。
 

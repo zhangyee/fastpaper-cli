@@ -1,6 +1,6 @@
 # Contributing to fastpaper-cli
 
-> 中文版:[CONTRIBUTING.zh-CN.md](CONTRIBUTING.zh-CN.md) — keep both in sync.
+> 中文版:[CONTRIBUTING.zh-CN.md](CONTRIBUTING.zh-CN.md)
 
 Thanks for your interest in contributing! This page is the entry point; the detailed developer docs live under [docs/](docs/).
 

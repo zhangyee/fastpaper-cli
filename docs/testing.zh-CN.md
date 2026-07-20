@@ -1,6 +1,6 @@
 # 测试
 
-> English: [testing.md](testing.md) — 与英文版保持同步。
+> English: [testing.md](testing.md)
 
 ## 运行测试
 

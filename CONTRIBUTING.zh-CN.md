@@ -1,6 +1,6 @@
 # 参与贡献 fastpaper-cli
 
-> English: [CONTRIBUTING.md](CONTRIBUTING.md) — 与英文版保持同步。
+> English: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 感谢你有兴趣参与贡献!本页是入口,详细的开发者文档在 [docs/](docs/) 目录下。
 

@@ -1,6 +1,6 @@
 # 架构
 
-> English: [architecture.md](architecture.md) — 与英文版保持同步。
+> English: [architecture.md](architecture.md)
 
 本文档描述的是**当前代码的实际状态**,不是设计提案。如果代码与本页不一致,以代码为准,并请提 PR 修正本页。
 

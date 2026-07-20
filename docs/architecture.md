@@ -1,6 +1,6 @@
 # Architecture
 
-> 中文版:[architecture.zh-CN.md](architecture.zh-CN.md) — keep both in sync.
+> 中文版:[architecture.zh-CN.md](architecture.zh-CN.md)
 
 This document describes the code **as it is today** — not a design proposal. If the code and this page disagree, the code wins and this page needs a PR.
 

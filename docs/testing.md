@@ -1,6 +1,6 @@
 # Testing
 
-> 中文版:[testing.zh-CN.md](testing.zh-CN.md) — keep both in sync.
+> 中文版:[testing.zh-CN.md](testing.zh-CN.md)
 
 ## Running tests
 

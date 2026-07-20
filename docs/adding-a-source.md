@@ -1,6 +1,6 @@
 # Adding a New Source
 
-> 中文版:[adding-a-source.zh-CN.md](adding-a-source.zh-CN.md) — keep both in sync.
+> 中文版:[adding-a-source.zh-CN.md](adding-a-source.zh-CN.md)
 
 This is the most common contribution to fastpaper. Read the [Source module contract](architecture.md#source-module-contract) first. Throughout this guide, `xueshu` (Baidu Xueshu, added 2026-07) is used as the worked example — every step below actually happened.
 
