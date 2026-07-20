@@ -212,7 +212,10 @@ mod tests {
     fn search_request_path_contains_search_articles() {
         let mut server = mockito::Server::new();
         let mock = server
-            .mock("GET", mockito::Matcher::Regex("/api/search/articles/".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("/api/search/articles/".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();

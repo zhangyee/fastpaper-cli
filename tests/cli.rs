@@ -1046,9 +1046,56 @@ fn real_xueshu_search_works() {
         String::from_utf8_lossy(&output.stderr)
     );
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let papers: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON output");
+    let out: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON output");
     assert!(
-        !papers.as_array().expect("array").is_empty(),
-        "paperList empty"
+        !out["results"].as_array().expect("results array").is_empty(),
+        "results empty"
     );
+}
+
+// 真实接口健康检查(手动:cargo test --test cli -- --ignored)。
+// 这三个源的 search URL 曾缺 /v3 或 /api 前缀,对真实 API 返回 404/403 HTML;
+// mockito 用宽松路径匹配未能发现,这些冒烟测试是防回归的最后一道关。
+fn real_search_returns_results(source: &str) {
+    let output = cmd()
+        .args([
+            "search",
+            source,
+            "machine learning",
+            "-n",
+            "2",
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{source} search failed, stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let out: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON output");
+    assert!(
+        !out["results"].as_array().expect("results array").is_empty(),
+        "{source} returned no results"
+    );
+}
+
+#[test]
+#[ignore]
+fn real_core_search_works() {
+    real_search_returns_results("core");
+}
+
+#[test]
+#[ignore]
+fn real_doaj_search_works() {
+    real_search_returns_results("doaj");
+}
+
+#[test]
+#[ignore]
+fn real_zenodo_search_works() {
+    real_search_returns_results("zenodo");
 }

@@ -220,7 +220,10 @@ mod tests {
     fn search_request_path() {
         let mut server = mockito::Server::new();
         let mock = server
-            .mock("GET", mockito::Matcher::Regex("/v3/search/works".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("/v3/search/works".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
