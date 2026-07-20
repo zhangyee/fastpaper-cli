@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use super::Paper;
 
 // 百度学术新版 JSON 搜索接口(未公开站内接口,实验性数据源)。
@@ -5,6 +7,66 @@ use super::Paper;
 
 // 业务码 7350001 = 需要交互式验证码。CLI 不自动处理、不模拟验证(spec 3.4/13)。
 const CODE_CAPTCHA: i64 = 7350001;
+
+// Acs-Token 回退值:百度学术新版前端在反风险 SDK(paris)未初始化时发送的静态字符串,
+// 后端当前(2026-07 实测)接受它。来源:前端主包 Cnu8PP3d.js。若失效表现为 7350001。
+const ACS_TOKEN_FALLBACK: &str = "parisInstance is not ready";
+const PAGE_SIZE: u32 = 10;
+const TIMEOUT: Duration = Duration::from_secs(30);
+
+const USER_AGENT: &str = concat!(
+    "fastpaper-cli/",
+    env!("CARGO_PKG_VERSION"),
+    " (+https://github.com/zhangyee/fastpaper-cli)"
+);
+
+fn fetch_page(base_url: &str, query: &str, pn: u32) -> Result<String, String> {
+    let encoded = super::encode_query(query);
+    let url = format!(
+        "{}/search/api/search?wd={}&pn={}&skipStrategy=0",
+        base_url, encoded, pn
+    );
+    let agent: ureq::Agent = ureq::Agent::config_builder()
+        .http_status_as_error(false)
+        .timeout_global(Some(TIMEOUT))
+        .build()
+        .into();
+    let resp = agent
+        .get(&url)
+        .header("Acs-Token", ACS_TOKEN_FALLBACK)
+        .header("User-Agent", USER_AGENT)
+        .header("Accept", "application/json, text/plain, */*")
+        .call()
+        .map_err(|e| format!("HTTP error: {e}"))?;
+    let status = resp.status().as_u16();
+    match status {
+        // 206 携带 7350001 验证码 JSON;读 body 交给解析层给出明确错误
+        200 | 206 => resp
+            .into_body()
+            .read_to_string()
+            .map_err(|e| format!("read body: {e}")),
+        403 => Err("Baidu Xueshu blocked the request (HTTP 403 security check)".to_string()),
+        429 => Err("Baidu Xueshu rate limited (HTTP 429). Try again later.".to_string()),
+        s => Err(format!("HTTP {s}")),
+    }
+}
+
+/// Search Baidu Xueshu (experimental, undocumented JSON API). Serial pagination, 10 per page.
+pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    let mut papers: Vec<Paper> = Vec::new();
+    let mut pn = 0u32;
+    while (papers.len() as u32) < max_results {
+        let body = fetch_page(base_url, query, pn)?;
+        let page = parse_search_response(&body)?;
+        if page.is_empty() {
+            break;
+        }
+        papers.extend(page);
+        pn += PAGE_SIZE;
+    }
+    papers.truncate(max_results as usize);
+    Ok(papers)
+}
 
 // 去除 <em> 等搜索高亮标签并解码常见 HTML 实体。title 和 abstract 都可能带高亮。
 fn strip_html(s: &str) -> String {
@@ -325,5 +387,160 @@ mod tests {
         assert_eq!(strip_html("A &amp; B &lt;C&gt;"), "A & B <C>");
         assert_eq!(strip_html("  padded  "), "padded");
         assert_eq!(strip_html("no tags"), "no tags");
+    }
+
+    #[test]
+    fn search_returns_papers() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let papers = search(&server.url(), "test", 5).unwrap();
+        assert_eq!(papers.len(), 5, "should truncate to max_results");
+        mock.assert();
+    }
+
+    #[test]
+    fn search_request_path_and_params() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    r"/search/api/search\?wd=attention\+mechanism&pn=0&skipStrategy=0".to_string(),
+                ),
+            )
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "attention mechanism", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_sends_acs_token_fallback_header() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .match_header("acs-token", "parisInstance is not ready")
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_sends_fastpaper_user_agent() {
+        // 实测:curl 默认 UA 会触发 7350001;必须带项目 UA
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
+            .match_header(
+                "user-agent",
+                mockito::Matcher::Regex(r"^fastpaper-cli/\d+\.\d+\.\d+ \(\+https://".to_string()),
+            )
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    #[test]
+    fn search_stops_after_first_page_when_satisfied() {
+        let mut server = mockito::Server::new();
+        let m1 = server
+            .mock("GET", mockito::Matcher::Regex("pn=0".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .expect(1)
+            .create();
+        let m2 = server
+            .mock("GET", mockito::Matcher::Regex("pn=10".to_string()))
+            .expect(0)
+            .create();
+        let papers = search(&server.url(), "test", 10).unwrap();
+        assert_eq!(papers.len(), 10);
+        m1.assert();
+        m2.assert();
+    }
+
+    #[test]
+    fn search_paginates_with_pn_10_for_second_page() {
+        let mut server = mockito::Server::new();
+        let m1 = server
+            .mock("GET", mockito::Matcher::Regex("pn=0".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .expect(1)
+            .create();
+        let m2 = server
+            .mock("GET", mockito::Matcher::Regex("pn=10".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .expect(1)
+            .create();
+        let papers = search(&server.url(), "test", 15).unwrap();
+        assert_eq!(papers.len(), 15, "should truncate 20 collected to 15");
+        m1.assert();
+        m2.assert();
+    }
+
+    #[test]
+    fn search_stops_on_empty_page() {
+        let empty = r#"{"status":{"code":0,"msg":"Success"},"data":{"paper":{"dispnum":0,"paperList":[]}}}"#;
+        let mut server = mockito::Server::new();
+        let m1 = server
+            .mock("GET", mockito::Matcher::Regex("pn=0".to_string()))
+            .with_status(200)
+            .with_body(empty)
+            .expect(1)
+            .create();
+        let m2 = server
+            .mock("GET", mockito::Matcher::Regex("pn=10".to_string()))
+            .expect(0)
+            .create();
+        let papers = search(&server.url(), "test", 30).unwrap();
+        assert!(papers.is_empty());
+        m1.assert();
+        m2.assert();
+    }
+
+    #[test]
+    fn search_206_captcha_body_returns_captcha_err() {
+        // 真实观测:验证码响应是 HTTP 206 + 7350001 JSON
+        let mut server = mockito::Server::new();
+        let _m = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(206)
+            .with_body(CAPTCHA_BODY)
+            .create();
+        let err = search(&server.url(), "test", 3).unwrap_err();
+        assert!(err.contains("captcha"), "got: {err}");
+    }
+
+    #[test]
+    fn search_403_returns_blocked_err() {
+        let mut server = mockito::Server::new();
+        let _m = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(403)
+            .create();
+        let err = search(&server.url(), "test", 3).unwrap_err();
+        assert!(err.contains("403"), "got: {err}");
+    }
+
+    #[test]
+    fn search_429_returns_rate_limit_err() {
+        let mut server = mockito::Server::new();
+        let _m = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(429)
+            .create();
+        let err = search(&server.url(), "test", 3).unwrap_err();
+        assert!(err.contains("rate limit"), "got: {err}");
     }
 }
