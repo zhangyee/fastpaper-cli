@@ -4,7 +4,7 @@ use super::Paper;
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
     let encoded = super::encode_query(query);
     let url = format!(
-        "{}/records?q={}&size={}&type=publication",
+        "{}/api/records?q={}&size={}&type=publication",
         base_url, encoded, max_results
     );
 
@@ -211,7 +211,7 @@ mod tests {
     fn search_request_path() {
         let mut server = mockito::Server::new();
         let mock = server
-            .mock("GET", mockito::Matcher::Regex("/records".to_string()))
+            .mock("GET", mockito::Matcher::Regex("/api/records".to_string()))
             .with_status(200)
             .with_body(FIXTURE)
             .create();
