@@ -3,6 +3,9 @@ use super::Paper;
 // 百度学术新版 JSON 搜索接口(未公开站内接口,实验性数据源)。
 // 调研:docs 见 kydog-lab/百度学术新版JSON搜索接口调研与实现.md
 
+// 业务码 7350001 = 需要交互式验证码。CLI 不自动处理、不模拟验证(spec 3.4/13)。
+const CODE_CAPTCHA: i64 = 7350001;
+
 // 去除 <em> 等搜索高亮标签并解码常见 HTML 实体。title 和 abstract 都可能带高亮。
 fn strip_html(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
@@ -40,9 +43,16 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
         serde_json::from_str(json).map_err(|e| format!("JSON parse error: {}", e))?;
 
     let code = root["status"]["code"].as_i64().unwrap_or(-1);
+    if code == CODE_CAPTCHA {
+        return Err(
+            "Baidu Xueshu requires an interactive captcha (code 7350001). Not retrying; try again later or from a different network."
+                .to_string(),
+        );
+    }
     if code != 0 {
         let msg = root["status"]["msg"].as_str().unwrap_or("unknown error");
-        return Err(format!("Baidu Xueshu error {code}: {msg}"));
+        let logid = root["status"]["sLogid"].as_str().unwrap_or("-");
+        return Err(format!("Baidu Xueshu error {code}: {msg} (sLogid {logid})"));
     }
 
     let list = root["data"]["paper"]["paperList"]
@@ -271,6 +281,42 @@ mod tests {
         assert!(p.authors.is_empty());
         assert_eq!(p.venue, None);
         assert_eq!(p.pdf_url, None);
+    }
+
+    const CAPTCHA_BODY: &str = r#"{"status":{"code":7350001,"msg":"请输入验证码"}}"#;
+
+    #[test]
+    fn parse_captcha_code_returns_clear_err() {
+        let err = parse_search_response(CAPTCHA_BODY).unwrap_err();
+        assert!(err.contains("captcha"), "got: {err}");
+        assert!(err.contains("7350001"), "got: {err}");
+    }
+
+    #[test]
+    fn parse_other_error_code_returns_err_with_msg() {
+        let body = r#"{"status":{"code":42,"msg":"boom","sLogid":"log-1"}}"#;
+        let err = parse_search_response(body).unwrap_err();
+        assert!(err.contains("42"), "got: {err}");
+        assert!(err.contains("boom"), "got: {err}");
+        assert!(err.contains("log-1"), "got: {err}");
+    }
+
+    #[test]
+    fn parse_empty_paper_list_returns_empty_vec() {
+        let body = r#"{"status":{"code":0,"msg":"Success","sLogid":"x"},"data":{"paper":{"dispnum":0,"paperList":[]}}}"#;
+        assert!(parse_search_response(body).unwrap().is_empty());
+    }
+
+    #[test]
+    fn parse_code_zero_missing_data_returns_empty_vec() {
+        let body = r#"{"status":{"code":0,"msg":"Success"}}"#;
+        assert!(parse_search_response(body).unwrap().is_empty());
+    }
+
+    #[test]
+    fn parse_garbage_returns_parse_err() {
+        let err = parse_search_response("<html>not json</html>").unwrap_err();
+        assert!(err.contains("JSON parse error"), "got: {err}");
     }
 
     #[test]
