@@ -2,7 +2,7 @@
 
 > 中文版:[CONTRIBUTING.zh-CN.md](CONTRIBUTING.zh-CN.md)
 
-Thanks for your interest in contributing! This page is the entry point; the detailed developer docs live under [docs/](docs/).
+Entry point for contributors. Detailed developer docs live under [docs/](docs/).
 
 ## Development setup
 
@@ -29,11 +29,7 @@ No API keys or configuration are required — the entire test suite runs offline
 
 ## Adding a new source
 
-This is the most common contribution. There is a complete step-by-step guide with a worked example: [docs/adding-a-source.md](docs/adding-a-source.md).
-
-## Testing
-
-Test layout, fixture sanitization rules, and the `#[ignore]` real-API test convention are documented in [docs/testing.md](docs/testing.md).
+The most common contribution. Step-by-step guide with a worked example: [docs/adding-a-source.md](docs/adding-a-source.md).
 
 ## Versioning & releases
 

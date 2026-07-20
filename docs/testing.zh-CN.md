@@ -54,4 +54,4 @@ cargo test --test cli -- --ignored     # 手动执行
 
 - 每个测试只测一个行为;测试名描述该行为(`parse_empty_doi_becomes_none`)。
 - 设置或删除环境变量的测试用 `serial_test` 的 `#[serial]`,避免测试间竞争。
-- 新功能的测试必须随同一个 PR 提交——reviewer 一定会问。
+- 新功能的测试必须随同一个 PR 提交。

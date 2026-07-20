@@ -2,7 +2,7 @@
 
 > English: [adding-a-source.md](adding-a-source.md)
 
-这是 fastpaper 最常见的贡献类型。请先阅读[数据源模块契约](architecture.zh-CN.md#数据源模块契约)。全文以 `xueshu`(百度学术,2026-07 加入)为贯穿实例——下面每一步都真实发生过。
+先阅读[数据源模块契约](architecture.zh-CN.md#数据源模块契约)。全文以 `xueshu`(百度学术)为贯穿实例。
 
 ## Step 0 — 调研
 

@@ -54,4 +54,4 @@ They never run in CI. When one fails, first decide whether the provider's rate l
 
 - One behavior per test; the test name states the behavior (`parse_empty_doi_becomes_none`).
 - Tests that set or remove environment variables use `serial_test`'s `#[serial]` to avoid cross-test races.
-- New features come with tests in the same PR — reviewers will ask.
+- New features come with tests in the same PR.

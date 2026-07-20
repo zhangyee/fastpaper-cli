@@ -2,7 +2,7 @@
 
 > English: [CONTRIBUTING.md](CONTRIBUTING.md)
 
-感谢你有兴趣参与贡献!本页是入口,详细的开发者文档在 [docs/](docs/) 目录下。
+贡献者入口。详细的开发者文档在 [docs/](docs/) 目录下。
 
 ## 开发环境
 
@@ -29,11 +29,7 @@ cargo test
 
 ## 新增数据源
 
-这是最常见的贡献类型。完整的分步指南(含实例)见 [docs/adding-a-source.zh-CN.md](docs/adding-a-source.zh-CN.md)。
-
-## 测试
-
-测试布局、fixture 脱敏规则、`#[ignore]` 真实 API 测试惯例见 [docs/testing.zh-CN.md](docs/testing.zh-CN.md)。
+最常见的贡献类型。分步指南(含实例)见 [docs/adding-a-source.zh-CN.md](docs/adding-a-source.zh-CN.md)。
 
 ## 版本与发布
 

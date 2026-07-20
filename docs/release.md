@@ -2,7 +2,7 @@
 
 > 中文版:[release.zh-CN.md](release.zh-CN.md)
 
-Releases are cut by the maintainer. Contributors never change `version` in `Cargo.toml` or push tags — this page exists so you understand what happens after your PR merges.
+Releases are cut by the maintainer. Contributors never change `version` in `Cargo.toml` or push tags. This page describes what happens after a PR merges.
 
 ## Distribution
 
