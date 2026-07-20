@@ -204,6 +204,10 @@ All optional except where noted. 20 of 21 sources work with zero configuration.
 | `4` | No results found |
 | `5` | Permission error (not open access, missing env var) |
 
+## Contributing
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) and the developer docs under [docs/](docs/).
+
 ## Acknowledgements
 
 This project was inspired by [paper-search-mcp](https://github.com/openags/paper-search-mcp), an MCP server for searching and downloading academic papers from multiple sources. Many thanks to its authors for showing what a multi-source paper tool can look like.
