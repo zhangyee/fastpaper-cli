@@ -147,8 +147,8 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
             })
             .unwrap_or_default();
 
-        let abstract_text = Some(strip_html(item["abstract"].as_str().unwrap_or("")))
-            .filter(|s| !s.is_empty());
+        let abstract_text =
+            Some(strip_html(item["abstract"].as_str().unwrap_or(""))).filter(|s| !s.is_empty());
 
         let doi = item["doi"]
             .as_str()
@@ -289,7 +289,9 @@ mod tests {
         let papers = parse_search_response(FIXTURE).unwrap();
         assert_eq!(
             papers[0].url.as_deref(),
-            Some("https://xueshu.baidu.com/usercenter/paper/show?paperid=5a4afe9b6df8b07138fb6bf9b275251f&site=xueshu_se")
+            Some(
+                "https://xueshu.baidu.com/usercenter/paper/show?paperid=5a4afe9b6df8b07138fb6bf9b275251f&site=xueshu_se"
+            )
         );
     }
 

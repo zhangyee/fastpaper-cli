@@ -1020,3 +1020,35 @@ fn download_xueshu_rejects_with_hint() {
         .failure()
         .stderr(contains("does not support"));
 }
+
+// 真实接口健康检查,手动执行:cargo test --test cli -- --ignored
+// 若开始返回 7350001/403,按调研文档第 14.8 条重新审查官网调用链。
+// 注意(2026-07-20 实测):短时间内重复相同关键词会触发 7350001 验证码;
+// 偶发失败时换个关键词重试一次即可区分"查询级风控"和"接口失效"。
+#[test]
+#[ignore]
+fn real_xueshu_search_works() {
+    let output = cmd()
+        .args([
+            "search",
+            "xueshu",
+            "convolutional neural network",
+            "-n",
+            "3",
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let papers: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON output");
+    assert!(
+        !papers.as_array().expect("array").is_empty(),
+        "paperList empty"
+    );
+}

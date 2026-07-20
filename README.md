@@ -83,7 +83,7 @@ wait
 
 ## Sources
 
-17 academic sources, each accessed independently per command.
+18 academic sources, each accessed independently per command.
 
 | Source | Full name | search | download | read | Domain |
 |--------|-----------|:------:|:--------:|:----:|--------|
@@ -94,6 +94,7 @@ wait
 | `pmc` | PubMed Central | yes | yes | yes | Biomedical & life sciences (full text) |
 | `europepmc` | Europe PMC | yes | | | Life sciences superset of PMC |
 | `scholar` | Google Scholar | yes | | | All disciplines (experimental, rate-limited) |
+| `xueshu` | Baidu Xueshu (百度学术) | yes | | | All disciplines, strong Chinese-language coverage (experimental, unofficial API) |
 | `semantic` | Semantic Scholar | yes | yes | yes | All disciplines, AI-powered citation graph |
 | `crossref` | CrossRef | yes | | | DOI metadata, all disciplines |
 | `openalex` | OpenAlex | yes | | | Open metadata index, 200M+ works |
@@ -181,7 +182,7 @@ fastpaper completions bash >> ~/.bashrc
 
 ## Environment variables
 
-All optional except where noted. 19 of 20 sources work with zero configuration.
+All optional except where noted. 20 of 21 sources work with zero configuration.
 
 | Variable | Purpose |
 |----------|---------|

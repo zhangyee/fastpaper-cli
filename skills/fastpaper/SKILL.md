@@ -1,11 +1,11 @@
 ---
 name: fastpaper
-description: Search, download, and read academic papers from 17 sources (arXiv, PubMed, Semantic Scholar, etc.). Use when the user asks about research papers, literature search, finding citations, or reading PDFs. Supports parallel multi-source search, section extraction, and auto-routing by DOI/arXiv ID/PMID/URL.
+description: Search, download, and read academic papers from 18 sources (arXiv, PubMed, Semantic Scholar, etc.). Use when the user asks about research papers, literature search, finding citations, or reading PDFs. Supports parallel multi-source search, section extraction, and auto-routing by DOI/arXiv ID/PMID/URL.
 ---
 
 # fastpaper
 
-Fast academic paper search, download & read from 17 sources.
+Fast academic paper search, download & read from 18 sources.
 
 `fastpaper` is a pre-installed standalone CLI. Before first use, verify it is available: `which fastpaper`. It is NOT a Python package — do NOT attempt to install via pip.
 
@@ -29,6 +29,7 @@ Pick sources based on the user's research domain:
 - `crossref` — DOI registry, metadata queries across all disciplines. search
 - `openalex` — Open index (successor to MS Academic Graph), 200M+ works. search
 - `scholar` — Google Scholar, broadest coverage (experimental, rate-limited). search
+- `xueshu` — Baidu Xueshu (百度学术), strong Chinese-language coverage (experimental, unofficial API; may require captcha and stop working). search
 
 **Open access aggregators**
 - `core` — Largest global OA aggregator, full text from institutional repos and journals. search, download, read
