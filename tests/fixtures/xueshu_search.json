@@ -1,0 +1,1965 @@
+{
+  "status": {
+    "code": 0,
+    "msg": "Success",
+    "sLogid": "0000000000"
+  },
+  "data": {
+    "paper": {
+      "dispnum": 27846,
+      "briefCluster": [
+        {
+          "fieldName": "sc_year",
+          "showName": "时间",
+          "list": [
+            {
+              "index": "2026",
+              "key": "2026",
+              "name": "2026",
+              "value": 1392
+            },
+            {
+              "index": "2025",
+              "key": "2025",
+              "name": "2025",
+              "value": 6614
+            },
+            {
+              "index": "2024",
+              "key": "2024",
+              "name": "2024",
+              "value": 11850
+            }
+          ]
+        },
+        {
+          "fieldName": "sc_c",
+          "showName": "领域",
+          "list": [
+            {
+              "index": "36",
+              "key": "sc_c0",
+              "name": "计算机科学与技术",
+              "value": 9674
+            },
+            {
+              "index": "39",
+              "key": "sc_c0",
+              "name": "机械工程",
+              "value": 2241
+            },
+            {
+              "index": "35",
+              "key": "sc_c0",
+              "name": "信息与通信工程",
+              "value": 1908
+            },
+            {
+              "index": "2",
+              "key": "sc_c0",
+              "name": "心理学",
+              "value": 1691
+            },
+            {
+              "index": "40",
+              "key": "sc_c0",
+              "name": "光学工程",
+              "value": 1440
+            },
+            {
+              "index": "0",
+              "key": "sc_c1",
+              "name": "生物医学工程",
+              "value": 1305
+            },
+            {
+              "index": "37",
+              "key": "sc_c0",
+              "name": "控制科学与工程",
+              "value": 1126
+            },
+            {
+              "index": "31",
+              "key": "sc_c0",
+              "name": "生物学",
+              "value": 744
+            },
+            {
+              "index": "10",
+              "key": "sc_c1",
+              "name": "基础医学",
+              "value": 590
+            },
+            {
+              "index": "23",
+              "key": "sc_c0",
+              "name": "物理学",
+              "value": 582
+            }
+          ]
+        },
+        {
+          "fieldName": "sc_level",
+          "showName": "核心",
+          "list": [
+            {
+              "index": "3",
+              "key": "sc_level",
+              "name": "SCIE索引",
+              "value": 7327
+            },
+            {
+              "index": "2",
+              "key": "sc_level",
+              "name": "EI索引",
+              "value": 5997
+            },
+            {
+              "index": "1",
+              "key": "sc_level",
+              "name": "SCI索引",
+              "value": 2448
+            },
+            {
+              "index": "6",
+              "key": "sc_level",
+              "name": "中国科技核心期刊",
+              "value": 456
+            },
+            {
+              "index": "5",
+              "key": "sc_level",
+              "name": "CSCD 索引",
+              "value": 428
+            },
+            {
+              "index": "4",
+              "key": "sc_level",
+              "name": "SSCI索引",
+              "value": 420
+            },
+            {
+              "index": "0",
+              "key": "sc_level",
+              "name": "北大核心期刊",
+              "value": 420
+            },
+            {
+              "index": "8",
+              "key": "sc_level",
+              "name": "AHCI索引",
+              "value": 11
+            },
+            {
+              "index": "7",
+              "key": "sc_level",
+              "name": "CSSCI索引",
+              "value": 5
+            }
+          ]
+        },
+        {
+          "fieldName": "sc_savetype",
+          "showName": "获取方式",
+          "list": [
+            {
+              "index": "4|5|6|7",
+              "key": "sc_savetype",
+              "name": "付费下载",
+              "value": 1547
+            },
+            {
+              "index": "1|3|5|7",
+              "key": "sc_savetype",
+              "name": "免费下载",
+              "value": 1362
+            },
+            {
+              "index": "2|3|6|7",
+              "key": "sc_savetype",
+              "name": "登录查看",
+              "value": 8
+            }
+          ]
+        },
+        {
+          "fieldName": "sc_keywords",
+          "showName": "关键词",
+          "list": []
+        },
+        {
+          "fieldName": "sc_type",
+          "showName": "类型",
+          "list": [
+            {
+              "index": "1",
+              "key": "期刊",
+              "name": "期刊",
+              "value": 24345
+            },
+            {
+              "index": "3",
+              "key": "会议",
+              "name": "会议",
+              "value": 2067
+            },
+            {
+              "index": "5",
+              "key": "专利",
+              "name": "专利",
+              "value": 320
+            },
+            {
+              "index": "4",
+              "key": "图书",
+              "name": "图书",
+              "value": 63
+            },
+            {
+              "index": "2",
+              "key": "学位",
+              "name": "学位",
+              "value": 60
+            },
+            {
+              "index": "7",
+              "key": "成果报告",
+              "name": "成果报告",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "fieldName": "sc_authors",
+          "showName": "作者",
+          "list": []
+        },
+        {
+          "fieldName": "sc_jnls",
+          "showName": "期刊",
+          "list": []
+        },
+        {
+          "fieldName": "sc_affs",
+          "showName": "机构",
+          "list": []
+        }
+      ],
+      "fromStrategy": 0,
+      "skipStrategy": 0,
+      "paperList": [
+        {
+          "paperId": "5a4afe9b6df8b07138fb6bf9b275251f",
+          "title": "Visual Attention Mechanisms",
+          "abstract": "Proceedings of the Fifth International School on Neural Networks \"E.R. Caianiello\" on Visual Attention MechaProceedings of the Fifth International School on Neural Networks \"E.R. Caianiello\" on Visual Attention Mechanisms, held 23-28 October 2000 in Vietri sul Mare, Italy.nisms, held 23-28 October 2000 in Vietri sul Mare, Italy. The book covers a number of broad themes relevant to visual attention, ranging from computer vision to psychology and physiology of vision. The main theme of the book is the attention processes of vision systems and it aims to point out the analogies and the divergences of biological vision with the frameworks introduced by computer scientists in artificial vision.",
+          "publishYear": 2002,
+          "cited": 15,
+          "publishTime": 0,
+          "langType": 1,
+          "type": 4,
+          "standardStatus": 0,
+          "doi": "",
+          "keyword": "",
+          "authors": [
+            {
+              "name": "A Bernardino",
+              "affiliate": "",
+              "showName": "A Bernardino"
+            },
+            {
+              "name": "J Santos-Victor",
+              "affiliate": "",
+              "showName": "J Santos-Victor"
+            }
+          ],
+          "publishInfo": {
+            "publisher": "",
+            "journalName": "",
+            "journalId": ""
+          },
+          "sourceList": [
+            {
+              "url": "http://www.springer.com/cda/content/document/productFlyer/productFlyer-CN_978-0-306-47427-9.pdf?SGWID=0-0-1297-33334206-bookseller",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 9,
+              "createTime": 1537295012,
+              "updateTime": 1537295012,
+              "domain": "www.springer.com",
+              "type": 1,
+              "sortType": 1,
+              "size": "300.70KB"
+            },
+            {
+              "url": "http://link.springer.com/content/pdf/bfm%3A978-1-4615-0111-4%2F1.pdf",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 10,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "link.springer.com",
+              "type": 1,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://rd.springer.com/content/pdf/bfm%3A978-1-4615-0111-4%2F1.pdf",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 10,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "rd.springer.com",
+              "type": 1,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://www.keyanzhidian.com/doc/detail?id=1557090865895969536",
+              "anchor": "科研支点",
+              "partner": "400",
+              "score": 5,
+              "createTime": 1747308427,
+              "updateTime": 1747308427,
+              "domain": "www.keyanzhidian.com",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://www.researchgate.net/publication/247161965_Visual_Attention_Mechanisms",
+              "anchor": "ResearchGate",
+              "partner": "",
+              "score": 5,
+              "createTime": 1537295012,
+              "updateTime": 1628354754,
+              "domain": "www.researchgate.net",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://www.abe.pl/en/advancedsearch/search?amount=10&amp;publisher=V.+Cantoni&amp;deposit=18417335",
+              "anchor": "abe.pl",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537295012,
+              "updateTime": 1537295012,
+              "domain": "www.abe.pl",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            }
+          ],
+          "saveList": [
+            {
+              "url": "http://www.springer.com/cda/content/document/productFlyer/productFlyer-CN_978-0-306-47427-9.pdf?SGWID=0-0-1297-33334206-bookseller",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 9,
+              "createTime": 1537295012,
+              "updateTime": 1537295012,
+              "domain": "www.springer.com",
+              "type": 1,
+              "sortType": 1,
+              "size": "300.70KB"
+            },
+            {
+              "url": "http://link.springer.com/content/pdf/bfm%3A978-1-4615-0111-4%2F1.pdf",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 10,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "link.springer.com",
+              "type": 1,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://rd.springer.com/content/pdf/bfm%3A978-1-4615-0111-4%2F1.pdf",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 10,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "rd.springer.com",
+              "type": 1,
+              "sortType": 2,
+              "size": ""
+            }
+          ]
+        },
+        {
+          "paperId": "9677d0feab61df2fb5c12344d5dc5525",
+          "title": "Visual Attention Mechanisms",
+          "abstract": "Proceedings of the Fifth International School on Neural Networks \"E.R. Caianiello\" on Visual Attention MechaProceedings of the Fifth International School on Neural Networks \"E.R. Caianiello\" on Visual Attention Mechanisms, held 23-28 October 2000 in Vietri sul Mare, Italy.nisms, held 23-28 October 2000 in Vietri sul Mare, Italy. The book covers a number of broad themes relevant to visual attention, ranging from computer vision to psychology and physiology of vision. The main theme of the book is the attention processes of vision systems and it aims to point out the analogies and the divergences of biological vision with the frameworks introduced by computer scientists in artificial vision.",
+          "publishYear": 2012,
+          "cited": 6,
+          "publishTime": 0,
+          "langType": 1,
+          "type": 1,
+          "standardStatus": 0,
+          "doi": "10.1007/978-1-4615-0111-4",
+          "keyword": "",
+          "authors": [
+            {
+              "name": "Alfredo Petrosino",
+              "affiliate": "",
+              "showName": "Alfredo Petrosino"
+            },
+            {
+              "name": "Virginio Cantoni",
+              "affiliate": "",
+              "showName": "Virginio Cantoni"
+            },
+            {
+              "name": "Maria Marinaro",
+              "affiliate": "",
+              "showName": "Maria Marinaro"
+            }
+          ],
+          "publishInfo": {
+            "publisher": "Springer US",
+            "journalName": "",
+            "journalId": ""
+          },
+          "sourceList": [
+            {
+              "url": "http://rd.springer.com/content/pdf/bfm%3A978-1-4615-0111-4%2F1.pdf",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 9,
+              "createTime": 1591968903,
+              "updateTime": 1591968903,
+              "domain": "rd.springer.com",
+              "type": 1,
+              "sortType": 1,
+              "size": "687.59KB"
+            },
+            {
+              "url": "http://link.springer.com/content/pdf/bfm:978-1-4615-0111-4/1.pdf",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 9,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "link.springer.com",
+              "type": 1,
+              "sortType": 1,
+              "size": ""
+            },
+            {
+              "url": "http://www.springer.com/cda/content/document/productFlyer/productFlyer_978-0-306-47427-9.pdf?SGWID=0-0-1297-33334206-0",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 10,
+              "createTime": 1537294447,
+              "updateTime": 1537294447,
+              "domain": "www.springer.com",
+              "type": 1,
+              "sortType": 2,
+              "size": "429.37KB"
+            },
+            {
+              "url": "http://link.springer.com/10.1007/978-1-4615-0111-4",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 10,
+              "createTime": 1537294447,
+              "updateTime": 1537294447,
+              "domain": "link.springer.com",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://doi.org/10.1007/978-1-4615-0111-4",
+              "anchor": "doi.org",
+              "partner": "431",
+              "score": 7,
+              "createTime": 1766842178,
+              "updateTime": 1766842178,
+              "domain": "doi.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://www.semanticscholar.org/paper/f864cb887a85b2429db7632117436c623f0e3a35",
+              "anchor": "Semantic Scholar",
+              "partner": "319",
+              "score": 7,
+              "createTime": 1758101526,
+              "updateTime": 1758101526,
+              "domain": "www.semanticscholar.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://dl.acm.org/citation.cfm?id=582606",
+              "anchor": "ACM",
+              "partner": "",
+              "score": 8,
+              "createTime": 1537294447,
+              "updateTime": 1537294447,
+              "domain": "dl.acm.org",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://www.researchgate.net/publication/280881561_Visual_Attention_Mechanisms",
+              "anchor": "ResearchGate",
+              "partner": "",
+              "score": 5,
+              "createTime": 1537294447,
+              "updateTime": 1620829947,
+              "domain": "www.researchgate.net",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://www.morebooks.de/store/gb/book/visual-attention-mechanisms/isbn/9780306474279",
+              "anchor": "morebooks.de",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294447,
+              "updateTime": 1537294447,
+              "domain": "www.morebooks.de",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.herrerobooks.com/ca/libro/9781461349280/cantoni-virginio/visual-attention-mechanisms",
+              "anchor": "herrerobooks.com",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294447,
+              "updateTime": 1537294447,
+              "domain": "www.herrerobooks.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.beck-shop.de/Cantoni-Marinaro-Petrosino-Visual-Attention-Mechanisms/productview.aspx?product=500690&amp;toc=9753",
+              "anchor": "beck-shop.de",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294447,
+              "updateTime": 1537294447,
+              "domain": "www.beck-shop.de",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.abe.pl/pl/book/9780306474279/visual-attention-mechanisms",
+              "anchor": "abe.pl",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294447,
+              "updateTime": 1537294447,
+              "domain": "www.abe.pl",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.logobook.ru/prod_show.php?object_uid=11268369",
+              "anchor": "logobook.ru",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294447,
+              "updateTime": 1537294447,
+              "domain": "www.logobook.ru",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://lib-phds1.weizmann.ac.il/vufind/Record/000179525",
+              "anchor": "lib-phds1.weizmann.ac.il",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294447,
+              "updateTime": 1537294447,
+              "domain": "lib-phds1.weizmann.ac.il",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            }
+          ],
+          "saveList": [
+            {
+              "url": "http://rd.springer.com/content/pdf/bfm%3A978-1-4615-0111-4%2F1.pdf",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 9,
+              "createTime": 1591968903,
+              "updateTime": 1591968903,
+              "domain": "rd.springer.com",
+              "type": 1,
+              "sortType": 1,
+              "size": "687.59KB"
+            },
+            {
+              "url": "http://link.springer.com/content/pdf/bfm:978-1-4615-0111-4/1.pdf",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 9,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "link.springer.com",
+              "type": 1,
+              "sortType": 1,
+              "size": ""
+            },
+            {
+              "url": "http://www.springer.com/cda/content/document/productFlyer/productFlyer_978-0-306-47427-9.pdf?SGWID=0-0-1297-33334206-0",
+              "anchor": "Springer",
+              "partner": "",
+              "score": 10,
+              "createTime": 1537294447,
+              "updateTime": 1537294447,
+              "domain": "www.springer.com",
+              "type": 1,
+              "sortType": 2,
+              "size": "429.37KB"
+            }
+          ]
+        },
+        {
+          "paperId": "1p6f0ab0324d0r40h75j0080q2665121",
+          "title": "Scale <em>Attention Mechanism</em>",
+          "abstract": "Large variations in the scale of visual entities make it a challenge to reduce the computational complexity of image-feature extraction. To address this challenge, this paper presents an image-feature extraction method based on multi-scale <em>attention mechanism</em>(IEMAM). The method first introduces a hierarchical image shrinkage strategy, which uses linear projection to control the size of image features at each layer. Next, a multi-head attention module based on dimensional trimming is proposed to reduce computational complexity. Finally, IEMAM constructs an attention aggregation structure to aggregate each local feature of multi-scale images. These qualities of IEMAM make it compatible with a better performance of object detection tasks: on the MS COCO dataset, the average accuracy of AP, AP50, and AP75 is improved by 1.98%, 5.77%, and 3.45% compared to Pyramid Vision Transformer. On the dam defect image datasets, IEMAM improves 1.21% in mAP while significantly reducing computational overhead for the same input conditions.",
+          "publishYear": 2022,
+          "cited": 0,
+          "publishTime": 0,
+          "langType": 1,
+          "type": 1,
+          "standardStatus": 0,
+          "doi": "10.1109/BigDataService55688.2022.00031",
+          "keyword": "",
+          "authors": [
+            {
+              "name": "Zheyuan Wang",
+              "affiliate": "",
+              "showName": "Zheyuan Wang"
+            },
+            {
+              "name": "Yingchi Mao",
+              "affiliate": "",
+              "showName": "Yingchi Mao"
+            },
+            {
+              "name": "Shuai Zhang",
+              "affiliate": "",
+              "showName": "Shuai Zhang"
+            },
+            {
+              "name": "Yong Qian",
+              "affiliate": "",
+              "showName": "Yong Qian"
+            },
+            {
+              "name": "Zeyu Zhang",
+              "affiliate": "",
+              "showName": "Zeyu Zhang"
+            },
+            {
+              "name": "Zhihao Chen",
+              "affiliate": "",
+              "showName": "Zhihao Chen"
+            }
+          ],
+          "publishInfo": {
+            "publisher": "",
+            "journalName": "2022 IEEE Eighth International Conference on Big Data Computing Service and Applications (BigDataService)",
+            "journalId": ""
+          },
+          "sourceList": [
+            {
+              "url": "http://www.semanticscholar.org/paper/73d82ec0475166b60b12f6bc206645fbd5a9c319",
+              "anchor": "Semantic Scholar",
+              "partner": "319",
+              "score": 7,
+              "createTime": 1773387295,
+              "updateTime": 1773387295,
+              "domain": "www.semanticscholar.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://doi.org/10.1109/bigdataservice55688.2022.00031",
+              "anchor": "doi.org",
+              "partner": "431",
+              "score": 7,
+              "createTime": 1762726417,
+              "updateTime": 1762726417,
+              "domain": "doi.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            }
+          ],
+          "saveList": null
+        },
+        {
+          "paperId": "06cfc494dda4eec93c6cddaad8519d63",
+          "title": "External noise distinguishes attention mechanisms",
+          "abstract": "The authors developed and tested a powerful method for identifying and characterizing the effect of attention on performance in visual tasks as due to signal enhancement, distracter exclusion, or internal noise suppression. Based on a noisy Perceptual Template Model (PTM) of a human observer, the method adds increasing amounts of external noise (white gaussian random noise) to the visual stimulus and observes the effect on performance of a perceptual task for attended and unattended stimuli. The 3 mechanisms of attention yield 3 ldquosignaturerdquo patterns of performance. The general framework for characterizing the mechanisms of attention is used here to investigate the attentional mechanisms in a concurrent location-cued orientation discrimination task. Test stimuli-Gabor patches tilted slightly to the right or left-always appeared on both the left and the right of fixation, and varied independently. Observers were cued on each trial to attend to the left, the right, or evenly to both stimuli, and decide the direction of tilt of both test stimuli. For 8 levels of added external noise and 3 attention conditions (attended, unattended, and equal), subjects' contrast threshold levels were determined. At low levels of external noise, attention affected threshold contrast: threshold contrasts for non-attended stimuli were systematically higher than for equal attention stimuli, which were, in turn, higher than for attended stimuli. Specifically, when the rms contrast of the external noise is below 10%, there is a consistent 17% elevation of contrast threshold from attended to unattended condition across all 3 subjects. For higher levels of external noise, attention conditions did not affect threshold contrast values at all. These strong results are characteristic of a signal enhancement, or equivalently, an internal additive noise reduction mechanism of attention",
+          "publishYear": 1998,
+          "cited": 756,
+          "publishTime": 0,
+          "langType": 1,
+          "type": 1,
+          "standardStatus": 0,
+          "doi": "10.1016/s0042-6989(97)00273-3",
+          "keyword": "Bibliography, Theoretical or Mathematical/ Gaussian noise; physiological models; visual perception/ visual attention mechanisms distinguishing; external noise; signal enhancement; distracter exclusion; internal noise suppression; noisy perceptual template model; human observer; white gaussian random noise; visual stimulus; perceptual task; attended stimuli; unattended stimuli; performance patterns; concurrent location-cued orientation discrimination task; tilted Gabor patches; rms contrast; internal additive noise reduction mechanism; tilt direction/ A8732S Psychophysics of vision,  visual perception, binocular vision A8710 General, theoretical, and mathematical  biophysics",
+          "authors": [
+            {
+              "name": "Zhong-Lin Lu",
+              "affiliate": "",
+              "showName": "Zhong-Lin Lu"
+            },
+            {
+              "name": "Barbara Anne Dosher",
+              "affiliate": "",
+              "showName": "Barbara Anne Dosher"
+            }
+          ],
+          "publishInfo": {
+            "publisher": "",
+            "journalName": "Vision Research",
+            "journalId": "56efddb6fbdc55ec"
+          },
+          "sourceList": [
+            {
+              "url": "http://www.sciencedirect.com/science/article/pii/S0042698997002733",
+              "anchor": "Elsevier",
+              "partner": "",
+              "score": 8,
+              "createTime": 1537287976,
+              "updateTime": 1652088094,
+              "domain": "www.sciencedirect.com",
+              "type": 0,
+              "sortType": 1,
+              "size": ""
+            },
+            {
+              "url": "http://www.ingentaconnect.com/content/els/00426989/1998/00000038/00000009/art00273",
+              "anchor": "Ingenta",
+              "partner": "",
+              "score": 8,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "www.ingentaconnect.com",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://doi.org/10.1016/s0042-6989(97)00273-3",
+              "anchor": "doi.org",
+              "partner": "431",
+              "score": 7,
+              "createTime": 1756780779,
+              "updateTime": 1756780779,
+              "domain": "doi.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://www.semanticscholar.org/paper/dabd912d2c7dfd42a95a1ae9243c49959a7273de",
+              "anchor": "Semantic Scholar",
+              "partner": "319",
+              "score": 7,
+              "createTime": 1746999613,
+              "updateTime": 1746999613,
+              "domain": "www.semanticscholar.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "https://www.zhangqiaokeyan.com/open-access_resources_thesis/0100048850136.html",
+              "anchor": "掌桥科研",
+              "partner": "64",
+              "score": 7,
+              "createTime": 1589898644,
+              "updateTime": 1589898644,
+              "domain": "www.zhangqiaokeyan.com",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://med.wanfangdata.com.cn/Paper/Detail/PeriodicalPaper_PM9666987",
+              "anchor": "万方医学",
+              "partner": "",
+              "score": 7,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "med.wanfangdata.com.cn",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://pdfs.semanticscholar.org/13c0/45e3c8fe731b0bf95b26505a48c284725c65.pdf",
+              "anchor": "Semantic Scholar",
+              "partner": "",
+              "score": 7,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "pdfs.semanticscholar.org",
+              "type": 1,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://dx.doi.org/10.1016/S0042-6989(97)00273-3",
+              "anchor": "dx.doi.org",
+              "partner": "73",
+              "score": 6,
+              "createTime": 1743309479,
+              "updateTime": 1743309479,
+              "domain": "dx.doi.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://pubmed.ncbi.nlm.nih.gov/9666987/",
+              "anchor": "NCBI",
+              "partner": "262",
+              "score": 8,
+              "createTime": 1678097762,
+              "updateTime": 1678097762,
+              "domain": "pubmed.ncbi.nlm.nih.gov",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://www.ncbi.nlm.nih.gov/pubmed/9666987?itool=EntrezSystem2.PEntrez.Pubmed.Pubmed_ResultsPanel.Pubmed_RVDocSum",
+              "anchor": "NCBI",
+              "partner": "",
+              "score": 8,
+              "createTime": 1637569159,
+              "updateTime": 1648763432,
+              "domain": "www.ncbi.nlm.nih.gov",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://europepmc.org/abstract/MED/9666987",
+              "anchor": "Europe PMC",
+              "partner": "",
+              "score": 8,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "europepmc.org",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://psycnet.apa.org/record/1998-10082-001",
+              "anchor": "APA",
+              "partner": "",
+              "score": 8,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "psycnet.apa.org",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://www.researchgate.net/publication/282108177_External_noise_distinguishes_attention_mechanisms",
+              "anchor": "ResearchGate",
+              "partner": "",
+              "score": 5,
+              "createTime": 1604606784,
+              "updateTime": 1637592093,
+              "domain": "www.researchgate.net",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://www.researchgate.net/profile/Zhong-Lin_Lu/publication/282108177_External_noise_distinguishes_attention_mechanisms/links/560e83d508aec422d11161ce.pdf",
+              "anchor": "ResearchGate",
+              "partner": "",
+              "score": 5,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "www.researchgate.net",
+              "type": 1,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://openurl.ebscohost.com/linksvc/linking.aspx?stitle=Vision%20Research&volume=38&issue=9&spage=1183",
+              "anchor": "EBSCO",
+              "partner": "",
+              "score": 4,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "openurl.ebscohost.com",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://www.socolar.com/Article/Index?aid=100071583345&jid=100000002423",
+              "anchor": "www.socolar.com",
+              "partner": "7",
+              "score": 0,
+              "createTime": 1652216748,
+              "updateTime": 1664569624,
+              "domain": "www.socolar.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "https://www.onacademic.com/detail/journal_1000035448684810_bca6.html",
+              "anchor": "onAcademic",
+              "partner": "",
+              "score": 0,
+              "createTime": 1558476754,
+              "updateTime": 1558476754,
+              "domain": "www.onacademic.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.onacademic.com/detail/journal_1000035448684810_bca6.html",
+              "anchor": "onAcademic",
+              "partner": "8",
+              "score": 0,
+              "createTime": 1558476754,
+              "updateTime": 1558476754,
+              "domain": "www.onacademic.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.infona.pl/resource/bwmeta1.element.elsevier-5ea5eb7c-cfe0-3978-8eab-547c40389daf",
+              "anchor": "infona.pl",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "www.infona.pl",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.readcube.com/articles/10.1016/S0042-6989(97)00273-3",
+              "anchor": "readcube.com",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "www.readcube.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.pubfacts.com/detail/9666987/External-noise-distinguishes-attention-mechanisms",
+              "anchor": "pubfacts.com",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "www.pubfacts.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.unt.edu/rss/class/mike/5640/articles/ludosher1998.pdf",
+              "anchor": "unt.edu",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "www.unt.edu",
+              "type": 1,
+              "sortType": 100,
+              "size": "1.70MB"
+            },
+            {
+              "url": "http://www.mysciencework.com/publication/show/external-noise-distinguishes-attention-mechanisms",
+              "anchor": "mysciencework.com",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "www.mysciencework.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.deepdyve.com/lp/medline-abstracts/external-noise-distinguishes-attention-mechanisms-GlK34Jh3Z0",
+              "anchor": "deepdyve.com",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "www.deepdyve.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://jn.physiology.org/lookup/external-ref?access_num=9666987&amp;link_type=MED&amp;atom=",
+              "anchor": "jn.physiology.org",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "jn.physiology.org",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://wexler.free.fr/library/files/lu%20(1998)%20external%20noise%20distinguishes%20attention%20mechanisms.pdf",
+              "anchor": "wexler.free.fr",
+              "partner": "",
+              "score": 0,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "wexler.free.fr",
+              "type": 1,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.imbs.uci.edu/files/docs/technical/1997/mbs_97-16.pdf",
+              "anchor": "imbs.uci.edu",
+              "partner": "",
+              "score": 0,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "www.imbs.uci.edu",
+              "type": 1,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.socsci.uci.edu/maplab/personal/webdocs/vr98.pdf",
+              "anchor": "socsci.uci.edu",
+              "partner": "",
+              "score": 0,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "www.socsci.uci.edu",
+              "type": 1,
+              "sortType": 100,
+              "size": ""
+            }
+          ],
+          "saveList": [
+            {
+              "url": "http://pdfs.semanticscholar.org/13c0/45e3c8fe731b0bf95b26505a48c284725c65.pdf",
+              "anchor": "Semantic Scholar",
+              "partner": "",
+              "score": 7,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "pdfs.semanticscholar.org",
+              "type": 1,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://www.researchgate.net/profile/Zhong-Lin_Lu/publication/282108177_External_noise_distinguishes_attention_mechanisms/links/560e83d508aec422d11161ce.pdf",
+              "anchor": "ResearchGate",
+              "partner": "",
+              "score": 5,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "www.researchgate.net",
+              "type": 1,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "https://www.onacademic.com/detail/journal_1000035448684810_bca6.html",
+              "anchor": "onAcademic",
+              "partner": "",
+              "score": 0,
+              "createTime": 1558476754,
+              "updateTime": 1558476754,
+              "domain": "www.onacademic.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.unt.edu/rss/class/mike/5640/articles/ludosher1998.pdf",
+              "anchor": "unt.edu",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537287976,
+              "updateTime": 1537287976,
+              "domain": "www.unt.edu",
+              "type": 1,
+              "sortType": 100,
+              "size": "1.70MB"
+            },
+            {
+              "url": "http://wexler.free.fr/library/files/lu%20(1998)%20external%20noise%20distinguishes%20attention%20mechanisms.pdf",
+              "anchor": "wexler.free.fr",
+              "partner": "",
+              "score": 0,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "wexler.free.fr",
+              "type": 1,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.imbs.uci.edu/files/docs/technical/1997/mbs_97-16.pdf",
+              "anchor": "imbs.uci.edu",
+              "partner": "",
+              "score": 0,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "www.imbs.uci.edu",
+              "type": 1,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.socsci.uci.edu/maplab/personal/webdocs/vr98.pdf",
+              "anchor": "socsci.uci.edu",
+              "partner": "",
+              "score": 0,
+              "createTime": 0,
+              "updateTime": 0,
+              "domain": "www.socsci.uci.edu",
+              "type": 1,
+              "sortType": 100,
+              "size": ""
+            }
+          ]
+        },
+        {
+          "paperId": "12320030800f08w06v450x30pr751940",
+          "title": "Visual Attention Mechanisms",
+          "abstract": "Thank you very much for downloading visual attention mechanisms. As you may know, people have look hundreds times for their chosen readings like this visual attention mechanisms, but end up in infectious downloads. Rather than reading a good book with a cup of coffee in the afternoon, instead they juggled with some infectious virus inside their computer. visual attention mechanisms is available in our digital library an online access to it is set as public so you can get it instantly. Our digital library saves in multiple countries, allowing you to get the most less latency time to download any of our books like this one. Merely said, the visual attention mechanisms is universally compatible with any devices to read.",
+          "publishYear": 2016,
+          "cited": 0,
+          "publishTime": 0,
+          "langType": 1,
+          "type": 1,
+          "standardStatus": 0,
+          "doi": "",
+          "keyword": "",
+          "authors": [
+            {
+              "name": "M. Becker",
+              "affiliate": "",
+              "showName": "M. Becker"
+            }
+          ],
+          "publishInfo": {
+            "publisher": "",
+            "journalName": "",
+            "journalId": ""
+          },
+          "sourceList": [
+            {
+              "url": "http://www.semanticscholar.org/paper/72048e6d38bea49e6eac8084d04834856f34c6a9",
+              "anchor": "Semantic Scholar",
+              "partner": "319",
+              "score": 7,
+              "createTime": 1693768148,
+              "updateTime": 1772292661,
+              "domain": "www.semanticscholar.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            }
+          ],
+          "saveList": null
+        },
+        {
+          "paperId": "1h3y0t60f70x0ab0vk6g0r50m4045875",
+          "title": "Visual Attention Mechanisms",
+          "abstract": "Proceedings of the Fifth International School on Neural Networks'E.R. Caianiello'on Visual Attention MechaProceedings of the Fifth International School on Neural Networks'E.R. Caianiello'on Visual Attention Mechanisms, held 23-28 October 2000 in Vietri sul Mare, Italy.nisms, held 23-28 October 2000 in Vietri sul Mare, Italy. The book covers a number of broad themes relevant to visual attention, ranging from computer vision to psychology and physiology of vision. The main theme of the book is the attention processes of vision systems and it aims to point out the analogies and the divergences of biological vision with the frameworks introduced by computer scientists in artificial vision.",
+          "publishYear": 2012,
+          "cited": 0,
+          "publishTime": 0,
+          "langType": 1,
+          "type": 4,
+          "standardStatus": 0,
+          "doi": "",
+          "keyword": "",
+          "authors": [],
+          "publishInfo": {
+            "publisher": "",
+            "journalName": "",
+            "journalId": ""
+          },
+          "sourceList": [
+            {
+              "url": "http://www.keyanzhidian.com/doc/detail?id=4189055389995488936",
+              "anchor": "科研支点",
+              "partner": "400",
+              "score": 5,
+              "createTime": 1746525605,
+              "updateTime": 1746525605,
+              "domain": "www.keyanzhidian.com",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            }
+          ],
+          "saveList": null
+        },
+        {
+          "paperId": "a4dc1b0f3b58f34b17c495c7fa376aaa",
+          "title": "Attention mechanisms for vision in a dynamic world",
+          "abstract": "Three elements of attention in computer vision are described. These are related to familiar aspects of eye movement control in human vision: foveation, to examine selected regions of the visual world at high resolution; tracking, to stabilize the images of moving objects within the eye; and high-level interpretation, to anticipate where salient information will occur in a scene. Attention mechanisms allow the system to function in a data-rich world by directing system sensing and analysis resources to only that information critical to the system's current visual task. It is concluded that attention therefore includes mechanisms for directing the allocation of processing and mechanisms for rapidly interpreting the information as it is gathered",
+          "publishYear": 1988,
+          "cited": 220,
+          "publishTime": 0,
+          "langType": 1,
+          "type": 1,
+          "standardStatus": 0,
+          "doi": "10.1109/ICPR.1988.28419",
+          "keyword": "computer vision;computerised pattern recognition;attention mechanisms;computer vision;foveation;interpretation;tracking;visual world;Computer vision;Control systems",
+          "authors": [
+            {
+              "name": "P.J. Burt",
+              "affiliate": "",
+              "showName": "P.J. Burt"
+            }
+          ],
+          "publishInfo": {
+            "publisher": "IEEE",
+            "journalName": "",
+            "journalId": ""
+          },
+          "sourceList": [
+            {
+              "url": "http://ieeexplore.ieee.org/document/28419",
+              "anchor": "IEEEXplore",
+              "partner": "",
+              "score": 8,
+              "createTime": 1590608599,
+              "updateTime": 1644455734,
+              "domain": "ieeexplore.ieee.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://www.semanticscholar.org/paper/a2025f9af66afc24cd8c4e5dfc55d7706e7579e0",
+              "anchor": "Semantic Scholar",
+              "partner": "319",
+              "score": 7,
+              "createTime": 1778659367,
+              "updateTime": 1778659367,
+              "domain": "www.semanticscholar.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "https://www.zhangqiaokeyan.com/academic-conference-foreign_meeting-200984_thesis/0705018037673.html",
+              "anchor": "掌桥科研",
+              "partner": "64",
+              "score": 7,
+              "createTime": 1733371946,
+              "updateTime": 1733371946,
+              "domain": "www.zhangqiaokeyan.com",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://semanticscholar.org/paper/a2025f9af66afc24cd8c4e5dfc55d7706e7579e0",
+              "anchor": "Semantic Scholar",
+              "partner": "",
+              "score": 7,
+              "createTime": 1608100430,
+              "updateTime": 1608100430,
+              "domain": "semanticscholar.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://dx.doi.org/10.1109/icpr.1988.28419",
+              "anchor": "dx.doi.org",
+              "partner": "",
+              "score": 6,
+              "createTime": 1537288995,
+              "updateTime": 1636119970,
+              "domain": "dx.doi.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://www.computer.org/csdl/proceedings/icpr/1988/0878/00/00028419.pdf",
+              "anchor": "IEEE Computer Society",
+              "partner": "",
+              "score": 7,
+              "createTime": 1537288995,
+              "updateTime": 1537288995,
+              "domain": "www.computer.org",
+              "type": 1,
+              "sortType": 3,
+              "size": "954.62KB"
+            },
+            {
+              "url": "http://www.researchgate.net/publication/224663318_Attention_mechanisms_for_vision_in_a_dynamic_world",
+              "anchor": "ResearchGate",
+              "partner": "",
+              "score": 5,
+              "createTime": 1537288995,
+              "updateTime": 1637251218,
+              "domain": "www.researchgate.net",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://www.mendeley.com/catalog/attention-mechanisms-vision-dynamic-world/",
+              "anchor": "mendeley.com",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537288995,
+              "updateTime": 1537288995,
+              "domain": "www.mendeley.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.ieeeexplore.us/xpl/articleDetails.jsp?tp=&amp;arnumber=28419&amp;searchWithin%3Dp_Authors%3A.QT.Burt%2C.QT.%26pageNumber%3D5%26rowsPerPage%3D75",
+              "anchor": "ieeeexplore.us",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537288995,
+              "updateTime": 1537288995,
+              "domain": "www.ieeeexplore.us",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://140.98.202.196/xpl/abstractReferences.jsp?reload=true&amp;arnumber=28419&amp;navigation=1",
+              "anchor": "140.98.202.196",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537288995,
+              "updateTime": 1537288995,
+              "domain": "140.98.202.196",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            }
+          ],
+          "saveList": [
+            {
+              "url": "http://www.computer.org/csdl/proceedings/icpr/1988/0878/00/00028419.pdf",
+              "anchor": "IEEE Computer Society",
+              "partner": "",
+              "score": 7,
+              "createTime": 1537288995,
+              "updateTime": 1537288995,
+              "domain": "www.computer.org",
+              "type": 1,
+              "sortType": 3,
+              "size": "954.62KB"
+            }
+          ]
+        },
+        {
+          "paperId": "b948593036627010be25bb8d30b63983",
+          "title": "Attention Mechanisms in Visual Search—An fMRI Study",
+          "abstract": "The human visual system is usually confronted with many different objects at a time, with only some of them reaching consciousness. Reaction-time studies have revealed two different strategies by which objects are selected for further processing: an automatic, efficient search process, and a conscious, so-called inefficient search [Treisman, A. (1991). Search, similarity, and integration of features between and within dimensions. Journal of Experimental Psychology: Human Perception and Performance, 17, 652-676; Treisman, A., & Gelade, G. (1980). A feature integration theory of attention. Cognitive Psychology, 12, 97-136; Wolfe, J. M. (1996). Visual search. In H. Pashler (Ed.), Attention. London: University College London Press]. Two different theories have been proposed to account for these search processes. Parallel theories presume that both types of search are treated by a single mechanism that is modulated by attentional and computational demands. Serial theories, in contrast, propose that parallel processing may underlie efficient search, but inefficient searching requires an additional serial mechanism, an attentional \"spotlight\" (Treisman, A., 1991) that successively shifts attention to different locations in the visual field. Using functional magnetic resonance imaging (fMRI), we show that the cerebral networks involved in efficient and inefficient search overlap almost completely. Only the superior frontal region, known to be involved in working memory [Courtney, S. M., Petit, L., Maisog, J. M., Ungerleider, L. G., & Haxby, J. V. (1998). An area specialized for spatial working memory in human frontal cortex. Science, 279, 1347-1351], and distinct from the frontal eye fields, that control spatial shifts of attention, was specifically involved in inefficient search. Activity modulations correlated with subjects' behavior best in the extrastriate cortical areas, where the amount of activity depended on the number of distracting elements in the display. Such a correlation was not observed in the parietal and frontal regions, usually assumed as being involved in spatial attention processing. These results can be interpreted in two ways: the most likely is that visual search does not require serial processing, otherwise we must assume the existence of a serial searchlight that operates in the extrastriate cortex but differs from the visuospatial shifts of attention involving the parietal and frontal regions.",
+          "publishYear": 2000,
+          "cited": 223,
+          "publishTime": 0,
+          "langType": 1,
+          "type": 1,
+          "standardStatus": 0,
+          "doi": "10.1162/089892900564073",
+          "keyword": "Adult;Attention;Brain Mapping;Cerebral Cortex;Female;Frontal Lobe;Humans;Magnetic Resonance Imaging;Male;Occipital Lobe",
+          "authors": [
+            {
+              "name": "Leonards, Ute",
+              "affiliate": "",
+              "showName": "Leonards, Ute"
+            },
+            {
+              "name": "Sunaert, Stefan",
+              "affiliate": "",
+              "showName": "Sunaert, Stefan"
+            },
+            {
+              "name": "Van Hecke, Paul",
+              "affiliate": "",
+              "showName": "Van Hecke, Paul"
+            },
+            {
+              "name": "Orban, Guy A.",
+              "affiliate": "",
+              "showName": "Orban, Guy A."
+            }
+          ],
+          "publishInfo": {
+            "publisher": "MIT Press",
+            "journalName": "Journal of Cognitive Neuroscience",
+            "journalId": "bd08905fd01ea112"
+          },
+          "sourceList": [
+            {
+              "url": "http://openurl.ebsco.com/contentitem/doi:10.1162%2F089892900564073?sid=ebsco:plink:crawler&id=ebsco:doi:10.1162%2F089892900564073",
+              "anchor": "EBSCO",
+              "partner": "385",
+              "score": 8,
+              "createTime": 1739950790,
+              "updateTime": 1739950790,
+              "domain": "openurl.ebsco.com",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://ieeexplore.ieee.org/document/6787758",
+              "anchor": "IEEEXplore",
+              "partner": "",
+              "score": 8,
+              "createTime": 1598842962,
+              "updateTime": 1600621253,
+              "domain": "ieeexplore.ieee.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://doi.org/10.1162/089892900564073",
+              "anchor": "doi.org",
+              "partner": "431",
+              "score": 7,
+              "createTime": 1755540519,
+              "updateTime": 1755540519,
+              "domain": "doi.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://www.semanticscholar.org/paper/88b37b0cbc5192fc69c30ff313fe7b3d73d18bde",
+              "anchor": "Semantic Scholar",
+              "partner": "319",
+              "score": 7,
+              "createTime": 1755538182,
+              "updateTime": 1755538182,
+              "domain": "www.semanticscholar.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://dx.doi.org/10.1162/089892900564073",
+              "anchor": "dx.doi.org",
+              "partner": "",
+              "score": 6,
+              "createTime": 1636137330,
+              "updateTime": 1660923138,
+              "domain": "dx.doi.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://dl.acm.org/doi/10.1162/089892900564073",
+              "anchor": "ACM",
+              "partner": "",
+              "score": 8,
+              "createTime": 1591984481,
+              "updateTime": 1735323652,
+              "domain": "dl.acm.org",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://pubmed.ncbi.nlm.nih.gov/11506648/",
+              "anchor": "NCBI",
+              "partner": "262",
+              "score": 8,
+              "createTime": 1678850219,
+              "updateTime": 1678850219,
+              "domain": "pubmed.ncbi.nlm.nih.gov",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://www.ncbi.nlm.nih.gov/pubmed/11506648",
+              "anchor": "NCBI",
+              "partner": "",
+              "score": 8,
+              "createTime": 1537294394,
+              "updateTime": 1585323594,
+              "domain": "www.ncbi.nlm.nih.gov",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://europepmc.org/abstract/MED/11506648",
+              "anchor": "Europe PMC",
+              "partner": "",
+              "score": 8,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "europepmc.org",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://psycnet.apa.org/record/2001-16008-005",
+              "anchor": "APA",
+              "partner": "",
+              "score": 8,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "psycnet.apa.org",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://www.researchgate.net/publication/11837937_Attention_Mechanisms_in_Visual_Search-An_fMRI_Study",
+              "anchor": "ResearchGate",
+              "partner": "",
+              "score": 5,
+              "createTime": 1569969193,
+              "updateTime": 1599516341,
+              "domain": "www.researchgate.net",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://gateway.proquest.com/openurl?res_dat=xri:pqm&ctx_ver=Z39.88-2004&rfr_id=info:xri/sid:baidu&rft_val_fmt=info:ofi/fmt:kev:mtx:article&genre=article&jtitle=Journal%20of%20Cognitive%20Neuroscience&atitle=Attention%20mechanisms%20in%20visual%20search-An%20fMRI%20study",
+              "anchor": "ProQuest",
+              "partner": "",
+              "score": 5,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "gateway.proquest.com",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://www.researchgate.net/profile/Stefan_Sunaert/publication/11837937_Attention_Mechanisms_in_Visual_Search-An_fMRI_Study/links/0fcfd50ae68b8ea5b9000000.pdf",
+              "anchor": "ResearchGate",
+              "partner": "",
+              "score": 5,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "www.researchgate.net",
+              "type": 1,
+              "sortType": 3,
+              "size": "4.41MB"
+            },
+            {
+              "url": "http://www.socolar.com/Article/Index?aid=100028535913&jid=100000011545",
+              "anchor": "www.socolar.com",
+              "partner": "7",
+              "score": 0,
+              "createTime": 1595607371,
+              "updateTime": 1654684943,
+              "domain": "www.socolar.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.onacademic.com/detail/journal_1000038181035710_f6c3.html",
+              "anchor": "onAcademic",
+              "partner": "8",
+              "score": 0,
+              "createTime": 1547322029,
+              "updateTime": 1547515088,
+              "domain": "www.onacademic.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "https://www.onacademic.com/detail/journal_1000038181035710_f6c3.html",
+              "anchor": "onAcademic",
+              "partner": "",
+              "score": 0,
+              "createTime": 1547322029,
+              "updateTime": 1547515088,
+              "domain": "www.onacademic.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.deepdyve.com/lp/mit-press/attention-mechanisms-in-visual-search-an-fmri-study-v9Na3Q7hcI/1",
+              "anchor": "deepdyve.com",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "www.deepdyve.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://cognet.mit.edu/node/23807",
+              "anchor": "cognet.mit.edu",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "cognet.mit.edu",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.mendeley.com/catalog/attention-mechanisms-visual-search-fmri-study/",
+              "anchor": "mendeley.com",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "www.mendeley.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.readcube.com/articles/10.1162/089892900564073?tab=summary",
+              "anchor": "readcube.com",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "www.readcube.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.mitpressjournals.org/doi/abs/10.1162/089892900564073",
+              "anchor": "mitpressjournals.org",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "www.mitpressjournals.org",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://lirias.kuleuven.be/handle/123456789/17256",
+              "anchor": "lirias.kuleuven.be",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "lirias.kuleuven.be",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://research-information.bristol.ac.uk/en/publications/attention-mechanisms-in-visual-search--an-fmri-study(00b5cca4-c28e-4199-aca3-5e47fd7e819e)/export.html",
+              "anchor": "research-information.bristol.ac.uk",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "research-information.bristol.ac.uk",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.jneurosci.org/lookup/external-ref?access_num=11506648&amp;link_type=MED&amp;atom=%2Fjneuro%2F35%2F49%2F16046.atom",
+              "anchor": "jneurosci.org",
+              "partner": "",
+              "score": 0,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "www.jneurosci.org",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            }
+          ],
+          "saveList": [
+            {
+              "url": "http://www.researchgate.net/profile/Stefan_Sunaert/publication/11837937_Attention_Mechanisms_in_Visual_Search-An_fMRI_Study/links/0fcfd50ae68b8ea5b9000000.pdf",
+              "anchor": "ResearchGate",
+              "partner": "",
+              "score": 5,
+              "createTime": 1537294394,
+              "updateTime": 1537294394,
+              "domain": "www.researchgate.net",
+              "type": 1,
+              "sortType": 3,
+              "size": "4.41MB"
+            },
+            {
+              "url": "https://www.onacademic.com/detail/journal_1000038181035710_f6c3.html",
+              "anchor": "onAcademic",
+              "partner": "",
+              "score": 0,
+              "createTime": 1547322029,
+              "updateTime": 1547515088,
+              "domain": "www.onacademic.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            }
+          ]
+        },
+        {
+          "paperId": "f2eac45e70a643b38245fe0c409249df",
+          "title": "<em>ATTENTION MECHANISM</em>",
+          "abstract": "A social robot is a robot which is capable of communicate and interact with humans and other social robots. This interaction implies that the social robot must simultaneously perceive a great variety of natural social cues from visual and auditory channels, and to",
+          "publishYear": 0,
+          "cited": 1,
+          "publishTime": 0,
+          "langType": 1,
+          "type": 0,
+          "standardStatus": 0,
+          "doi": "",
+          "keyword": "",
+          "authors": [
+            {
+              "name": "Rebeca Marfil",
+              "affiliate": "",
+              "showName": "Rebeca Marfil"
+            }
+          ],
+          "publishInfo": {
+            "publisher": "",
+            "journalName": "Grupoisis.uma.es",
+            "journalId": "350d4abe28576517"
+          },
+          "sourceList": [
+            {
+              "url": "http://www.researchgate.net/publication/242765471_ATTENTION_MECHANISM",
+              "anchor": "ResearchGate",
+              "partner": "",
+              "score": 5,
+              "createTime": 1537289628,
+              "updateTime": 1637580150,
+              "domain": "www.researchgate.net",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            }
+          ],
+          "saveList": null
+        },
+        {
+          "paperId": "94232c6612676ad3e9b8837e1bff07ee",
+          "title": "Pre-training Attention Mechanisms",
+          "abstract": "Recurrent neural networks with differentiable attention mechanisms have had success in generative and classification tasks. We show that the classification performance of such models can be enhanced by guiding a randomly initialized model to attend to salient regions of the input in early training iterations. We further show that, if explicit heuristics for guidance are unavailable, a model that is pretrained on an unsupervised reconstruction task can discover good attention policies without supervision. We demonstrate that increased efficiency of the <em>attention mechanism</em> itself contributes to these performance improvements. Based on these insights, we introduce bootstrapped glimpse mimicking, a simple, theoretically task-general method of more effectively training attention models. Our work draws inspiration from and parallels results on human learning of attention.",
+          "publishYear": 2017,
+          "cited": 1,
+          "publishTime": 0,
+          "langType": 1,
+          "type": 1,
+          "standardStatus": 0,
+          "doi": "10.48550/arXiv.1712.05652",
+          "keyword": "",
+          "authors": [
+            {
+              "name": "Jack Lindsey",
+              "affiliate": "",
+              "showName": "Jack Lindsey"
+            }
+          ],
+          "publishInfo": {
+            "publisher": "",
+            "journalName": "",
+            "journalId": ""
+          },
+          "sourceList": [
+            {
+              "url": "http://www.semanticscholar.org/paper/b85e1184d10c9c44b7a8bea6675d529d68477ea8",
+              "anchor": "Semantic Scholar",
+              "partner": "319",
+              "score": 7,
+              "createTime": 1702618343,
+              "updateTime": 1765222763,
+              "domain": "www.semanticscholar.org",
+              "type": 0,
+              "sortType": 2,
+              "size": ""
+            },
+            {
+              "url": "http://arxiv.org/abs/1712.05652?context=cs.CV",
+              "anchor": "arXiv.org",
+              "partner": "",
+              "score": 7,
+              "createTime": 1754058147,
+              "updateTime": 1754058147,
+              "domain": "arxiv.org",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://arxiv.org/pdf/1712.05652",
+              "anchor": "arXiv.org",
+              "partner": "",
+              "score": 7,
+              "createTime": 1537290968,
+              "updateTime": 1746160136,
+              "domain": "arxiv.org",
+              "type": 1,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://www.researchgate.net/publication/321873662_Pre-training_Attention_Mechanisms",
+              "anchor": "ResearchGate",
+              "partner": "",
+              "score": 5,
+              "createTime": 1566308855,
+              "updateTime": 1643398377,
+              "domain": "www.researchgate.net",
+              "type": 0,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "http://doc.paperpass.com/patent/arXiv171205652.html",
+              "anchor": "钛学术",
+              "partner": "213",
+              "score": 0,
+              "createTime": 1667383015,
+              "updateTime": 1667383015,
+              "domain": "doc.paperpass.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "http://www.xueshufan.com/publication/2774210152",
+              "anchor": "学术范",
+              "partner": "256",
+              "score": 0,
+              "createTime": 1653242911,
+              "updateTime": 1653242911,
+              "domain": "www.xueshufan.com",
+              "type": 0,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "https://www.xueshufan.com/publication/2774210152",
+              "anchor": "学术范",
+              "partner": "",
+              "score": 0,
+              "createTime": 1653242911,
+              "updateTime": 1653242911,
+              "domain": "www.xueshufan.com",
+              "type": 1,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "https://doc.paperpass.com/foreign/arXiv171205652.html",
+              "anchor": "钛学术",
+              "partner": "",
+              "score": 0,
+              "createTime": 1643096145,
+              "updateTime": 1643096145,
+              "domain": "doc.paperpass.com",
+              "type": 1,
+              "sortType": 100,
+              "size": ""
+            }
+          ],
+          "saveList": [
+            {
+              "url": "http://arxiv.org/pdf/1712.05652",
+              "anchor": "arXiv.org",
+              "partner": "",
+              "score": 7,
+              "createTime": 1537290968,
+              "updateTime": 1746160136,
+              "domain": "arxiv.org",
+              "type": 1,
+              "sortType": 3,
+              "size": ""
+            },
+            {
+              "url": "https://www.xueshufan.com/publication/2774210152",
+              "anchor": "学术范",
+              "partner": "",
+              "score": 0,
+              "createTime": 1653242911,
+              "updateTime": 1653242911,
+              "domain": "www.xueshufan.com",
+              "type": 1,
+              "sortType": 100,
+              "size": ""
+            },
+            {
+              "url": "https://doc.paperpass.com/foreign/arXiv171205652.html",
+              "anchor": "钛学术",
+              "partner": "",
+              "score": 0,
+              "createTime": 1643096145,
+              "updateTime": 1643096145,
+              "domain": "doc.paperpass.com",
+              "type": 1,
+              "sortType": 100,
+              "size": ""
+            }
+          ]
+        }
+      ],
+      "searchResult": 1
+    },
+    "journal": null,
+    "authors": []
+  }
+}
