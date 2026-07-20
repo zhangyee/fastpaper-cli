@@ -83,7 +83,7 @@ wait
 
 ## 数据源
 
-17 个学术数据源，每条命令独立访问单个数据源。
+18 个学术数据源，每条命令独立访问单个数据源。
 
 | 数据源 | 全称 | search | download | read | 覆盖领域 |
 |--------|------|:------:|:--------:|:----:|----------|
@@ -94,6 +94,7 @@ wait
 | `pmc` | PubMed Central | yes | yes | yes | 生物医学与生命科学（全文） |
 | `europepmc` | Europe PMC | yes | | | PMC 的生命科学超集 |
 | `scholar` | Google Scholar | yes | | | 全学科（实验性，有频率限制） |
+| `xueshu` | 百度学术 | yes | | | 全学科，中文文献覆盖强（实验性，非官方接口） |
 | `semantic` | Semantic Scholar | yes | yes | yes | 全学科，AI 驱动的引用图谱 |
 | `crossref` | CrossRef | yes | | | DOI 元数据，全学科 |
 | `openalex` | OpenAlex | yes | | | 开放元数据索引，2 亿+ 作品 |
@@ -181,7 +182,7 @@ fastpaper completions bash >> ~/.bashrc
 
 ## 环境变量
 
-除特别标注外均为可选。20 个数据源中有 19 个无需任何配置即可使用。
+除特别标注外均为可选。21 个数据源中有 20 个无需任何配置即可使用。
 
 | 变量 | 用途 |
 |------|------|
