@@ -223,6 +223,7 @@ pub enum Source {
     Pmc,
     Europepmc,
     Scholar,
+    Xueshu,
     Semantic,
     Crossref,
     Openalex,
@@ -270,6 +271,7 @@ impl Source {
             Source::Pmc => "pmc",
             Source::Europepmc => "europepmc",
             Source::Scholar => "scholar",
+            Source::Xueshu => "xueshu",
             Source::Semantic => "semantic",
             Source::Crossref => "crossref",
             Source::Openalex => "openalex",
@@ -288,6 +290,9 @@ impl Source {
         match self {
             Source::Pubmed => Some("Try: fastpaper download pmc <PMC_ID>"),
             Source::Scholar => Some("Google Scholar does not provide PDFs directly"),
+            Source::Xueshu => {
+                Some("Baidu Xueshu aggregates external links only. Try: fastpaper get <DOI> --resolve")
+            }
             Source::Crossref | Source::Openalex | Source::Dblp => {
                 Some("This source only provides metadata. Try: fastpaper get <ID> --resolve")
             }

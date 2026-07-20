@@ -100,6 +100,11 @@ fn main() {
                         .unwrap_or_else(|_| "https://scholar.google.com".to_string());
                     sources::scholar::search(&base_url, &args.query, args.limit)
                 }
+                cli::Source::Xueshu => {
+                    let base_url = std::env::var("FASTPAPER_XUESHU_URL")
+                        .unwrap_or_else(|_| "https://xueshu.baidu.com".to_string());
+                    sources::xueshu::search(&base_url, &args.query, args.limit)
+                }
                 cli::Source::Unpaywall => {
                     let base_url = std::env::var("FASTPAPER_UNPAYWALL_URL")
                         .unwrap_or_else(|_| "https://api.unpaywall.org".to_string());
@@ -452,6 +457,7 @@ fn main() {
             println!("pmc            ✓       ✓         ✓");
             println!("europepmc      ✓       ✗         ✗");
             println!("scholar        ✓       ✗         ✗");
+            println!("xueshu         ✓       ✗         ✗");
             println!("semantic       ✓       ✓         ✓");
             println!("crossref       ✓       ✗         ✗");
             println!("openalex       ✓       ✗         ✗");

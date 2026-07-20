@@ -965,3 +965,58 @@ fn read_semantic_fulltext_outputs_text() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(!stdout.trim().is_empty(), "should output extracted text");
 }
+
+// ── xueshu integration tests ────────────────────
+
+#[test]
+fn search_xueshu_mock_outputs_title() {
+    let fixture = include_str!("fixtures/xueshu_search.json");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["search", "xueshu", "attention mechanism", "-n", "3"])
+        .env("FASTPAPER_XUESHU_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Visual Attention Mechanisms"), "got: {stdout}");
+}
+
+#[test]
+fn search_xueshu_captcha_exits_nonzero_with_message() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(206)
+        .with_body(r#"{"status":{"code":7350001,"msg":"请输入验证码"}}"#)
+        .create();
+    cmd()
+        .args(["search", "xueshu", "test"])
+        .env("FASTPAPER_XUESHU_URL", server.url())
+        .assert()
+        .failure()
+        .stderr(contains("captcha"));
+}
+
+#[test]
+fn sources_lists_xueshu() {
+    cmd()
+        .arg("sources")
+        .assert()
+        .success()
+        .stdout(contains("xueshu"));
+}
+
+#[test]
+fn download_xueshu_rejects_with_hint() {
+    cmd()
+        .args(["download", "xueshu", "5a4afe9b6df8b07138fb6bf9b275251f"])
+        .assert()
+        .failure()
+        .stderr(contains("does not support"));
+}
