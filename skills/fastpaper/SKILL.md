@@ -20,7 +20,7 @@ Pick sources based on the user's research domain:
 **Biomedical / Life sciences**
 - `pubmed` — NLM index, 35M+ citations, biomedical and life sciences abstracts. search
 - `pmc` — NLM full-text archive of peer-reviewed biomedical and life sciences literature. search, download, read
-- `europepmc` — Life sciences superset of PMC by EMBL-EBI; adds patents, preprints, clinical guidelines. search, download, read
+- `europepmc` — Life sciences superset of PMC by EMBL-EBI; adds patents, preprints, clinical guidelines. search
 - `biorxiv` — Life sciences preprints by CSHL. search, download, read
 - `medrxiv` — Medical/health science preprints by CSHL. search, download, read
 
@@ -33,7 +33,7 @@ Pick sources based on the user's research domain:
 
 **Open access aggregators**
 - `core` — Largest global OA aggregator, full text from institutional repos and journals. search, download, read
-- `openaire` — EU open science infrastructure, aggregates worldwide OA research. search, download, read
+- `openaire` — EU open science infrastructure, aggregates worldwide OA research. search
 - `doaj` — Directory of quality-reviewed OA journals, all subjects. search, download, read
 - `unpaywall` — OA link resolver by DOI, finds legal free versions (needs UNPAYWALL_EMAIL). search
 

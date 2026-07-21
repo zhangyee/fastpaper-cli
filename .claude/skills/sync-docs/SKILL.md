@@ -38,7 +38,7 @@ description: 审核本仓库文档的漂移时使用——英文与中文版本�
 | 文档中的声明 | 事实来源 | 如何检查 |
 |---|---|---|
 | 源计数("N academic sources"、表格行、SKILL.md ×2、零配置计数) | `ls src/sources/*.rs \| grep -v mod.rs \| wc -l`(18) | README×2 + SKILL.md description + SKILL.md 正文的计数必须一致 |
-| 各源 search/download/read 能力 | `cli.rs::supports_download` / `supports_read`,以及 `main.rs` 的 dispatch 分支 | 表格各列与代码的能力集合相符 |
+| 各源 search/download/read 能力 | `cli.rs::supports_download` / `supports_read`,以及 `main.rs` 的 dispatch 分支 | 能力声明有 **3 处**,都要对齐代码:①README 能力表各列(中英)②`SKILL.md` 第 ~85 行的 download-capable 汇总列表 ③`SKILL.md` 领域列表里**每个源条目末尾**的 `search / download / read` 标注(易漏,必查) |
 | 模块地图 / 数据流(`architecture.md`) | `src/` 布局、`sources::*::search` 签名 | 文件清单与函数名确实如所写存在 |
 | 环境变量名(`FASTPAPER_*_URL`、各 key) | `grep -rn 'env::var' src/` | 文档里的每个变量都在代码里,反之亦然 |
 | 各源端点/路径(`docs/sources/*.md`) | 该源的 `src/sources/<name>.rs` | 文档里的 URL/参数/字段映射与代码相符 |
