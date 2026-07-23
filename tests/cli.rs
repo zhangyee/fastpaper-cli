@@ -340,6 +340,21 @@ fn read_local_pdf_section_introduction_excludes_earlier_content() {
 }
 
 #[test]
+fn read_local_pdf_missing_section_exits_not_found() {
+    cmd()
+        .args([
+            "read",
+            "local",
+            "tests/fixtures/test.pdf",
+            "--section",
+            "methods",
+        ])
+        .assert()
+        .code(4)
+        .stderr(contains("Section not found: methods"));
+}
+
+#[test]
 fn read_local_pdf_format_json_has_full_text() {
     let output = cmd()
         .args(["read", "local", "tests/fixtures/test.pdf", "--format", "json"])

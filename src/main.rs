@@ -351,9 +351,11 @@ fn main() {
                             cli::Section::Full => None,
                         };
                         let text = match section {
-                            Some(section) => {
-                                read::extract_section(&full_text, section).unwrap_or_default()
-                            }
+                            Some(section) => read::extract_section(&full_text, section)
+                                .unwrap_or_else(|| {
+                                    eprintln!("Section not found: {}", section);
+                                    std::process::exit(4);
+                                }),
                             None => full_text,
                         };
                         let text = if let Some(max) = args.max_length {
