@@ -1,11 +1,5 @@
-mod cli;
-mod download;
-mod identifier;
-mod output;
-mod read;
-mod sources;
-
 use clap::Parser;
+use fastpaper::{cli, download, identifier, output, read, sources};
 
 fn main() {
     let cli = cli::Cli::parse();
@@ -120,11 +114,19 @@ fn main() {
                 Ok(papers) => {
                     let out = match cli.global.format {
                         cli::OutputFormat::Json => output::to_json(&papers),
+                        cli::OutputFormat::Jsonl => output::to_jsonl(&papers),
                         cli::OutputFormat::Csv => output::to_csv(&papers),
                         cli::OutputFormat::Bibtex => output::to_bibtex(&papers),
                         _ => output::to_table(&papers),
                     };
-                    print!("{}", out);
+                    if let Some(path) = &args.output {
+                        std::fs::write(path, &out).unwrap_or_else(|e| {
+                            eprintln!("Error writing file: {}", e);
+                            std::process::exit(1);
+                        });
+                    } else {
+                        print!("{}", out);
+                    }
                 }
                 Err(e) => {
                     eprintln!("Error: {}", e);
@@ -225,6 +227,7 @@ fn main() {
                             Ok(Some(paper)) => {
                                 let out = match cli.global.format {
                                     cli::OutputFormat::Json => output::to_json(&[paper]),
+                                    cli::OutputFormat::Jsonl => output::to_jsonl(&[paper]),
                                     cli::OutputFormat::Csv => output::to_csv(&[paper]),
                                     cli::OutputFormat::Bibtex => output::to_bibtex(&[paper]),
                                     _ => output::to_table(&[paper]),
@@ -337,12 +340,23 @@ fn main() {
                 };
                 match full_text {
                     Ok(full_text) => {
-                        let text = match args.section {
-                            cli::Section::Abstract => {
-                                read::extract_section_abstract(&full_text)
-                                    .unwrap_or_default()
-                            }
-                            _ => full_text,
+                        let section = match args.section {
+                            cli::Section::Abstract => Some("abstract"),
+                            cli::Section::Introduction => Some("introduction"),
+                            cli::Section::Methods => Some("methods"),
+                            cli::Section::Results => Some("results"),
+                            cli::Section::Discussion => Some("discussion"),
+                            cli::Section::Conclusion => Some("conclusion"),
+                            cli::Section::References => Some("references"),
+                            cli::Section::Full => None,
+                        };
+                        let text = match section {
+                            Some(section) => read::extract_section(&full_text, section)
+                                .unwrap_or_else(|| {
+                                    eprintln!("Section not found: {}", section);
+                                    std::process::exit(4);
+                                }),
+                            None => full_text,
                         };
                         let text = if let Some(max) = args.max_length {
                             text.chars().take(max).collect::<String>()
@@ -431,6 +445,7 @@ fn main() {
                 Ok(Some(paper)) => {
                     let out = match cli.global.format {
                         cli::OutputFormat::Json => output::to_json(&[paper]),
+                        cli::OutputFormat::Jsonl => output::to_jsonl(&[paper]),
                         cli::OutputFormat::Csv => output::to_csv(&[paper]),
                         cli::OutputFormat::Bibtex => output::to_bibtex(&[paper]),
                         _ => output::to_table(&[paper]),

@@ -320,6 +320,41 @@ fn read_local_pdf_section_abstract() {
 }
 
 #[test]
+fn read_local_pdf_section_introduction_excludes_earlier_content() {
+    let output = cmd()
+        .args([
+            "read",
+            "local",
+            "tests/fixtures/test.pdf",
+            "--section",
+            "introduction",
+        ])
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("dominant sequence transduction models"));
+    assert!(!stdout.contains("Attention Is All You Need"));
+    assert!(!stdout.contains("We propose a new simple network architecture"));
+}
+
+#[test]
+fn read_local_pdf_missing_section_exits_not_found() {
+    cmd()
+        .args([
+            "read",
+            "local",
+            "tests/fixtures/test.pdf",
+            "--section",
+            "methods",
+        ])
+        .assert()
+        .code(4)
+        .stderr(contains("Section not found: methods"));
+}
+
+#[test]
 fn read_local_pdf_format_json_has_full_text() {
     let output = cmd()
         .args(["read", "local", "tests/fixtures/test.pdf", "--format", "json"])
@@ -521,6 +556,59 @@ fn search_arxiv_format_json_valid() {
     let v: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
     assert!(v["results"].as_array().is_some(), "should have results array");
     assert!(!v["results"].as_array().unwrap().is_empty());
+}
+
+#[test]
+fn search_arxiv_format_jsonl_outputs_one_object_per_line() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["search", "arxiv", "attention", "--format", "jsonl"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let lines: Vec<&str> = stdout.lines().collect();
+    assert!(!lines.is_empty());
+    assert!(lines.iter().all(|line| {
+        serde_json::from_str::<serde_json::Value>(line)
+            .map(|value| value["id"].is_string())
+            .unwrap_or(false)
+    }));
+}
+
+#[test]
+fn search_arxiv_output_writes_rendered_results_to_file() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let dir = temp_dir();
+    let output_path = dir.join("results.json");
+
+    let output = cmd()
+        .args(["search", "arxiv", "attention", "--format", "json", "--output"])
+        .arg(&output_path)
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    assert!(output.stdout.is_empty());
+    let contents = std::fs::read_to_string(&output_path).expect("output file should exist");
+    let value: serde_json::Value = serde_json::from_str(&contents).expect("valid JSON output");
+    assert!(!value["results"].as_array().unwrap().is_empty());
+    let _ = std::fs::remove_dir_all(&dir);
 }
 
 #[test]
