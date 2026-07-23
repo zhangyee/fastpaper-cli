@@ -59,6 +59,19 @@ pub fn detect_id_type(input: &str) -> IdType {
     IdType::Unknown
 }
 
+/// Convert a supported identifier to Semantic Scholar's paper ID syntax.
+pub fn to_semantic_scholar_id(input: &str) -> Option<String> {
+    match detect_id_type(input) {
+        IdType::Arxiv | IdType::ArxivOld => Some(format!("ARXIV:{input}")),
+        IdType::Doi => Some(format!("DOI:{input}")),
+        IdType::Pmc => Some(format!("PMCID:{input}")),
+        IdType::Pmid => Some(format!("PMID:{}", input.strip_prefix("PMID:").unwrap_or(input))),
+        IdType::S2 => Some(input.strip_prefix("S2:").unwrap_or(input).to_string()),
+        IdType::Url => Some(format!("URL:{input}")),
+        IdType::Unknown => None,
+    }
+}
+
 fn is_arxiv_new(input: &str) -> bool {
     let (base, _) = match input.rfind('v') {
         Some(pos) if input[pos + 1..].chars().all(|c| c.is_ascii_digit())
@@ -164,5 +177,30 @@ mod tests {
     #[test]
     fn detect_unknown() {
         assert_eq!(detect_id_type("some random string"), IdType::Unknown);
+    }
+
+    #[test]
+    fn convert_identifiers_for_semantic_scholar() {
+        assert_eq!(
+            to_semantic_scholar_id("2301.08745").as_deref(),
+            Some("ARXIV:2301.08745")
+        );
+        assert_eq!(
+            to_semantic_scholar_id("10.1038/nature12373").as_deref(),
+            Some("DOI:10.1038/nature12373")
+        );
+        assert_eq!(
+            to_semantic_scholar_id("PMID:33475315").as_deref(),
+            Some("PMID:33475315")
+        );
+        assert_eq!(
+            to_semantic_scholar_id("PMC7318926").as_deref(),
+            Some("PMCID:PMC7318926")
+        );
+        assert_eq!(
+            to_semantic_scholar_id("S2:abc123def").as_deref(),
+            Some("abc123def")
+        );
+        assert!(to_semantic_scholar_id("unknown").is_none());
     }
 }

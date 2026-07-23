@@ -447,6 +447,40 @@ fn main() {
                 }
             }
         }
+        cli::Commands::Citations(args) | cli::Commands::References(args) => {
+            let paper_id = identifier::to_semantic_scholar_id(&args.identifier).unwrap_or_else(|| {
+                eprintln!("Unrecognized identifier format: '{}'", args.identifier);
+                std::process::exit(1);
+            });
+            let base_url = std::env::var("FASTPAPER_SEMANTIC_URL")
+                .unwrap_or_else(|_| "https://api.semanticscholar.org".to_string());
+            let result = match &cli.command {
+                cli::Commands::Citations(_) => {
+                    sources::semantic::citations(&base_url, &paper_id, args.limit, args.offset)
+                }
+                _ => sources::semantic::references(
+                    &base_url,
+                    &paper_id,
+                    args.limit,
+                    args.offset,
+                ),
+            };
+            match result {
+                Ok(papers) => {
+                    let out = match cli.global.format {
+                        cli::OutputFormat::Json => output::to_json(&papers),
+                        cli::OutputFormat::Csv => output::to_csv(&papers),
+                        cli::OutputFormat::Bibtex => output::to_bibtex(&papers),
+                        _ => output::to_table(&papers),
+                    };
+                    print!("{}", out);
+                }
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                    std::process::exit(1);
+                }
+            }
+        }
         cli::Commands::Sources(_args) => {
             println!("Source          search  download  read");
             println!("──────────────────────────────────────");

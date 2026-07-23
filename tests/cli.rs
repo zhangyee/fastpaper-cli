@@ -716,6 +716,53 @@ fn get_s2_id_returns_paper() {
     assert!(!v["results"][0]["title"].as_str().unwrap_or("").is_empty());
 }
 
+fn semantic_edge_body(paper_key: &str) -> String {
+    let fixture: serde_json::Value =
+        serde_json::from_str(include_str!("fixtures/semantic_search.json")).unwrap();
+    let mut edge = serde_json::Map::new();
+    edge.insert(paper_key.to_string(), fixture["data"][0].clone());
+    serde_json::json!({
+        "offset": 0,
+        "data": [edge]
+    })
+    .to_string()
+}
+
+#[test]
+fn citations_returns_citing_papers() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Regex("citations".to_string()))
+        .with_status(200)
+        .with_body(semantic_edge_body("citingPaper"))
+        .create();
+    let output = cmd()
+        .args(["citations", "2301.08745", "--limit", "1", "--format", "json"])
+        .env("FASTPAPER_SEMANTIC_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let stdout: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(stdout["results"][0]["title"], "A review on the attention mechanism of deep learning");
+}
+
+#[test]
+fn references_returns_cited_papers() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Regex("references".to_string()))
+        .with_status(200)
+        .with_body(semantic_edge_body("citedPaper"))
+        .create();
+    let output = cmd()
+        .args(["references", "10.1038/nature12373", "--limit", "1"])
+        .env("FASTPAPER_SEMANTIC_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(String::from_utf8_lossy(&output.stdout).contains("A review on the attention mechanism"));
+}
+
 // ── read remote full text integration tests ─────
 
 #[test]
