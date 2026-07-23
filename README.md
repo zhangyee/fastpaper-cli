@@ -149,7 +149,7 @@ Options:
   -d, --dir <PATH>       Download directory [default: ./papers]
       --filename <FMT>   Template: {id}, {title}, {authors}, {year}, {doi}
       --overwrite        Overwrite existing files
-      --source-files     Download LaTeX source (arXiv only)
+      --source-files     Reserved for LaTeX source downloads; currently returns an error
 ```
 
 ### `read` -- Read paper content

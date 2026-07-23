@@ -151,6 +151,31 @@ fn download_arxiv_saves_pdf_to_dir() {
 }
 
 #[test]
+fn download_arxiv_source_files_does_not_fall_back_to_pdf() {
+    let mut server = mockito::Server::new();
+    let pdf_request = server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .expect(0)
+        .create();
+    let dir = temp_dir();
+
+    cmd()
+        .args(["download", "arxiv", "2301.08745", "--source-files", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .failure()
+        .stderr(contains("not implemented"))
+        .stderr(contains("refusing to download a PDF"));
+
+    assert!(!dir.join("2301.08745.pdf").exists());
+    pdf_request.assert();
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
 fn download_arxiv_file_exists_exits_0_with_stderr() {
     let mut server = mockito::Server::new();
     server

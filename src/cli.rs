@@ -139,7 +139,7 @@ pub struct DownloadArgs {
     #[arg(long)]
     pub overwrite: bool,
 
-    /// Download source/LaTeX instead of PDF (arXiv only)
+    /// Download source/LaTeX instead of PDF (not yet implemented)
     #[arg(long)]
     pub source_files: bool,
 }

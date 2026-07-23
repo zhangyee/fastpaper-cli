@@ -143,6 +143,12 @@ fn main() {
                 }
                 std::process::exit(1);
             }
+            if args.source_files {
+                eprintln!(
+                    "Error: --source-files is not implemented; refusing to download a PDF instead."
+                );
+                std::process::exit(1);
+            }
             let result = match args.source {
                 cli::Source::Arxiv => {
                     let base_url = std::env::var("FASTPAPER_ARXIV_URL")
