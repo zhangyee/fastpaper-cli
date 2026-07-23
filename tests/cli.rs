@@ -524,6 +524,32 @@ fn search_arxiv_format_json_valid() {
 }
 
 #[test]
+fn search_arxiv_format_jsonl_outputs_one_object_per_line() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["search", "arxiv", "attention", "--format", "jsonl"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let lines: Vec<&str> = stdout.lines().collect();
+    assert!(!lines.is_empty());
+    assert!(lines.iter().all(|line| {
+        serde_json::from_str::<serde_json::Value>(line)
+            .map(|value| value["id"].is_string())
+            .unwrap_or(false)
+    }));
+}
+
+#[test]
 fn search_arxiv_format_csv_has_header() {
     let fixture = include_str!("fixtures/arxiv_search.xml");
     let mut server = mockito::Server::new();
