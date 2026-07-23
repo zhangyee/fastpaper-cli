@@ -41,6 +41,12 @@ pub enum Commands {
     /// Fetch a single paper by identifier (auto-detect source)
     Get(GetArgs),
 
+    /// List papers that cite a paper
+    Citations(RelatedArgs),
+
+    /// List papers cited by a paper
+    References(RelatedArgs),
+
     /// List available sources and capabilities
     Sources(SourcesArgs),
 
@@ -197,6 +203,22 @@ pub struct GetArgs {
     /// Include related/recommended papers
     #[arg(long)]
     pub with_related: bool,
+}
+
+// ── citation graph ──────────────────────────────
+
+#[derive(clap::Args)]
+pub struct RelatedArgs {
+    /// DOI, arXiv ID, PMID, PMC ID, URL, or S2 ID
+    pub identifier: String,
+
+    /// Max results
+    #[arg(short = 'n', long, default_value = "20", value_parser = clap::value_parser!(u32).range(1..=1000))]
+    pub limit: u32,
+
+    /// Skip first N results
+    #[arg(long, default_value = "0")]
+    pub offset: u32,
 }
 
 // ── sources ─────────────────────────────────────

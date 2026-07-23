@@ -209,6 +209,69 @@ pub fn get_by_id(base_url: &str, s2_id: &str) -> Result<Option<Paper>, String> {
     }
 }
 
+/// Return papers that cite the given paper.
+pub fn citations(
+    base_url: &str,
+    paper_id: &str,
+    limit: u32,
+    offset: u32,
+) -> Result<Vec<Paper>, String> {
+    related_papers(base_url, paper_id, "citations", "citingPaper", limit, offset)
+}
+
+/// Return papers cited by the given paper.
+pub fn references(
+    base_url: &str,
+    paper_id: &str,
+    limit: u32,
+    offset: u32,
+) -> Result<Vec<Paper>, String> {
+    related_papers(base_url, paper_id, "references", "citedPaper", limit, offset)
+}
+
+fn related_papers(
+    base_url: &str,
+    paper_id: &str,
+    relation: &str,
+    paper_key: &str,
+    limit: u32,
+    offset: u32,
+) -> Result<Vec<Paper>, String> {
+    if !(1..=1000).contains(&limit) {
+        return Err("limit must be between 1 and 1000".to_string());
+    }
+
+    let encoded_id = super::encode_query(paper_id);
+    let url = format!(
+        "{}/graph/v1/paper/{}/{}?offset={}&limit={}&fields={}",
+        base_url, encoded_id, relation, offset, limit, FIELDS
+    );
+    let api_key = std::env::var("SEMANTIC_SCHOLAR_API_KEY").ok();
+    let cfg = if api_key.is_some() {
+        BackoffConfig::DEFAULT_AUTH
+    } else {
+        BackoffConfig::DEFAULT_ANON
+    };
+    match http_get_with_retry_cfg(&url, api_key, &cfg) {
+        FetchOutcome::Ok(body) => parse_related_response(&body, paper_key),
+        FetchOutcome::RateLimited => Err(format!("rate limited after {} retries", cfg.max_retries)),
+        FetchOutcome::Err(e) => Err(e),
+    }
+}
+
+fn parse_related_response(json: &str, paper_key: &str) -> Result<Vec<Paper>, String> {
+    let root: serde_json::Value =
+        serde_json::from_str(json).map_err(|e| format!("JSON parse error: {}", e))?;
+    let data = root["data"].as_array().ok_or("missing 'data' array")?;
+    let papers: Vec<_> = data
+        .iter()
+        .filter_map(|edge| edge.get(paper_key))
+        .filter(|paper| paper.is_object())
+        .cloned()
+        .collect();
+    parse_search_response(&serde_json::json!({ "data": papers }).to_string())
+}
+
 #[cfg(test)]
 fn get_by_id_with_cfg_for_test(
     base_url: &str,
@@ -357,6 +420,62 @@ mod tests {
     fn parse_empty_data_returns_empty_list() {
         let papers = parse_search_response(r#"{"data": []}"#).unwrap();
         assert!(papers.is_empty());
+    }
+
+    #[test]
+    fn parse_citation_edges() {
+        let body = r#"{
+            "data": [{
+                "citingPaper": {
+                    "paperId": "abc123",
+                    "title": "Citing paper",
+                    "authors": [],
+                    "externalIds": {},
+                    "fieldsOfStudy": [],
+                    "openAccessPdf": null
+                }
+            }]
+        }"#;
+        let papers = parse_related_response(&body, "citingPaper").unwrap();
+        assert_eq!(papers.len(), 1);
+        assert_eq!(papers[0].title, "Citing paper");
+    }
+
+    #[test]
+    fn citations_request_contains_edge_and_pagination() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("/citations".to_string()))
+            .match_query(mockito::Matcher::AllOf(vec![
+                mockito::Matcher::UrlEncoded("offset".into(), "7".into()),
+                mockito::Matcher::UrlEncoded("limit".into(), "2".into()),
+                mockito::Matcher::Any,
+            ]))
+            .with_status(200)
+            .with_body(r#"{"data": []}"#)
+            .create();
+        let papers = citations(&server.url(), "ARXIV:2301.08745", 2, 7).unwrap();
+        assert!(papers.is_empty());
+        mock.assert();
+    }
+
+    #[test]
+    fn references_parse_cited_papers() {
+        let body = r#"{
+            "data": [{
+                "citedPaper": {
+                    "paperId": "abc123",
+                    "title": "Cited paper",
+                    "authors": [{"name": "Ada Lovelace"}],
+                    "year": 2024,
+                    "externalIds": {},
+                    "fieldsOfStudy": [],
+                    "openAccessPdf": null
+                }
+            }]
+        }"#;
+        let papers = parse_related_response(body, "citedPaper").unwrap();
+        assert_eq!(papers[0].title, "Cited paper");
     }
 
     #[test]
