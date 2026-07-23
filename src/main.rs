@@ -1,11 +1,5 @@
-mod cli;
-mod download;
-mod identifier;
-mod output;
-mod read;
-mod sources;
-
 use clap::Parser;
+use fastpaper::{cli, download, identifier, output, read, sources};
 
 fn main() {
     let cli = cli::Cli::parse();
