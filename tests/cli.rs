@@ -550,6 +550,33 @@ fn search_arxiv_format_jsonl_outputs_one_object_per_line() {
 }
 
 #[test]
+fn search_arxiv_output_writes_rendered_results_to_file() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let dir = temp_dir();
+    let output_path = dir.join("results.json");
+
+    let output = cmd()
+        .args(["search", "arxiv", "attention", "--format", "json", "--output"])
+        .arg(&output_path)
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    assert!(output.stdout.is_empty());
+    let contents = std::fs::read_to_string(&output_path).expect("output file should exist");
+    let value: serde_json::Value = serde_json::from_str(&contents).expect("valid JSON output");
+    assert!(!value["results"].as_array().unwrap().is_empty());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
 fn search_arxiv_format_csv_has_header() {
     let fixture = include_str!("fixtures/arxiv_search.xml");
     let mut server = mockito::Server::new();
