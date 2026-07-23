@@ -78,6 +78,16 @@ pub fn to_json(papers: &[Paper]) -> String {
     serde_json::to_string_pretty(&result).unwrap()
 }
 
+/// Format papers as newline-delimited JSON, one paper per line.
+pub fn to_jsonl(papers: &[Paper]) -> String {
+    let mut out = String::new();
+    for paper in papers {
+        out.push_str(&serde_json::to_string(paper).unwrap());
+        out.push('\n');
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -141,6 +151,25 @@ mod tests {
         let v: serde_json::Value = serde_json::from_str(&json).unwrap();
         let results = v["results"].as_array().expect("results should be array");
         assert!(results.is_empty());
+    }
+
+    #[test]
+    fn to_jsonl_writes_one_paper_per_line() {
+        let mut second = sample_paper();
+        second.id = "2312.00001".to_string();
+
+        let jsonl = to_jsonl(&[sample_paper(), second]);
+        let lines: Vec<&str> = jsonl.lines().collect();
+
+        assert_eq!(lines.len(), 2);
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(lines[0]).unwrap()["id"],
+            "2301.08745"
+        );
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(lines[1]).unwrap()["id"],
+            "2312.00001"
+        );
     }
 
     #[test]

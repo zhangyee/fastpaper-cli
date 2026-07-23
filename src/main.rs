@@ -120,6 +120,7 @@ fn main() {
                 Ok(papers) => {
                     let out = match cli.global.format {
                         cli::OutputFormat::Json => output::to_json(&papers),
+                        cli::OutputFormat::Jsonl => output::to_jsonl(&papers),
                         cli::OutputFormat::Csv => output::to_csv(&papers),
                         cli::OutputFormat::Bibtex => output::to_bibtex(&papers),
                         _ => output::to_table(&papers),
@@ -225,6 +226,7 @@ fn main() {
                             Ok(Some(paper)) => {
                                 let out = match cli.global.format {
                                     cli::OutputFormat::Json => output::to_json(&[paper]),
+                                    cli::OutputFormat::Jsonl => output::to_jsonl(&[paper]),
                                     cli::OutputFormat::Csv => output::to_csv(&[paper]),
                                     cli::OutputFormat::Bibtex => output::to_bibtex(&[paper]),
                                     _ => output::to_table(&[paper]),
@@ -431,6 +433,7 @@ fn main() {
                 Ok(Some(paper)) => {
                     let out = match cli.global.format {
                         cli::OutputFormat::Json => output::to_json(&[paper]),
+                        cli::OutputFormat::Jsonl => output::to_jsonl(&[paper]),
                         cli::OutputFormat::Csv => output::to_csv(&[paper]),
                         cli::OutputFormat::Bibtex => output::to_bibtex(&[paper]),
                         _ => output::to_table(&[paper]),
