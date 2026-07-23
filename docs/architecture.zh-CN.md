@@ -16,7 +16,7 @@ src/
 │   └── <source>.rs  # 每个数据源一个完全自包含的模块(目前 18 个)
 ├── download.rs      # fetch_pdf、各源 download_<src> 函数、save_pdf
 ├── read.rs          # PDF 文本提取(pdf_oxide):extract_text、extract_text_from_bytes、
-│                    #   extract_section_abstract
+│                    #   extract_section
 ├── output.rs        # 渲染器:to_table、to_json、to_csv、to_bibtex
 └── identifier.rs    # `get` 用的 detect_id_type:Arxiv、ArxivOld、Doi、Pmc、Pmid、S2、Url、Unknown
 ```
