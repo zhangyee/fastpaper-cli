@@ -124,7 +124,14 @@ fn main() {
                         cli::OutputFormat::Bibtex => output::to_bibtex(&papers),
                         _ => output::to_table(&papers),
                     };
-                    print!("{}", out);
+                    if let Some(path) = &args.output {
+                        std::fs::write(path, &out).unwrap_or_else(|e| {
+                            eprintln!("Error writing file: {}", e);
+                            std::process::exit(1);
+                        });
+                    } else {
+                        print!("{}", out);
+                    }
                 }
                 Err(e) => {
                     eprintln!("Error: {}", e);
