@@ -340,12 +340,21 @@ fn main() {
                 };
                 match full_text {
                     Ok(full_text) => {
-                        let text = match args.section {
-                            cli::Section::Abstract => {
-                                read::extract_section_abstract(&full_text)
-                                    .unwrap_or_default()
+                        let section = match args.section {
+                            cli::Section::Abstract => Some("abstract"),
+                            cli::Section::Introduction => Some("introduction"),
+                            cli::Section::Methods => Some("methods"),
+                            cli::Section::Results => Some("results"),
+                            cli::Section::Discussion => Some("discussion"),
+                            cli::Section::Conclusion => Some("conclusion"),
+                            cli::Section::References => Some("references"),
+                            cli::Section::Full => None,
+                        };
+                        let text = match section {
+                            Some(section) => {
+                                read::extract_section(&full_text, section).unwrap_or_default()
                             }
-                            _ => full_text,
+                            None => full_text,
                         };
                         let text = if let Some(max) = args.max_length {
                             text.chars().take(max).collect::<String>()

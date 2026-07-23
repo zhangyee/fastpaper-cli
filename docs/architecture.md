@@ -16,7 +16,7 @@ src/
 │   └── <source>.rs  # One fully self-contained module per source (18 today)
 ├── download.rs      # fetch_pdf, per-source download_<src> functions, save_pdf
 ├── read.rs          # PDF text extraction (pdf_oxide): extract_text, extract_text_from_bytes,
-│                    #   extract_section_abstract
+│                    #   extract_section
 ├── output.rs        # Renderers: to_table, to_json, to_csv, to_bibtex
 └── identifier.rs    # detect_id_type for `get`: Arxiv, ArxivOld, Doi, Pmc, Pmid, S2, Url, Unknown
 ```

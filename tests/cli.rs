@@ -320,6 +320,26 @@ fn read_local_pdf_section_abstract() {
 }
 
 #[test]
+fn read_local_pdf_section_introduction_excludes_earlier_content() {
+    let output = cmd()
+        .args([
+            "read",
+            "local",
+            "tests/fixtures/test.pdf",
+            "--section",
+            "introduction",
+        ])
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("dominant sequence transduction models"));
+    assert!(!stdout.contains("Attention Is All You Need"));
+    assert!(!stdout.contains("We propose a new simple network architecture"));
+}
+
+#[test]
 fn read_local_pdf_format_json_has_full_text() {
     let output = cmd()
         .args(["read", "local", "tests/fixtures/test.pdf", "--format", "json"])
