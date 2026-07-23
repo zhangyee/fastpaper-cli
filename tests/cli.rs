@@ -151,6 +151,46 @@ fn download_arxiv_saves_pdf_to_dir() {
 }
 
 #[test]
+fn download_arxiv_source_files_saves_archive() {
+    let mut server = mockito::Server::new();
+    let source_request = server
+        .mock("GET", "/e-print/2301.08745")
+        .with_status(200)
+        .with_body(b"source archive".as_slice())
+        .create();
+    let dir = temp_dir();
+
+    cmd()
+        .args(["download", "arxiv", "2301.08745", "--source-files", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success()
+        .stderr(contains("2301.08745.tar.gz"));
+
+    assert!(!dir.join("2301.08745.pdf").exists());
+    assert_eq!(
+        std::fs::read(dir.join("2301.08745.tar.gz")).unwrap(),
+        b"source archive"
+    );
+    source_request.assert();
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn download_source_files_rejects_non_arxiv_sources() {
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "pmc", "PMC7318926", "--source-files", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .assert()
+        .failure()
+        .stderr(contains("only supported for arxiv"));
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
 fn download_arxiv_file_exists_exits_0_with_stderr() {
     let mut server = mockito::Server::new();
     server

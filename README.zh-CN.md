@@ -149,7 +149,7 @@ fastpaper download <SOURCE> <IDENTIFIER> [OPTIONS]
   -d, --dir <PATH>       下载目录 [默认: ./papers]
       --filename <FMT>   文件名模板: {id}, {title}, {authors}, {year}, {doi}
       --overwrite        覆盖已有文件
-      --source-files     下载 LaTeX 源码（仅 arXiv）
+      --source-files     将 arXiv 源码保存为 <ID>.tar.gz，不自动解压
 ```
 
 ### `read` -- 阅读论文内容

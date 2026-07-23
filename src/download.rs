@@ -25,6 +25,17 @@ pub fn download_arxiv(
     save_pdf(&bytes, dir, identifier, overwrite)
 }
 
+/// Download an arXiv source archive and save it without extracting it.
+pub fn download_arxiv_source(
+    base_url: &str,
+    identifier: &str,
+    dir: &Path,
+    overwrite: bool,
+) -> Result<PathBuf, String> {
+    let bytes = sources::arxiv::download_source_archive(base_url, identifier)?;
+    save_file(&bytes, dir, identifier, "tar.gz", overwrite)
+}
+
 /// Download a PDF from bioRxiv.
 pub fn download_biorxiv(
     base_url: &str,
@@ -190,10 +201,20 @@ pub fn save_pdf(
     identifier: &str,
     overwrite: bool,
 ) -> Result<PathBuf, String> {
+    save_file(bytes, dir, identifier, "pdf", overwrite)
+}
+
+fn save_file(
+    bytes: &[u8],
+    dir: &Path,
+    identifier: &str,
+    extension: &str,
+    overwrite: bool,
+) -> Result<PathBuf, String> {
     std::fs::create_dir_all(dir).map_err(|e| format!("Failed to create directory: {}", e))?;
 
-    let sanitized = identifier.replace('/', "_");
-    let filename = format!("{}.pdf", sanitized);
+    let sanitized = identifier.replace('/', "_").replace('\\', "_");
+    let filename = format!("{}.{}", sanitized, extension);
     let path = dir.join(&filename);
 
     if path.exists() && !overwrite {
@@ -229,6 +250,14 @@ mod tests {
         let _ = fs::remove_dir_all(&dir);
     }
 
+    #[test]
+    fn save_pdf_sanitizes_path_separators() {
+        let dir = temp_dir();
+        let path = save_pdf(b"pdf", &dir, "old/id\\paper", false).unwrap();
+        assert_eq!(path.file_name().unwrap(), "old_id_paper.pdf");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
     // Behavior 1: download arxiv → mock PDF → file saved to dir
     #[test]
     fn download_arxiv_saves_file() {
@@ -242,6 +271,21 @@ mod tests {
         let path = download_arxiv(&server.url(), "2301.08745", &dir, false).unwrap();
         assert!(path.exists());
         assert_eq!(fs::read(&path).unwrap(), b"%PDF-1.4 fake content");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn download_arxiv_source_saves_archive() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", "/e-print/2301.08745")
+            .with_status(200)
+            .with_body(b"source archive".as_slice())
+            .create();
+        let dir = temp_dir();
+        let path = download_arxiv_source(&server.url(), "2301.08745", &dir, false).unwrap();
+        assert_eq!(path.file_name().unwrap(), "2301.08745.tar.gz");
+        assert_eq!(fs::read(&path).unwrap(), b"source archive");
         let _ = fs::remove_dir_all(&dir);
     }
 

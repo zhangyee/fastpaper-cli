@@ -80,6 +80,7 @@ Sections: abstract, introduction, methods, results, discussion, conclusion, refe
 
 ```
 fastpaper download <source> <id>
+fastpaper download arxiv <id> --source-files  # save the source archive without extracting it
 ```
 
 Download-capable sources: arxiv, biorxiv, medrxiv, pmc, semantic, core, doaj, zenodo, hal.

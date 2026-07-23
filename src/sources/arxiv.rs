@@ -3,6 +3,8 @@ use quick_xml::Reader;
 
 use super::Paper;
 
+const MAX_SOURCE_ARCHIVE_BYTES: u64 = 50 * 1024 * 1024;
+
 /// Download PDF bytes from arXiv.
 pub fn download_pdf(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
     let url = format!("{}/pdf/{}.pdf", base_url, identifier);
@@ -16,6 +18,23 @@ pub fn download_pdf(base_url: &str, identifier: &str) -> Result<Vec<u8>, String>
         }
         Err(ureq::Error::StatusCode(404)) => {
             Err(format!("Paper not found: {}", identifier))
+        }
+        Err(e) => Err(format!("HTTP error: {}", e)),
+    }
+}
+
+/// Download the original source archive from arXiv.
+pub fn download_source_archive(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+    let url = format!("{}/e-print/{}", base_url, identifier);
+    match ureq::get(&url).call() {
+        Ok(resp) => resp
+            .into_body()
+            .into_with_config()
+            .limit(MAX_SOURCE_ARCHIVE_BYTES)
+            .read_to_vec()
+            .map_err(|e| format!("Failed to read source archive: {}", e)),
+        Err(ureq::Error::StatusCode(404)) => {
+            Err(format!("Source archive not found: {}", identifier))
         }
         Err(e) => Err(format!("HTTP error: {}", e)),
     }
@@ -490,5 +509,18 @@ mod tests {
         let result = download_pdf(&server.url(), "9999.99999");
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("not found"));
+    }
+
+    #[test]
+    fn download_source_archive_uses_e_print_endpoint() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", "/e-print/2301.08745")
+            .with_status(200)
+            .with_body(b"source archive".as_slice())
+            .create();
+        let bytes = download_source_archive(&server.url(), "2301.08745").unwrap();
+        assert_eq!(bytes, b"source archive");
+        mock.assert();
     }
 }

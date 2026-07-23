@@ -143,11 +143,29 @@ fn main() {
                 }
                 std::process::exit(1);
             }
+            if args.source_files && !matches!(&args.source, cli::Source::Arxiv) {
+                eprintln!("Error: --source-files is only supported for arxiv.");
+                std::process::exit(1);
+            }
             let result = match args.source {
                 cli::Source::Arxiv => {
                     let base_url = std::env::var("FASTPAPER_ARXIV_URL")
                         .unwrap_or_else(|_| "https://arxiv.org".to_string());
-                    download::download_arxiv(&base_url, &args.identifier, &args.dir, args.overwrite)
+                    if args.source_files {
+                        download::download_arxiv_source(
+                            &base_url,
+                            &args.identifier,
+                            &args.dir,
+                            args.overwrite,
+                        )
+                    } else {
+                        download::download_arxiv(
+                            &base_url,
+                            &args.identifier,
+                            &args.dir,
+                            args.overwrite,
+                        )
+                    }
                 }
                 cli::Source::Biorxiv => {
                     let base_url = std::env::var("FASTPAPER_BIORXIV_DL_URL")
