@@ -76,6 +76,15 @@ fastpaper read local ./file.pdf                       # local PDF
 
 Sections: abstract, introduction, methods, results, discussion, conclusion, references, full (default).
 
+## When you need citation graph neighbors
+
+```
+fastpaper citations <id> --format json   # papers that cite this paper
+fastpaper references <id> --format json  # papers cited by this paper
+```
+
+Both commands return one-hop neighbors from Semantic Scholar. Use `--limit` and `--offset` for pagination.
+
 ## When you need to download PDF
 
 ```

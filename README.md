@@ -59,6 +59,10 @@ fastpaper get 10.1038/nature12373
 # Fetch by arXiv ID
 fastpaper get 2301.08745
 
+# Follow one-hop citation edges
+fastpaper citations 2301.08745 --limit 20
+fastpaper references 2301.08745 --limit 20
+
 # Download PDF
 fastpaper download arxiv 2301.08745
 
@@ -139,6 +143,17 @@ Options:
       --with-citations    Include citation count and references
       --with-abstract     Include abstract
 ```
+
+### `citations` / `references` -- Follow citation edges
+
+Uses Semantic Scholar to list papers on either side of a one-hop citation edge.
+
+```
+fastpaper citations <IDENTIFIER> [--limit 20] [--offset 0]
+fastpaper references <IDENTIFIER> [--limit 20] [--offset 0]
+```
+
+Accepts DOI, arXiv, PMID, PMC, URL, and `S2:` identifiers.
 
 ### `download` -- Download PDF
 
