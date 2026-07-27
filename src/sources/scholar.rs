@@ -9,7 +9,8 @@ const USER_AGENTS: &[&str] = &[
 ];
 
 /// Search Google Scholar (experimental, rate-limited).
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
+    let (query, max_results) = (q.query.as_str(), q.limit);
     let ua_index = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
@@ -19,8 +20,8 @@ pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper
 
     let encoded = super::encode_query(query);
     let url = format!(
-        "{}/scholar?q={}&start=0&hl=en&as_sdt=0,5&num={}",
-        base_url, encoded, max_results
+        "{}/scholar?q={}&start={}&hl=en&as_sdt=0,5&num={}",
+        base_url, encoded, q.offset, max_results
     );
 
     match ureq::get(&url).header("User-Agent", ua).call() {
@@ -231,7 +232,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "attention mechanism", 10).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("attention mechanism", 10)).unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -245,7 +246,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 10);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 10));
         mock.assert();
     }
 
@@ -257,7 +258,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 10);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 10));
         mock.assert();
     }
 
@@ -269,7 +270,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 10);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 10));
         mock.assert();
     }
 
@@ -281,7 +282,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 10);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 10));
         mock.assert();
     }
 }

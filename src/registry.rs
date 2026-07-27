@@ -135,25 +135,6 @@ impl Source {
 }
 
 // ── adapters ────────────────────────────────────
-//
-// Bridge each source's current signature to the table's. They shrink to nothing
-// as sources gain native filter support.
-
-macro_rules! basic_search_adapter {
-    ($name:ident, $module:path) => {
-        fn $name(base: &str, q: &SearchQuery) -> Result<Vec<Paper>, String> {
-            use $module as m;
-            m::search(base, &q.query, q.limit)
-        }
-    };
-}
-
-basic_search_adapter!(s_biorxiv, sources::biorxiv);
-basic_search_adapter!(s_medrxiv, sources::medrxiv);
-basic_search_adapter!(s_scholar, sources::scholar);
-basic_search_adapter!(s_xueshu, sources::xueshu);
-basic_search_adapter!(s_dblp, sources::dblp);
-basic_search_adapter!(s_core, sources::core);
 
 /// Unpaywall returns a bare `Paper`; a missing DOI surfaces as an error there.
 fn g_unpaywall(base: &str, id: &str) -> Result<Option<Paper>, String> {
@@ -193,17 +174,27 @@ static ARXIV: SourceEntry = SourceEntry {
 static BIORXIV: SourceEntry = SourceEntry {
     name: "biorxiv",
     caps: Capabilities {
-        search: Some(SearchCaps::BASIC),
+        search: Some(SearchCaps {
+            offset: true,
+            sort: false,
+            year: true,
+            date_range: true,
+            author: false,
+            field: false,
+            // Every preprint here is freely readable.
+            open_access: true,
+        }),
         get: false,
         download: true,
         max_limit: None,
-        notes: "no keyword search API; filters a recent date window locally",
+        notes: "no keyword search API: browses a date window and matches the \
+                keyword locally, so --after/--before/--year decide what is searched",
     },
     env_var: "FASTPAPER_BIORXIV_URL",
     default_base: "https://api.biorxiv.org",
     pdf_env_var: Some("FASTPAPER_BIORXIV_DL_URL"),
     pdf_default_base: Some("https://www.biorxiv.org"),
-    search: Some(s_biorxiv),
+    search: Some(sources::biorxiv::search),
     get: None,
     pdf: Some(download::pdf_bytes_biorxiv),
 };
@@ -211,17 +202,27 @@ static BIORXIV: SourceEntry = SourceEntry {
 static MEDRXIV: SourceEntry = SourceEntry {
     name: "medrxiv",
     caps: Capabilities {
-        search: Some(SearchCaps::BASIC),
+        search: Some(SearchCaps {
+            offset: true,
+            sort: false,
+            year: true,
+            date_range: true,
+            author: false,
+            field: false,
+            // Every preprint here is freely readable.
+            open_access: true,
+        }),
         get: false,
         download: true,
         max_limit: None,
-        notes: "no keyword search API; filters a recent date window locally",
+        notes: "no keyword search API: browses a date window and matches the \
+                keyword locally, so --after/--before/--year decide what is searched",
     },
     env_var: "FASTPAPER_MEDRXIV_URL",
     default_base: "https://api.biorxiv.org",
     pdf_env_var: Some("FASTPAPER_MEDRXIV_DL_URL"),
     pdf_default_base: Some("https://www.medrxiv.org"),
-    search: Some(s_medrxiv),
+    search: Some(sources::medrxiv::search),
     get: None,
     pdf: Some(download::pdf_bytes_medrxiv),
 };
@@ -310,7 +311,10 @@ static EUROPEPMC: SourceEntry = SourceEntry {
 static SCHOLAR: SourceEntry = SourceEntry {
     name: "scholar",
     caps: Capabilities {
-        search: Some(SearchCaps::BASIC),
+        search: Some(SearchCaps {
+            offset: true,
+            ..SearchCaps::BASIC
+        }),
         get: false,
         download: false,
         max_limit: None,
@@ -320,7 +324,7 @@ static SCHOLAR: SourceEntry = SourceEntry {
     default_base: "https://scholar.google.com",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_scholar),
+    search: Some(sources::scholar::search),
     get: None,
     pdf: None,
 };
@@ -328,7 +332,10 @@ static SCHOLAR: SourceEntry = SourceEntry {
 static XUESHU: SourceEntry = SourceEntry {
     name: "xueshu",
     caps: Capabilities {
-        search: Some(SearchCaps::BASIC),
+        search: Some(SearchCaps {
+            offset: true,
+            ..SearchCaps::BASIC
+        }),
         get: false,
         download: false,
         max_limit: None,
@@ -338,7 +345,7 @@ static XUESHU: SourceEntry = SourceEntry {
     default_base: "https://xueshu.baidu.com",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_xueshu),
+    search: Some(sources::xueshu::search),
     get: None,
     pdf: None,
 };
@@ -431,18 +438,22 @@ static OPENALEX: SourceEntry = SourceEntry {
 static DBLP: SourceEntry = SourceEntry {
     name: "dblp",
     caps: Capabilities {
-        search: Some(SearchCaps::BASIC),
+        search: Some(SearchCaps {
+            offset: true,
+            ..SearchCaps::BASIC
+        }),
         get: false,
         download: false,
         max_limit: Some(1000),
-        notes: "computer science only; metadata only",
+        notes: "computer science only, metadata only; the API takes a query and \
+                paging, nothing else",
     },
     env_var: "FASTPAPER_DBLP_URL",
     // dblp.org's search API has been returning HTTP 500 for every query.
     default_base: "https://dblp.uni-trier.de",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_dblp),
+    search: Some(sources::dblp::search),
     get: None,
     pdf: None,
 };
@@ -450,17 +461,23 @@ static DBLP: SourceEntry = SourceEntry {
 static CORE: SourceEntry = SourceEntry {
     name: "core",
     caps: Capabilities {
-        search: Some(SearchCaps::BASIC),
+        search: Some(SearchCaps {
+            offset: true,
+            year: true,
+            author: true,
+            ..SearchCaps::BASIC
+        }),
         get: false,
         download: true,
         max_limit: None,
-        notes: "set CORE_API_KEY to avoid throttling",
+        notes: "set CORE_API_KEY to avoid throttling; filter mapping follows the \
+                published v3 docs and is not verified against the live API",
     },
     env_var: "FASTPAPER_CORE_URL",
     default_base: "https://api.core.ac.uk",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_core),
+    search: Some(sources::core::search),
     get: None,
     pdf: Some(download::pdf_bytes_core),
 };

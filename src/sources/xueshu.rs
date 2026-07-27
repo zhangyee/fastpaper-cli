@@ -52,7 +52,8 @@ fn fetch_page(base_url: &str, query: &str, pn: u32) -> Result<String, String> {
 }
 
 /// Search Baidu Xueshu (experimental, undocumented JSON API). Serial pagination, 10 per page.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
+    let (query, max_results) = (q.query.as_str(), q.offset + q.limit);
     let mut papers: Vec<Paper> = Vec::new();
     let mut pn = 0u32;
     while (papers.len() as u32) < max_results {
@@ -65,6 +66,7 @@ pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper
         pn += PAGE_SIZE;
     }
     papers.truncate(max_results as usize);
+    let papers: Vec<Paper> = papers.into_iter().skip(q.offset as usize).collect();
     Ok(papers)
 }
 
@@ -399,7 +401,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 5).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 5)).unwrap();
         assert_eq!(papers.len(), 5, "should truncate to max_results");
         mock.assert();
     }
@@ -417,7 +419,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "attention mechanism", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("attention mechanism", 3));
         mock.assert();
     }
 
@@ -430,7 +432,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -447,7 +449,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -464,7 +466,7 @@ mod tests {
             .mock("GET", mockito::Matcher::Regex("pn=10".to_string()))
             .expect(0)
             .create();
-        let papers = search(&server.url(), "test", 10).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 10)).unwrap();
         assert_eq!(papers.len(), 10);
         m1.assert();
         m2.assert();
@@ -485,7 +487,7 @@ mod tests {
             .with_body(FIXTURE)
             .expect(1)
             .create();
-        let papers = search(&server.url(), "test", 15).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 15)).unwrap();
         assert_eq!(papers.len(), 15, "should truncate 20 collected to 15");
         m1.assert();
         m2.assert();
@@ -505,7 +507,7 @@ mod tests {
             .mock("GET", mockito::Matcher::Regex("pn=10".to_string()))
             .expect(0)
             .create();
-        let papers = search(&server.url(), "test", 30).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 30)).unwrap();
         assert!(papers.is_empty());
         m1.assert();
         m2.assert();
@@ -520,7 +522,7 @@ mod tests {
             .with_status(206)
             .with_body(CAPTCHA_BODY)
             .create();
-        let err = search(&server.url(), "test", 3).unwrap_err();
+        let err = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap_err();
         assert!(err.contains("captcha"), "got: {err}");
     }
 
@@ -531,7 +533,7 @@ mod tests {
             .mock("GET", mockito::Matcher::Any)
             .with_status(403)
             .create();
-        let err = search(&server.url(), "test", 3).unwrap_err();
+        let err = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap_err();
         assert!(err.contains("403"), "got: {err}");
     }
 
@@ -542,7 +544,7 @@ mod tests {
             .mock("GET", mockito::Matcher::Any)
             .with_status(429)
             .create();
-        let err = search(&server.url(), "test", 3).unwrap_err();
+        let err = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap_err();
         assert!(err.contains("rate limit"), "got: {err}");
     }
 }

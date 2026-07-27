@@ -1,12 +1,32 @@
 use super::Paper;
 
 /// Search CORE API.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
-    let encoded = super::encode_query(query);
-    let url = format!(
-        "{}/v3/search/works?q={}&limit={}",
-        base_url, encoded, max_results
-    );
+/// Build the /v3/search/works URL.
+///
+/// CORE takes field-scoped terms inside `q` (`authors:`, `yearPublished:`) and
+/// pages with limit/offset.
+///
+/// Unverified against the live API: api.core.ac.uk was unreachable from the
+/// development machine, so this follows the published v3 documentation only.
+fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, String> {
+    let mut terms = vec![super::encode_query(&q.query)];
+    if let Some(ref author) = q.author {
+        terms.push(format!("authors:%22{}%22", super::encode_query(author)));
+    }
+    if let Some(year) = q.year {
+        terms.push(format!("yearPublished:{}", year));
+    }
+    Ok(format!(
+        "{}/v3/search/works?q={}&limit={}&offset={}",
+        base_url,
+        terms.join("+AND+"),
+        q.limit,
+        q.offset
+    ))
+}
+
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
+    let url = build_search_url(base_url, q)?;
     let api_key = std::env::var("CORE_API_KEY").ok();
 
     // Try with key first, then without on 403
@@ -211,7 +231,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -227,7 +247,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -239,7 +259,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -254,7 +274,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), "test", 3);
+        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         unsafe { std::env::remove_var("CORE_API_KEY") };
         assert!(result.is_ok());
         mock.assert();
@@ -270,7 +290,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), "test", 3);
+        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         assert!(result.is_ok());
     }
 
@@ -292,7 +312,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), "test", 3);
+        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         unsafe { std::env::remove_var("CORE_API_KEY") };
         assert!(result.is_ok());
     }

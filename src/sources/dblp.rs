@@ -4,11 +4,22 @@ use quick_xml::Reader;
 use super::Paper;
 
 /// Search DBLP API.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
-    let encoded = super::encode_query(query);
+/// dblp caps `f` (the first-result offset) here.
+const MAX_OFFSET: u32 = 999_970;
+
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
+    if q.offset > MAX_OFFSET {
+        return Err(format!(
+            "dblp supports an offset up to {} (asked for {})",
+            MAX_OFFSET, q.offset
+        ));
+    }
     let url = format!(
-        "{}/search/publ/api?q={}&format=xml&h={}",
-        base_url, encoded, max_results
+        "{}/search/publ/api?q={}&format=xml&h={}&f={}",
+        base_url,
+        super::encode_query(&q.query),
+        q.limit,
+        q.offset
     );
 
     let mut last_err = String::new();
@@ -254,7 +265,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -267,7 +278,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -279,7 +290,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -291,7 +302,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 }

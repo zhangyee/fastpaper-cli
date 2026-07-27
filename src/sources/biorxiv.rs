@@ -1,40 +1,78 @@
 use super::Paper;
 
-/// Search BioRxiv API. BioRxiv only supports browsing by date range,
-/// so keyword filtering is done locally after fetching.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+/// Default window when the caller gives no date filter.
+const DEFAULT_WINDOW_DAYS: u64 = 30;
+/// Records the API returns per cursor step.
+const PAGE_SIZE: u32 = 30;
+/// How many cursor steps to walk before giving up. Keyword matching happens
+/// locally, so without a bound a rare term would page the entire archive.
+const MAX_PAGES: u32 = 20;
+
+/// Resolve the date window to browse, in `YYYY-MM-DD` form.
+///
+/// bioRxiv has no keyword search — only browsing an interval — so the date
+/// filters are the one part of the query it can honour natively, and they
+/// decide which slice we then match against locally.
+pub fn resolve_window(q: &super::SearchQuery, now_secs: u64) -> Result<(String, String), String> {
+    if let Some(year) = q.year {
+        return Ok((format!("{}-01-01", year), format!("{}-12-31", year)));
+    }
+    let start = match q.after {
+        Some(ref d) => super::validate_ymd(d)?.to_string(),
+        None => format_date(now_secs - DEFAULT_WINDOW_DAYS * 86400),
+    };
+    let end = match q.before {
+        Some(ref d) => super::validate_ymd(d)?.to_string(),
+        None => format_date(now_secs),
+    };
+    Ok((start, end))
+}
+
+/// Search bioRxiv. The API only browses by date range, so the keyword is
+/// matched locally over the records in the window.
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_secs();
-    let thirty_days = 30 * 24 * 60 * 60;
-    let start = now - thirty_days;
+    let (start_date, end_date) = resolve_window(q, now)?;
 
-    let start_date = format_date(start);
-    let end_date = format_date(now);
+    let query_lower = q.query.to_lowercase();
+    let wanted = (q.offset + q.limit) as usize;
+    let mut matched: Vec<Paper> = Vec::new();
 
-    let url = format!(
-        "{}/details/biorxiv/{}/{}/0",
-        base_url, start_date, end_date
-    );
+    // Walk the cursor until enough matches accumulate, the window runs out, or
+    // the page budget is spent.
+    for page in 0..MAX_PAGES {
+        let url = format!(
+            "{}/details/biorxiv/{}/{}/{}",
+            base_url,
+            start_date,
+            end_date,
+            page * PAGE_SIZE
+        );
+        let body = http_get(&url)?;
+        let batch = parse_search_response(&body)?;
+        let exhausted = batch.len() < PAGE_SIZE as usize;
 
-    let body = http_get(&url)?;
-    let all_papers = parse_search_response(&body)?;
-
-    let query_lower = query.to_lowercase();
-    let filtered: Vec<Paper> = all_papers
-        .into_iter()
-        .filter(|p| {
+        matched.extend(batch.into_iter().filter(|p| {
             p.title.to_lowercase().contains(&query_lower)
                 || p.abstract_text
                     .as_ref()
                     .map(|a| a.to_lowercase().contains(&query_lower))
                     .unwrap_or(false)
-        })
-        .take(max_results as usize)
-        .collect();
+        }));
 
-    Ok(filtered)
+        if matched.len() >= wanted || exhausted {
+            break;
+        }
+    }
+
+    Ok(matched
+        .into_iter()
+        .skip(q.offset as usize)
+        .take(q.limit as usize)
+        .collect())
 }
 
 fn http_get(url: &str) -> Result<String, String> {
@@ -270,7 +308,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "adaptation", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("adaptation", 3)).unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -283,7 +321,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "adaptation", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("adaptation", 3));
         mock.assert();
     }
 
@@ -296,7 +334,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "adaptation", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("adaptation", 3));
         mock.assert();
     }
 
@@ -309,7 +347,70 @@ mod tests {
             .with_body(FIXTURE)
             .create();
         // "zzz_nonexistent_keyword" should match no papers
-        let papers = search(&server.url(), "zzz_nonexistent_keyword", 100).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("zzz_nonexistent_keyword", 100)).unwrap();
         assert!(papers.is_empty(), "should filter out all papers for non-matching query");
+    }
+}
+
+#[cfg(test)]
+mod window_tests {
+    use super::*;
+    use crate::sources::SearchQuery;
+
+    // 2024-07-01T00:00:00Z
+    const NOW: u64 = 1_719_792_000;
+
+    #[test]
+    fn no_date_filter_browses_the_recent_window() {
+        let (start, end) = resolve_window(&SearchQuery::simple("x", 10), NOW).unwrap();
+        assert_eq!(end, "2024-07-01");
+        assert_eq!(start, "2024-06-01", "30 days back");
+    }
+
+    // The date filters are the only part of the query bioRxiv can honour
+    // natively; they choose the slice the keyword is then matched against.
+    #[test]
+    fn year_browses_the_whole_year() {
+        let mut q = SearchQuery::simple("x", 10);
+        q.year = Some(2022);
+        assert_eq!(
+            resolve_window(&q, NOW).unwrap(),
+            ("2022-01-01".to_string(), "2022-12-31".to_string())
+        );
+    }
+
+    #[test]
+    fn after_and_before_set_both_ends() {
+        let mut q = SearchQuery::simple("x", 10);
+        q.after = Some("2023-03-01".into());
+        q.before = Some("2023-04-01".into());
+        assert_eq!(
+            resolve_window(&q, NOW).unwrap(),
+            ("2023-03-01".to_string(), "2023-04-01".to_string())
+        );
+    }
+
+    #[test]
+    fn after_alone_runs_to_today() {
+        let mut q = SearchQuery::simple("x", 10);
+        q.after = Some("2023-03-01".into());
+        let (start, end) = resolve_window(&q, NOW).unwrap();
+        assert_eq!(start, "2023-03-01");
+        assert_eq!(end, "2024-07-01");
+    }
+
+    #[test]
+    fn malformed_date_is_rejected() {
+        let mut q = SearchQuery::simple("x", 10);
+        q.after = Some("last March".into());
+        assert!(resolve_window(&q, NOW).unwrap_err().contains("YYYY-MM-DD"));
+    }
+
+    #[test]
+    fn year_wins_over_a_date_range() {
+        let mut q = SearchQuery::simple("x", 10);
+        q.year = Some(2022);
+        q.after = Some("2023-03-01".into());
+        assert_eq!(resolve_window(&q, NOW).unwrap().0, "2022-01-01");
     }
 }

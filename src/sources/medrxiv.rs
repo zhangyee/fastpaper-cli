@@ -1,38 +1,80 @@
 use super::Paper;
 
-/// Search MedRxiv API. Same as BioRxiv but with different URL path.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+use super::biorxiv::format_date;
+
+/// Default window when the caller gives no date filter.
+const DEFAULT_WINDOW_DAYS: u64 = 30;
+/// Records the API returns per cursor step.
+const PAGE_SIZE: u32 = 30;
+/// How many cursor steps to walk before giving up. Keyword matching happens
+/// locally, so without a bound a rare term would page the entire archive.
+const MAX_PAGES: u32 = 20;
+
+/// Resolve the date window to browse, in `YYYY-MM-DD` form.
+///
+/// medRxiv has no keyword search — only browsing an interval — so the date
+/// filters are the one part of the query it can honour natively, and they
+/// decide which slice we then match against locally.
+pub fn resolve_window(q: &super::SearchQuery, now_secs: u64) -> Result<(String, String), String> {
+    if let Some(year) = q.year {
+        return Ok((format!("{}-01-01", year), format!("{}-12-31", year)));
+    }
+    let start = match q.after {
+        Some(ref d) => super::validate_ymd(d)?.to_string(),
+        None => format_date(now_secs - DEFAULT_WINDOW_DAYS * 86400),
+    };
+    let end = match q.before {
+        Some(ref d) => super::validate_ymd(d)?.to_string(),
+        None => format_date(now_secs),
+    };
+    Ok((start, end))
+}
+
+/// Search medRxiv. The API only browses by date range, so the keyword is
+/// matched locally over the records in the window.
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_secs();
-    let thirty_days = 30 * 24 * 60 * 60;
-    let start = now - thirty_days;
-    let start_date = super::biorxiv::format_date(start);
-    let end_date = super::biorxiv::format_date(now);
+    let (start_date, end_date) = resolve_window(q, now)?;
 
-    let url = format!(
-        "{}/details/medrxiv/{}/{}/0",
-        base_url, start_date, end_date
-    );
+    let query_lower = q.query.to_lowercase();
+    let wanted = (q.offset + q.limit) as usize;
+    let mut matched: Vec<Paper> = Vec::new();
 
-    let body = http_get(&url)?;
-    let all_papers = parse_search_response(&body)?;
+    // Walk the cursor until enough matches accumulate, the window runs out, or
+    // the page budget is spent.
+    for page in 0..MAX_PAGES {
+        let url = format!(
+            "{}/details/medrxiv/{}/{}/{}",
+            base_url,
+            start_date,
+            end_date,
+            page * PAGE_SIZE
+        );
+        let body = http_get(&url)?;
+        let batch = parse_search_response(&body)?;
+        let exhausted = batch.len() < PAGE_SIZE as usize;
 
-    let query_lower = query.to_lowercase();
-    let filtered: Vec<Paper> = all_papers
-        .into_iter()
-        .filter(|p| {
+        matched.extend(batch.into_iter().filter(|p| {
             p.title.to_lowercase().contains(&query_lower)
                 || p.abstract_text
                     .as_ref()
                     .map(|a| a.to_lowercase().contains(&query_lower))
                     .unwrap_or(false)
-        })
-        .take(max_results as usize)
-        .collect();
+        }));
 
-    Ok(filtered)
+        if matched.len() >= wanted || exhausted {
+            break;
+        }
+    }
+
+    Ok(matched
+        .into_iter()
+        .skip(q.offset as usize)
+        .take(q.limit as usize)
+        .collect())
 }
 
 fn http_get(url: &str) -> Result<String, String> {
@@ -156,7 +198,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "risk", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("risk", 3));
         mock.assert();
     }
 
