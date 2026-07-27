@@ -2,13 +2,64 @@ use super::Paper;
 
 const FIELDS: &str = "halId_s,title_s,authFullName_s,abstract_s,doiId_s,publicationDateY_i,fileMain_s,uri_s";
 
-/// Search HAL API.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
-    let encoded = super::encode_query(query);
-    let url = format!(
-        "{}/search/?q={}&rows={}&wt=json&fl={}",
-        base_url, encoded, max_results, FIELDS
+/// Build the Solr search URL.
+///
+/// HAL is a Solr index: `q` holds the query and author term, structured
+/// restrictions go into repeated `fq` parameters, and `start`/`rows` page.
+fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, String> {
+    let mut terms = vec![super::encode_query(&q.query)];
+    if let Some(ref author) = q.author {
+        terms.push(format!("authFullName_s:%22{}%22", super::encode_query(author)));
+    }
+
+    let mut url = format!(
+        "{}/search/?q={}&rows={}&start={}&wt=json&fl={}",
+        base_url,
+        terms.join("+AND+"),
+        q.limit,
+        q.offset,
+        FIELDS
     );
+
+    if let Some(year) = q.year {
+        url.push_str(&format!("&fq=publicationDateY_i:{}", year));
+    }
+    if q.open_access {
+        url.push_str("&fq=openAccess_bool:true");
+    }
+    // domain_s values are hierarchical codes like "0.sdv" / "1.sdv.bbm", so a
+    // bare "sdv" only matches when wrapped in wildcards.
+    if let Some(ref field) = q.field {
+        url.push_str(&format!("&fq=domain_s:*{}*", super::encode_query(field)));
+    }
+
+    if let Some(sort) = q.sort {
+        match sort {
+            // Solr's default ordering is by relevance score.
+            super::SortField::Relevance => {}
+            super::SortField::Date => {
+                let order = match q.order {
+                    super::SortOrder::Asc => "asc",
+                    super::SortOrder::Desc => "desc",
+                };
+                url.push_str(&format!("&sort=publicationDateY_i+{}", order));
+            }
+            super::SortField::Citations => {
+                return Err(
+                    "hal cannot sort by citations: it indexes no citation counts.\n\
+                     Try semantic or openalex."
+                        .to_string(),
+                );
+            }
+        }
+    }
+
+    Ok(url)
+}
+
+/// Search HAL API.
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
+    let url = build_search_url(base_url, q)?;
 
     let mut last_err = String::new();
     for attempt in 0..3 {
@@ -202,7 +253,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -215,7 +266,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -227,7 +278,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -239,7 +290,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -251,7 +302,73 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
+    }
+}
+
+#[cfg(test)]
+mod query_tests {
+    use super::*;
+    use crate::sources::{SearchQuery, SortField, SortOrder};
+
+    fn url(q: &SearchQuery) -> String {
+        build_search_url("https://api.archives-ouvertes.fr", q).unwrap()
+    }
+
+    #[test]
+    fn author_becomes_a_solr_term_on_the_query() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.author = Some("Aubry".into());
+        assert!(
+            url(&q).contains("authFullName_s:%22Aubry%22"),
+            "got: {}",
+            url(&q)
+        );
+    }
+
+    #[test]
+    fn year_becomes_a_filter_query() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.year = Some(2024);
+        assert!(url(&q).contains("fq=publicationDateY_i:2024"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn open_access_becomes_a_filter_query() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.open_access = true;
+        assert!(url(&q).contains("fq=openAccess_bool:true"), "got: {}", url(&q));
+    }
+
+    // domain_s holds hierarchical codes ("0.sdv", "1.sdv.bbm"), so a plain
+    // "sdv" only matches wrapped in wildcards.
+    #[test]
+    fn field_is_wrapped_in_wildcards() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.field = Some("sdv".into());
+        assert!(url(&q).contains("fq=domain_s:*sdv*"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn offset_becomes_start() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.offset = 30;
+        assert!(url(&q).contains("start=30"));
+    }
+
+    #[test]
+    fn sort_by_date_uses_the_publication_year_field() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.sort = Some(SortField::Date);
+        q.order = SortOrder::Asc;
+        assert!(url(&q).contains("sort=publicationDateY_i+asc"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn sort_by_citations_is_rejected() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.sort = Some(SortField::Citations);
+        assert!(build_search_url("https://api.archives-ouvertes.fr", &q).is_err());
     }
 }

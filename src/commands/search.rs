@@ -11,6 +11,7 @@ pub fn run(args: &SearchArgs, global: &GlobalOpts) -> CommandResult {
         .ok_or_else(|| unsupported_search(args.source))?;
 
     let query = args.to_query();
+    check_query(&query)?;
     check_limit(&query, entry.caps.max_limit, args.source.name())?;
     check_filters(&query, &caps, args.source.name())?;
 
@@ -32,6 +33,23 @@ fn unsupported_search(source: Source) -> CommandError {
         source.name(),
         hint
     ))
+}
+
+/// Reject a blank query.
+///
+/// Sources that compose filters into the query string produce a malformed one
+/// when the search term is empty: hal returns an unparseable body, doaj and
+/// arxiv return HTTP 400, and zenodo and europepmc quietly ignore the filters
+/// and answer with unrelated papers. None of that is worth passing along.
+fn check_query(query: &SearchQuery) -> CommandResult {
+    if query.query.trim().is_empty() {
+        return Err(failed(
+            "Search query is empty.\n\
+             To list a single author's papers, pair a term with --author, or use \
+             `fastpaper get <source> <id>` when you already have an identifier.",
+        ));
+    }
+    Ok(())
 }
 
 /// Reject a limit the source will reject anyway, but say what the ceiling is.
@@ -144,6 +162,24 @@ mod tests {
         for flag in ["--year", "--author", "--open-access"] {
             assert!(err.message().contains(flag), "missing {}: {}", flag, err.message());
         }
+    }
+
+    #[test]
+    fn blank_query_is_rejected() {
+        for blank in ["", "   ", "\t"] {
+            let err = check_query(&SearchQuery::simple(blank, 10)).unwrap_err();
+            assert!(
+                err.message().contains("empty"),
+                "{:?} should be rejected: {}",
+                blank,
+                err.message()
+            );
+        }
+    }
+
+    #[test]
+    fn a_real_query_passes() {
+        assert!(check_query(&SearchQuery::simple("attention", 10)).is_ok());
     }
 
     #[test]

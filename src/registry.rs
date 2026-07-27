@@ -166,8 +166,6 @@ basic_search_adapter!(s_xueshu, sources::xueshu);
 basic_search_adapter!(s_dblp, sources::dblp);
 basic_search_adapter!(s_core, sources::core);
 basic_search_adapter!(s_openaire, sources::openaire);
-basic_search_adapter!(s_zenodo, sources::zenodo);
-basic_search_adapter!(s_hal, sources::hal);
 
 /// Unpaywall returns a bare `Paper`; a missing DOI surfaces as an error there.
 fn g_unpaywall(base: &str, id: &str) -> Result<Option<Paper>, String> {
@@ -544,24 +542,56 @@ static UNPAYWALL: SourceEntry = SourceEntry {
 
 static ZENODO: SourceEntry = SourceEntry {
     name: "zenodo",
-    caps: basic_search(false, true, Some(25)),
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            date_range: true,
+            author: true,
+            field: false,
+            open_access: true,
+        }),
+        get: false,
+        download: true,
+        max_limit: Some(25),
+        notes: "anonymous callers get 25 results per request; --sort citations \
+                unavailable; --offset must be a multiple of -n",
+    },
     env_var: "FASTPAPER_ZENODO_URL",
     default_base: "https://zenodo.org",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_zenodo),
+    search: Some(sources::zenodo::search),
     get: None,
     pdf: Some(download::pdf_bytes_zenodo),
 };
 
 static HAL: SourceEntry = SourceEntry {
     name: "hal",
-    caps: basic_search(false, true, Some(10000)),
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            // publicationDateY_i has year granularity only, so a day-granular
+            // range could only be honoured by widening it.
+            date_range: false,
+            author: true,
+            field: true,
+            open_access: true,
+        }),
+        get: false,
+        download: true,
+        max_limit: Some(10000),
+        notes: "year granularity only, use --year rather than --after/--before; \
+                --field takes a HAL domain code such as sdv or info",
+    },
     env_var: "FASTPAPER_HAL_URL",
     default_base: "https://api.archives-ouvertes.fr",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_hal),
+    search: Some(sources::hal::search),
     get: None,
     pdf: Some(download::pdf_bytes_hal),
 };

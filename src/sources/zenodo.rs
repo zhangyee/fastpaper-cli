@@ -4,19 +4,83 @@ use super::Paper;
 /// so catch it here and say what the limit is.
 const ANONYMOUS_MAX_SIZE: u32 = 25;
 
-/// Search Zenodo API.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
-    if max_results > ANONYMOUS_MAX_SIZE {
+/// Build the records search URL.
+///
+/// Zenodo's `access_right` query parameter is ignored -- open and closed return
+/// identical counts -- so the restriction goes into `q` as an Elasticsearch
+/// term, which does filter. Author and dates work the same way.
+fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, String> {
+    if q.limit > ANONYMOUS_MAX_SIZE {
         return Err(format!(
             "zenodo caps results at {} per request for anonymous callers (asked for {})",
-            ANONYMOUS_MAX_SIZE, max_results
+            ANONYMOUS_MAX_SIZE, q.limit
         ));
     }
-    let encoded = super::encode_query(query);
-    let url = format!(
-        "{}/api/records?q={}&size={}&type=publication",
-        base_url, encoded, max_results
+    if q.limit > 0 && q.offset % q.limit != 0 {
+        return Err(format!(
+            "zenodo pages results, so --offset must be a multiple of -n \
+             (got --offset {} with -n {})",
+            q.offset, q.limit
+        ));
+    }
+    let page = if q.limit > 0 { q.offset / q.limit + 1 } else { 1 };
+
+    let mut terms = vec![super::encode_query(&q.query)];
+    if let Some(ref author) = q.author {
+        terms.push(format!("creators.name:{}", super::encode_query(author)));
+    }
+    match q.year {
+        Some(year) => terms.push(format!(
+            "publication_date:%5B{}-01-01+TO+{}-12-31%5D",
+            year, year
+        )),
+        None => {
+            if q.after.is_some() || q.before.is_some() {
+                let from = match q.after {
+                    Some(ref d) => super::validate_ymd(d)?,
+                    None => "1800-01-01",
+                };
+                let to = match q.before {
+                    Some(ref d) => super::validate_ymd(d)?,
+                    None => "3000-12-31",
+                };
+                terms.push(format!("publication_date:%5B{}+TO+{}%5D", from, to));
+            }
+        }
+    }
+    if q.open_access {
+        terms.push("access_right:open".to_string());
+    }
+
+    let mut url = format!(
+        "{}/api/records?q={}&size={}&page={}&type=publication",
+        base_url,
+        terms.join("+AND+"),
+        q.limit,
+        page
     );
+
+    if let Some(sort) = q.sort {
+        let by = match sort {
+            super::SortField::Relevance => "bestmatch",
+            super::SortField::Date => "mostrecent",
+            super::SortField::Citations => {
+                return Err(
+                    "zenodo cannot sort by citations: it records no citation counts.\n\
+                     Try semantic or openalex."
+                        .to_string(),
+                );
+            }
+        };
+        url.push_str(&format!("&sort={}", by));
+    }
+
+    Ok(url)
+}
+
+/// Search Zenodo API.
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
+    let url = build_search_url(base_url, q)?;
 
     let mut last_err = String::new();
     for attempt in 0..3 {
@@ -212,7 +276,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -225,7 +289,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -237,7 +301,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -250,7 +314,7 @@ mod tests {
             .mock("GET", mockito::Matcher::Any)
             .with_status(400)
             .create();
-        let err = search(&server.url(), "test", 50).unwrap_err();
+        let err = search(&server.url(), &crate::sources::SearchQuery::simple("test", 50)).unwrap_err();
         assert!(
             err.contains("25"),
             "error should state the cap of 25, got: {}",
@@ -266,7 +330,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        assert!(search(&server.url(), "test", 25).is_ok());
+        assert!(search(&server.url(), &crate::sources::SearchQuery::simple("test", 25)).is_ok());
     }
 
     #[test]
@@ -277,7 +341,74 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
+    }
+}
+
+#[cfg(test)]
+mod query_tests {
+    use super::*;
+    use crate::sources::{SearchQuery, SortField};
+
+    fn url(q: &SearchQuery) -> String {
+        build_search_url("https://zenodo.org", q).unwrap()
+    }
+
+    // Zenodo's access_right query parameter is ignored: open and closed both
+    // return 2674 for the same search. The in-query term does filter.
+    #[test]
+    fn open_access_goes_into_the_query_not_a_parameter() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.open_access = true;
+        let u = url(&q);
+        assert!(u.contains("access_right:open"), "got: {}", u);
+        assert!(!u.contains("&access_right="), "the parameter is ignored: {}", u);
+    }
+
+    #[test]
+    fn author_becomes_a_creators_name_term() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.author = Some("Zhang".into());
+        assert!(url(&q).contains("creators.name:Zhang"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn year_becomes_a_publication_date_range() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.year = Some(2024);
+        assert!(
+            url(&q).contains("publication_date:%5B2024-01-01+TO+2024-12-31%5D"),
+            "got: {}",
+            url(&q)
+        );
+    }
+
+    #[test]
+    fn offset_becomes_a_page_number() {
+        let mut q = SearchQuery::simple("crispr", 5);
+        q.offset = 10;
+        assert!(url(&q).contains("page=3"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn sort_by_date_uses_mostrecent() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.sort = Some(SortField::Date);
+        assert!(url(&q).contains("sort=mostrecent"));
+    }
+
+    #[test]
+    fn sort_by_citations_is_rejected() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.sort = Some(SortField::Citations);
+        assert!(build_search_url("https://zenodo.org", &q).is_err());
+    }
+
+    #[test]
+    fn limit_above_the_anonymous_cap_is_still_rejected() {
+        let err = build_search_url("https://zenodo.org", &SearchQuery::simple("x", 50))
+            .unwrap_err();
+        assert!(err.contains("25"), "got: {}", err);
     }
 }

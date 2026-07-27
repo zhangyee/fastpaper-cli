@@ -963,3 +963,12 @@ fn format_jsonl_emits_one_object_per_line() {
             .unwrap_or_else(|e| panic!("line is not JSON ({}): {}", e, line));
     }
 }
+
+#[test]
+fn search_with_a_blank_query_is_rejected() {
+    cmd()
+        .args(["search", "hal", "", "--author", "Aubry"])
+        .assert()
+        .failure()
+        .stderr(contains("empty"));
+}
