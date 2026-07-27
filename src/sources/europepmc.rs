@@ -4,13 +4,74 @@ use super::Paper;
 /// is the bare host, matching the convention used by the other sources.
 const SEARCH_PATH: &str = "/europepmc/webservices/rest/search";
 
+/// Build the search URL.
+///
+/// Europe PMC puts everything in the query string itself: filters as
+/// `FIELD:value` terms and ordering as `sort_date:y` / `sort_cited:y`. The
+/// separate `sort=` parameter is documented but returns non-JSON for
+/// `P_PDATE_D desc` and `CITED desc`, so the in-query form is what we use — and
+/// it only orders descending.
+fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, String> {
+    if q.limit > 0 && q.offset % q.limit != 0 {
+        return Err(format!(
+            "europepmc pages results, so --offset must be a multiple of -n \
+             (got --offset {} with -n {})",
+            q.offset, q.limit
+        ));
+    }
+    let page = if q.limit > 0 { q.offset / q.limit + 1 } else { 1 };
+
+    let mut terms = vec![super::encode_query(&q.query)];
+
+    if let Some(ref author) = q.author {
+        terms.push(format!("AUTH:%22{}%22", super::encode_query(author)));
+    }
+    match q.year {
+        Some(year) => terms.push(format!("PUB_YEAR:{}", year)),
+        None => {
+            if q.after.is_some() || q.before.is_some() {
+                let from = match q.after {
+                    Some(ref d) => super::validate_ymd(d)?,
+                    None => "1800-01-01",
+                };
+                let to = match q.before {
+                    Some(ref d) => super::validate_ymd(d)?,
+                    None => "3000-12-31",
+                };
+                terms.push(format!("FIRST_PDATE:%5B{}+TO+{}%5D", from, to));
+            }
+        }
+    }
+    if q.open_access {
+        terms.push("OPEN_ACCESS:y".to_string());
+    }
+
+    let mut query = terms.join("+AND+");
+
+    if let Some(sort) = q.sort {
+        if q.order == super::SortOrder::Asc {
+            return Err(
+                "europepmc only orders results newest/most-cited first; --order asc is unavailable"
+                    .to_string(),
+            );
+        }
+        match sort {
+            // Relevance is the default ranking.
+            super::SortField::Relevance => {}
+            super::SortField::Date => query.push_str("+sort_date:y"),
+            super::SortField::Citations => query.push_str("+sort_cited:y"),
+        }
+    }
+
+    Ok(format!(
+        "{}{}?query={}&pageSize={}&page={}&format=json&resultType=core",
+        base_url, SEARCH_PATH, query, q.limit, page
+    ))
+}
+
 /// Search Europe PMC API.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
-    let encoded = super::encode_query(query);
-    let url = format!(
-        "{}{}?query={}&pageSize={}&format=json&resultType=core",
-        base_url, SEARCH_PATH, encoded, max_results
-    );
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
+    let url = build_search_url(base_url, q)?;
 
     let mut last_err = String::new();
     for attempt in 0..3 {
@@ -197,7 +258,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -210,7 +271,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -222,7 +283,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -234,7 +295,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -251,7 +312,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -263,7 +324,95 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
+    }
+}
+
+#[cfg(test)]
+mod query_tests {
+    use super::*;
+    use crate::sources::{SearchQuery, SortField, SortOrder};
+
+    fn url(q: &SearchQuery) -> String {
+        build_search_url("https://www.ebi.ac.uk", q).unwrap()
+    }
+
+    #[test]
+    fn author_becomes_an_auth_term() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.author = Some("Doudna".into());
+        assert!(url(&q).contains("AUTH:%22Doudna%22"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn year_becomes_a_pub_year_term() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.year = Some(2024);
+        assert!(url(&q).contains("PUB_YEAR:2024"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn dates_become_a_first_pdate_range() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.after = Some("2024-01-01".into());
+        q.before = Some("2024-03-31".into());
+        assert!(
+            url(&q).contains("FIRST_PDATE:%5B2024-01-01+TO+2024-03-31%5D"),
+            "got: {}",
+            url(&q)
+        );
+    }
+
+    #[test]
+    fn open_access_becomes_a_query_term() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.open_access = true;
+        assert!(url(&q).contains("OPEN_ACCESS:y"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn offset_becomes_a_page_number() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.offset = 20;
+        assert!(url(&q).contains("page=3"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn offset_that_is_not_a_whole_page_is_rejected() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.offset = 15;
+        let err = build_search_url("https://www.ebi.ac.uk", &q).unwrap_err();
+        assert!(err.contains("multiple of"), "got: {}", err);
+    }
+
+    // Ordering is expressed in the query string, not a sort parameter.
+    #[test]
+    fn sort_by_citations_appends_sort_cited() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.sort = Some(SortField::Citations);
+        assert!(url(&q).contains("sort_cited:y"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn sort_by_date_appends_sort_date() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.sort = Some(SortField::Date);
+        assert!(url(&q).contains("sort_date:y"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn ascending_order_is_rejected() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.sort = Some(SortField::Date);
+        q.order = SortOrder::Asc;
+        let err = build_search_url("https://www.ebi.ac.uk", &q).unwrap_err();
+        assert!(err.contains("--order asc"), "got: {}", err);
+    }
+
+    #[test]
+    fn the_rest_path_is_still_the_full_one() {
+        assert!(url(&SearchQuery::simple("crispr", 10))
+            .contains("/europepmc/webservices/rest/search"));
     }
 }

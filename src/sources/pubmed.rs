@@ -6,27 +6,66 @@ use super::Paper;
 const ESEARCH_URL: &str = "/entrez/eutils/esearch.fcgi";
 const EFETCH_URL: &str = "/entrez/eutils/efetch.fcgi";
 
-/// Build the esearch URL. NCBI treats `tool` and `email` as recommended, not
-/// required, so `email` is omitted unless the user supplied one.
-fn build_esearch_url(
+/// Build the esearch URL for a full query.
+///
+/// PubMed expresses author and year filters as Entrez field tags inside `term`
+/// (`Doudna[au]`, `2017[dp]`) while date ranges get their own
+/// `datetype`/`mindate`/`maxdate` parameters.
+fn build_esearch_url_q(
     base_url: &str,
-    query: &str,
-    max_results: u32,
+    q: &super::SearchQuery,
     api_key: Option<&str>,
     email: Option<&str>,
-) -> String {
-    let encoded = super::encode_query(query);
+) -> Result<String, String> {
+    let mut term = super::encode_query(&q.query);
+    if let Some(ref author) = q.author {
+        term.push_str(&format!("+AND+{}%5Bau%5D", super::encode_query(author)));
+    }
+    if let Some(year) = q.year {
+        term.push_str(&format!("+AND+{}%5Bdp%5D", year));
+    }
+
     let mut url = format!(
-        "{}{}?db=pubmed&term={}&retmax={}&retmode=json&tool=fastpaper",
-        base_url, ESEARCH_URL, encoded, max_results
+        "{}{}?db=pubmed&term={}&retmax={}&retstart={}&retmode=json&tool=fastpaper",
+        base_url, ESEARCH_URL, term, q.limit, q.offset
     );
+
+    // Only meaningful when --year was not used; the two express the same thing.
+    if q.year.is_none() && (q.after.is_some() || q.before.is_some()) {
+        url.push_str("&datetype=pdat");
+        let min = match q.after {
+            Some(ref d) => super::validate_ymd(d)?.replace('-', "/"),
+            None => "1800/01/01".to_string(),
+        };
+        let max = match q.before {
+            Some(ref d) => super::validate_ymd(d)?.replace('-', "/"),
+            None => "3000/12/31".to_string(),
+        };
+        url.push_str(&format!("&mindate={}&maxdate={}", min, max));
+    }
+
+    if let Some(sort) = q.sort {
+        let by = match sort {
+            super::SortField::Relevance => "relevance",
+            super::SortField::Date => "pub_date",
+            super::SortField::Citations => {
+                return Err(
+                    "pubmed cannot sort by citations: E-utilities offers no citation ordering.\n\
+                     Try semantic or openalex."
+                        .to_string(),
+                );
+            }
+        };
+        url.push_str(&format!("&sort={}", by));
+    }
+
     if let Some(email) = email {
         url.push_str(&format!("&email={}", email));
     }
     if let Some(key) = api_key {
         url.push_str(&format!("&api_key={}", key));
     }
-    url
+    Ok(url)
 }
 
 fn build_efetch_url(
@@ -49,18 +88,12 @@ fn build_efetch_url(
 }
 
 /// Search PubMed: esearch for IDs, then efetch for details.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let api_key = std::env::var("NCBI_API_KEY").ok();
     let email = super::contact_email();
 
     // Step 1: esearch to get PMID list
-    let esearch_url = build_esearch_url(
-        base_url,
-        query,
-        max_results,
-        api_key.as_deref(),
-        email.as_deref(),
-    );
+    let esearch_url = build_esearch_url_q(base_url, q, api_key.as_deref(), email.as_deref())?;
 
     let esearch_body = http_get(&esearch_url)?;
     let esearch_json: serde_json::Value =
@@ -378,7 +411,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
         assert!(!papers.is_empty());
         esearch_mock.assert();
         efetch_mock.assert();
@@ -399,7 +432,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -416,7 +449,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         esearch_mock.assert();
     }
 
@@ -436,7 +469,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), "test", 3);
+        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         unsafe { std::env::remove_var("NCBI_API_KEY") };
         assert!(result.is_ok(), "search should succeed with api key: {:?}", result.err());
     }
@@ -456,7 +489,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), "test", 3);
+        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         assert!(result.is_ok());
     }
 
@@ -466,20 +499,14 @@ mod tests {
     // NCBI treats `email` as recommended, not required.
     #[test]
     fn build_esearch_url_omits_email_when_none() {
-        let url = build_esearch_url("https://eutils.ncbi.nlm.nih.gov", "test", 3, None, None);
+        let url = build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", &crate::sources::SearchQuery::simple("test", 3), None, None).unwrap();
         assert!(!url.contains("email="), "got: {}", url);
         assert!(url.contains("tool=fastpaper"), "tool should stay: {}", url);
     }
 
     #[test]
     fn build_esearch_url_includes_email_when_some() {
-        let url = build_esearch_url(
-            "https://eutils.ncbi.nlm.nih.gov",
-            "test",
-            3,
-            None,
-            Some("a@b.com"),
-        );
+        let url = build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", &crate::sources::SearchQuery::simple("test", 3), None, Some("a@b.com")).unwrap();
         assert!(url.contains("email=a@b.com"), "got: {}", url);
     }
 
@@ -507,8 +534,95 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         unsafe { std::env::remove_var("FASTPAPER_EMAIL") };
         mock.assert();
+    }
+}
+
+#[cfg(test)]
+mod query_tests {
+    use super::*;
+    use crate::sources::{SearchQuery, SortField};
+
+    fn url(q: &SearchQuery) -> String {
+        build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", q, None, None).unwrap()
+    }
+
+    // PubMed carries author and year as Entrez field tags inside `term`.
+    #[test]
+    fn author_becomes_an_au_field_tag() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.author = Some("Doudna".into());
+        let u = url(&q);
+        assert!(u.contains("Doudna%5Bau%5D"), "got: {}", u);
+        assert!(u.contains("+AND+"), "got: {}", u);
+    }
+
+    #[test]
+    fn year_becomes_a_dp_field_tag() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.year = Some(2017);
+        assert!(url(&q).contains("2017%5Bdp%5D"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn offset_becomes_retstart() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.offset = 20;
+        assert!(url(&q).contains("retstart=20"));
+    }
+
+    #[test]
+    fn dates_use_datetype_mindate_maxdate() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.after = Some("2024-01-01".into());
+        q.before = Some("2024-03-31".into());
+        let u = url(&q);
+        assert!(u.contains("datetype=pdat"), "got: {}", u);
+        assert!(u.contains("mindate=2024/01/01"), "got: {}", u);
+        assert!(u.contains("maxdate=2024/03/31"), "got: {}", u);
+    }
+
+    #[test]
+    fn year_takes_precedence_over_a_date_range() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.year = Some(2017);
+        q.after = Some("2024-01-01".into());
+        let u = url(&q);
+        assert!(u.contains("2017%5Bdp%5D"), "got: {}", u);
+        assert!(!u.contains("mindate"), "should not also send a range: {}", u);
+    }
+
+    #[test]
+    fn malformed_date_is_rejected() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.before = Some("March 2024".into());
+        let err = build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", &q, None, None)
+            .unwrap_err();
+        assert!(err.contains("YYYY-MM-DD"), "got: {}", err);
+    }
+
+    #[test]
+    fn sort_by_date_uses_pub_date() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.sort = Some(SortField::Date);
+        assert!(url(&q).contains("sort=pub_date"));
+    }
+
+    #[test]
+    fn sort_by_citations_is_rejected_with_alternatives() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.sort = Some(SortField::Citations);
+        let err = build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", &q, None, None)
+            .unwrap_err();
+        assert!(err.contains("semantic"), "got: {}", err);
+    }
+
+    #[test]
+    fn a_filterless_query_is_unchanged() {
+        let u = url(&SearchQuery::simple("crispr", 10));
+        assert!(u.contains("term=crispr&"), "got: {}", u);
+        assert!(!u.contains("AND"), "no filter terms expected: {}", u);
     }
 }

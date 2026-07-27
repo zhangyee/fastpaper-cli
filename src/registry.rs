@@ -161,15 +161,11 @@ macro_rules! basic_search_adapter {
 
 basic_search_adapter!(s_biorxiv, sources::biorxiv);
 basic_search_adapter!(s_medrxiv, sources::medrxiv);
-basic_search_adapter!(s_pubmed, sources::pubmed);
-basic_search_adapter!(s_pmc, sources::pmc);
-basic_search_adapter!(s_europepmc, sources::europepmc);
 basic_search_adapter!(s_scholar, sources::scholar);
 basic_search_adapter!(s_xueshu, sources::xueshu);
 basic_search_adapter!(s_dblp, sources::dblp);
 basic_search_adapter!(s_core, sources::core);
 basic_search_adapter!(s_openaire, sources::openaire);
-basic_search_adapter!(s_doaj, sources::doaj);
 basic_search_adapter!(s_zenodo, sources::zenodo);
 basic_search_adapter!(s_hal, sources::hal);
 
@@ -247,41 +243,80 @@ static MEDRXIV: SourceEntry = SourceEntry {
 static PUBMED: SourceEntry = SourceEntry {
     name: "pubmed",
     caps: Capabilities {
-        search: Some(SearchCaps::BASIC),
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            date_range: true,
+            author: true,
+            // PubMed classifies by MeSH heading, which is not the same notion
+            // as a field of study and would mislead under this flag.
+            field: false,
+            open_access: false,
+        }),
         get: true,
         download: false,
         max_limit: Some(10000),
-        notes: "metadata only; for full text try pmc",
+        notes: "metadata only, for full text try pmc; --sort citations unavailable",
     },
     env_var: "FASTPAPER_PUBMED_URL",
     default_base: "https://eutils.ncbi.nlm.nih.gov",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_pubmed),
+    search: Some(sources::pubmed::search),
     get: Some(sources::pubmed::get_by_pmid),
     pdf: None,
 };
 
 static PMC: SourceEntry = SourceEntry {
     name: "pmc",
-    caps: basic_search(true, true, Some(10000)),
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            date_range: true,
+            author: true,
+            field: false,
+            open_access: true,
+        }),
+        get: true,
+        download: true,
+        max_limit: Some(10000),
+        notes: "--sort citations unavailable; PDFs come from the OA subset only",
+    },
     env_var: "FASTPAPER_PMC_URL",
     default_base: "https://eutils.ncbi.nlm.nih.gov",
     pdf_env_var: Some("FASTPAPER_PMC_DL_URL"),
     pdf_default_base: Some("https://www.ncbi.nlm.nih.gov"),
-    search: Some(s_pmc),
+    search: Some(sources::pmc::search),
     get: Some(sources::pmc::get_by_pmc_id),
     pdf: Some(download::pdf_bytes_pmc),
 };
 
 static EUROPEPMC: SourceEntry = SourceEntry {
     name: "europepmc",
-    caps: basic_search(false, false, Some(1000)),
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            date_range: true,
+            author: true,
+            field: false,
+            open_access: true,
+        }),
+        get: false,
+        download: false,
+        max_limit: Some(1000),
+        notes: "orders newest/most-cited first only, --order asc unavailable; \
+                --offset must be a multiple of -n",
+    },
     env_var: "FASTPAPER_EUROPEPMC_URL",
     default_base: "https://www.ebi.ac.uk",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_europepmc),
+    search: Some(sources::europepmc::search),
     get: None,
     pdf: None,
 };
@@ -458,12 +493,32 @@ static OPENAIRE: SourceEntry = SourceEntry {
 
 static DOAJ: SourceEntry = SourceEntry {
     name: "doaj",
-    caps: basic_search(false, true, Some(100)),
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            // bibjson.year is not a sortable field and created_date is the
+            // indexing date, not the publication date.
+            sort: false,
+            year: true,
+            // DOAJ records carry a year, not a date, so a day-granular range
+            // would have to be silently widened.
+            date_range: false,
+            author: true,
+            field: false,
+            // Everything in the Directory of Open Access Journals is open
+            // access, so the filter is trivially satisfied.
+            open_access: true,
+        }),
+        get: false,
+        download: true,
+        max_limit: Some(100),
+        notes: "year granularity only, use --year rather than --after/--before",
+    },
     env_var: "FASTPAPER_DOAJ_URL",
     default_base: "https://doaj.org",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_doaj),
+    search: Some(sources::doaj::search),
     get: None,
     pdf: Some(download::pdf_bytes_doaj),
 };

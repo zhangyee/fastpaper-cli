@@ -59,7 +59,7 @@ pub fn pdf_bytes_core(base_url: &str, identifier: &str) -> Result<Vec<u8>, Strin
 
 /// Fetch DOAJ PDF bytes via the record's fulltext link.
 pub fn pdf_bytes_doaj(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
-    let meta_url = format!("{}/api/search/articles/{}?pageSize=1", base_url, identifier);
+    let meta_url = format!("{}/api/v4/search/articles/{}?pageSize=1", base_url, identifier);
     resolve_and_fetch(&meta_url, sources::doaj::parse_search_response)
 }
 

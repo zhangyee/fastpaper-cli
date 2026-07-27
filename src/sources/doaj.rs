@@ -1,12 +1,48 @@
 use super::Paper;
 
-/// Search DOAJ API.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
-    let encoded = super::encode_query(query);
+/// Build the article search URL.
+///
+/// DOAJ takes the query as a path segment with Elasticsearch field syntax, so
+/// author and year become `bibjson.*` terms ANDed onto it.
+fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, String> {
+    if q.limit > 0 && q.offset % q.limit != 0 {
+        return Err(format!(
+            "doaj pages results, so --offset must be a multiple of -n \
+             (got --offset {} with -n {})",
+            q.offset, q.limit
+        ));
+    }
+    let page = if q.limit > 0 { q.offset / q.limit + 1 } else { 1 };
+
+    let mut terms = vec![super::encode_query(&q.query)];
+    if let Some(ref author) = q.author {
+        terms.push(format!(
+            "bibjson.author.name:{}",
+            super::encode_query(author)
+        ));
+    }
+    if let Some(year) = q.year {
+        terms.push(format!("bibjson.year:{}", year));
+    }
+    // Every DOAJ article is open access by definition, so --open-access is
+    // already satisfied and adds no term.
+
+    // The query is a path segment, not a query-string value, so a space has to
+    // be %20: '+' stays a literal plus there and silently breaks the boolean.
+    // encode_query only ever emits '+' for spaces (a literal '+' becomes %2B),
+    // so this rewrite is safe.
+    let path = terms.join("%20AND%20").replace('+', "%20");
+
     let url = format!(
-        "{}/api/search/articles/{}?pageSize={}",
-        base_url, encoded, max_results
+        "{}/api/v4/search/articles/{}?pageSize={}&page={}",
+        base_url, path, q.limit, page
     );
+    Ok(url)
+}
+
+/// Search DOAJ API.
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
+    let url = build_search_url(base_url, q)?;
 
     let mut last_err = String::new();
     for attempt in 0..3 {
@@ -203,7 +239,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -214,12 +250,12 @@ mod tests {
         let mock = server
             .mock(
                 "GET",
-                mockito::Matcher::Regex("/api/search/articles/".to_string()),
+                mockito::Matcher::Regex("/api/v4/search/articles/".to_string()),
             )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -231,7 +267,84 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
+    }
+}
+
+#[cfg(test)]
+mod query_tests {
+    use super::*;
+    use crate::sources::SearchQuery;
+
+    fn url(q: &SearchQuery) -> String {
+        build_search_url("https://doaj.org", q).unwrap()
+    }
+
+    #[test]
+    fn uses_the_versioned_api_path() {
+        assert!(
+            url(&SearchQuery::simple("crispr", 10)).contains("/api/v4/search/articles/"),
+            "got: {}",
+            url(&SearchQuery::simple("crispr", 10))
+        );
+    }
+
+    #[test]
+    fn author_becomes_a_bibjson_term() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.author = Some("Doudna".into());
+        assert!(
+            url(&q).contains("bibjson.author.name:Doudna"),
+            "got: {}",
+            url(&q)
+        );
+    }
+
+    #[test]
+    fn year_becomes_a_bibjson_term() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.year = Some(2024);
+        assert!(url(&q).contains("bibjson.year:2024"), "got: {}", url(&q));
+    }
+
+    // DOAJ carries the query in a path segment, where '+' is a literal plus
+    // rather than a space. `crispr+AND+bibjson.year:2024` matches nothing;
+    // the %20 form returns thousands of hits.
+    #[test]
+    fn terms_are_joined_with_encoded_spaces_not_plus() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.year = Some(2024);
+        let u = url(&q);
+        assert!(u.contains("%20AND%20"), "got: {}", u);
+        assert!(!u.contains("+AND+"), "path segments do not decode '+': {}", u);
+    }
+
+    #[test]
+    fn spaces_inside_the_query_are_encoded_for_a_path_segment() {
+        let u = url(&SearchQuery::simple("gene editing", 10));
+        assert!(u.contains("gene%20editing"), "got: {}", u);
+    }
+
+    #[test]
+    fn offset_becomes_a_page_number() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.offset = 20;
+        assert!(url(&q).contains("page=3"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn offset_that_is_not_a_whole_page_is_rejected() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.offset = 5;
+        let err = build_search_url("https://doaj.org", &q).unwrap_err();
+        assert!(err.contains("multiple of"), "got: {}", err);
+    }
+
+    #[test]
+    fn open_access_adds_no_term_because_doaj_is_all_open_access() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.open_access = true;
+        assert_eq!(url(&q), url(&SearchQuery::simple("crispr", 10)));
     }
 }

@@ -6,27 +6,67 @@ use super::Paper;
 const ESEARCH_URL: &str = "/entrez/eutils/esearch.fcgi";
 const EFETCH_URL: &str = "/entrez/eutils/efetch.fcgi";
 
-/// Build the esearch URL. NCBI treats `tool` and `email` as recommended, not
-/// required, so `email` is omitted unless the user supplied one.
-fn build_esearch_url(
+/// Build the esearch URL for a full query.
+///
+/// Like PubMed, PMC carries author, year and the open access restriction as
+/// Entrez tags inside `term`; date ranges use datetype/mindate/maxdate.
+fn build_esearch_url_q(
     base_url: &str,
-    query: &str,
-    max_results: u32,
+    q: &super::SearchQuery,
     api_key: Option<&str>,
     email: Option<&str>,
-) -> String {
-    let encoded = super::encode_query(query);
+) -> Result<String, String> {
+    let mut term = super::encode_query(&q.query);
+    if let Some(ref author) = q.author {
+        term.push_str(&format!("+AND+{}%5Bau%5D", super::encode_query(author)));
+    }
+    if let Some(year) = q.year {
+        term.push_str(&format!("+AND+{}%5Bdp%5D", year));
+    }
+    if q.open_access {
+        term.push_str("+AND+open+access%5Bfilter%5D");
+    }
+
     let mut url = format!(
-        "{}{}?db=pmc&term={}&retmax={}&retmode=json&tool=fastpaper",
-        base_url, ESEARCH_URL, encoded, max_results
+        "{}{}?db=pmc&term={}&retmax={}&retstart={}&retmode=json&tool=fastpaper",
+        base_url, ESEARCH_URL, term, q.limit, q.offset
     );
+
+    if q.year.is_none() && (q.after.is_some() || q.before.is_some()) {
+        url.push_str("&datetype=pdat");
+        let min = match q.after {
+            Some(ref d) => super::validate_ymd(d)?.replace('-', "/"),
+            None => "1800/01/01".to_string(),
+        };
+        let max = match q.before {
+            Some(ref d) => super::validate_ymd(d)?.replace('-', "/"),
+            None => "3000/12/31".to_string(),
+        };
+        url.push_str(&format!("&mindate={}&maxdate={}", min, max));
+    }
+
+    if let Some(sort) = q.sort {
+        let by = match sort {
+            super::SortField::Relevance => "relevance",
+            super::SortField::Date => "pub_date",
+            super::SortField::Citations => {
+                return Err(
+                    "pmc cannot sort by citations: E-utilities offers no citation ordering.\n\
+                     Try semantic or openalex."
+                        .to_string(),
+                );
+            }
+        };
+        url.push_str(&format!("&sort={}", by));
+    }
+
     if let Some(email) = email {
         url.push_str(&format!("&email={}", email));
     }
     if let Some(key) = api_key {
         url.push_str(&format!("&api_key={}", key));
     }
-    url
+    Ok(url)
 }
 
 fn build_efetch_url(
@@ -49,18 +89,12 @@ fn build_efetch_url(
 }
 
 /// Search PMC: esearch for IDs, then efetch for details.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let api_key = std::env::var("NCBI_API_KEY").ok();
     let email = super::contact_email();
 
     // Step 1: esearch
-    let esearch_url = build_esearch_url(
-        base_url,
-        query,
-        max_results,
-        api_key.as_deref(),
-        email.as_deref(),
-    );
+    let esearch_url = build_esearch_url_q(base_url, q, api_key.as_deref(), email.as_deref())?;
 
     let esearch_body = http_get(&esearch_url)?;
     let esearch_json: serde_json::Value =
@@ -390,7 +424,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
         assert!(!papers.is_empty());
         esearch_mock.assert();
         efetch_mock.assert();
@@ -409,7 +443,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -426,7 +460,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -445,7 +479,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), "test", 3);
+        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         unsafe { std::env::remove_var("NCBI_API_KEY") };
         assert!(result.is_ok());
     }
@@ -466,7 +500,7 @@ mod tests {
             .with_body(FIXTURE)
             .expect(0)
             .create();
-        let papers = search(&server.url(), "nonexistent", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("nonexistent", 3)).unwrap();
         assert!(papers.is_empty());
         efetch_mock.assert();
     }
@@ -475,7 +509,7 @@ mod tests {
     // as the caller identity.
     #[test]
     fn build_esearch_url_omits_email_when_none() {
-        let url = build_esearch_url("https://eutils.ncbi.nlm.nih.gov", "test", 3, None, None);
+        let url = build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", &crate::sources::SearchQuery::simple("test", 3), None, None).unwrap();
         assert!(!url.contains("email="), "got: {}", url);
         assert!(url.contains("db=pmc"), "got: {}", url);
     }
@@ -510,5 +544,55 @@ mod tests {
         let _ = get_by_pmc_id(&server.url(), "PMC7318926");
         unsafe { std::env::remove_var("FASTPAPER_EMAIL") };
         mock.assert();
+    }
+}
+
+#[cfg(test)]
+mod query_tests {
+    use super::*;
+    use crate::sources::SearchQuery;
+
+    fn url(q: &SearchQuery) -> String {
+        build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", q, None, None).unwrap()
+    }
+
+    #[test]
+    fn author_becomes_an_au_field_tag() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.author = Some("Doudna".into());
+        assert!(url(&q).contains("Doudna%5Bau%5D"), "got: {}", url(&q));
+    }
+
+    // Unlike PubMed, PMC can restrict to its open access subset.
+    #[test]
+    fn open_access_uses_the_entrez_filter() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.open_access = true;
+        assert!(
+            url(&q).contains("open+access%5Bfilter%5D"),
+            "got: {}",
+            url(&q)
+        );
+    }
+
+    #[test]
+    fn offset_becomes_retstart() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.offset = 20;
+        assert!(url(&q).contains("retstart=20"));
+    }
+
+    #[test]
+    fn dates_use_datetype_mindate_maxdate() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.after = Some("2024-01-01".into());
+        let u = url(&q);
+        assert!(u.contains("datetype=pdat"), "got: {}", u);
+        assert!(u.contains("mindate=2024/01/01"), "got: {}", u);
+    }
+
+    #[test]
+    fn query_still_targets_the_pmc_database() {
+        assert!(url(&SearchQuery::simple("crispr", 10)).contains("db=pmc"));
     }
 }
