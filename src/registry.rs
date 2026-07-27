@@ -167,8 +167,6 @@ basic_search_adapter!(s_europepmc, sources::europepmc);
 basic_search_adapter!(s_scholar, sources::scholar);
 basic_search_adapter!(s_xueshu, sources::xueshu);
 basic_search_adapter!(s_semantic, sources::semantic);
-basic_search_adapter!(s_crossref, sources::crossref);
-basic_search_adapter!(s_openalex, sources::openalex);
 basic_search_adapter!(s_dblp, sources::dblp);
 basic_search_adapter!(s_core, sources::core);
 basic_search_adapter!(s_openaire, sources::openaire);
@@ -340,17 +338,27 @@ static SEMANTIC: SourceEntry = SourceEntry {
 static CROSSREF: SourceEntry = SourceEntry {
     name: "crossref",
     caps: Capabilities {
-        search: Some(SearchCaps::BASIC),
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            date_range: true,
+            author: true,
+            // Crossref indexes registered metadata; it classifies neither
+            // subject area nor open access status.
+            field: false,
+            open_access: false,
+        }),
         get: true,
         download: false,
         max_limit: Some(1000),
-        notes: "metadata only; no PDF links",
+        notes: "metadata only, no PDF links; --offset caps at 10000",
     },
     env_var: "FASTPAPER_CROSSREF_URL",
     default_base: "https://api.crossref.org",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_crossref),
+    search: Some(sources::crossref::search),
     get: Some(sources::crossref::get_by_doi),
     pdf: None,
 };
@@ -358,18 +366,28 @@ static CROSSREF: SourceEntry = SourceEntry {
 static OPENALEX: SourceEntry = SourceEntry {
     name: "openalex",
     caps: Capabilities {
-        search: Some(SearchCaps::BASIC),
-        get: false,
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            date_range: true,
+            author: true,
+            field: true,
+            open_access: true,
+        }),
+        get: true,
         download: false,
         max_limit: Some(100),
-        notes: "usage-based since 2026-02; set OPENALEX_API_KEY for the larger free tier",
+        notes: "usage-metered since 2026-02, set OPENALEX_API_KEY for the larger free tier; \
+                --field takes a concept ID (e.g. C154945302), not a name; \
+                --offset must be a multiple of -n",
     },
     env_var: "FASTPAPER_OPENALEX_URL",
     default_base: "https://api.openalex.org",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_openalex),
-    get: None,
+    search: Some(sources::openalex::search),
+    get: Some(sources::openalex::get_by_id),
     pdf: None,
 };
 

@@ -1,21 +1,123 @@
 use super::Paper;
 
-fn build_search_url(base_url: &str, query: &str, max_results: u32, email: Option<&str>) -> String {
-    let encoded = super::encode_query(query);
+/// Build the /works search URL.
+///
+/// OpenAlex takes filters as one comma-separated `filter` parameter and pages
+/// results rather than offsetting them. Since 2026-02 it meters usage: requests
+/// still work anonymously on a small daily budget, and `OPENALEX_API_KEY` buys
+/// the larger free tier.
+fn build_search_url(
+    base_url: &str,
+    q: &super::SearchQuery,
+    api_key: Option<&str>,
+    email: Option<&str>,
+) -> Result<String, String> {
+    if q.limit > 0 && q.offset % q.limit != 0 {
+        return Err(format!(
+            "openalex pages results rather than offsetting them, so --offset must be a multiple of -n \
+             (got --offset {} with -n {})",
+            q.offset, q.limit
+        ));
+    }
+    let page = if q.limit > 0 { q.offset / q.limit + 1 } else { 1 };
+
     let mut url = format!(
-        "{}/works?search={}&per_page={}",
-        base_url, encoded, max_results
+        "{}/works?search={}&per_page={}&page={}",
+        base_url,
+        super::encode_query(&q.query),
+        q.limit,
+        page
     );
+
+    let mut filters = Vec::new();
+    if let Some(ref author) = q.author {
+        filters.push(format!(
+            "raw_author_name.search:{}",
+            super::encode_query(author)
+        ));
+    }
+    match q.year {
+        Some(year) => filters.push(format!("publication_year:{}", year)),
+        None => {
+            if let Some(ref after) = q.after {
+                filters.push(format!("from_publication_date:{}", super::validate_ymd(after)?));
+            }
+            if let Some(ref before) = q.before {
+                filters.push(format!("to_publication_date:{}", super::validate_ymd(before)?));
+            }
+        }
+    }
+    if q.open_access {
+        filters.push("is_oa:true".to_string());
+    }
+    // OpenAlex has no name-based subject filter -- concepts.display_name.search
+    // and primary_topic.field.display_name are both rejected -- so --field takes
+    // a concept ID.
+    if let Some(ref field) = q.field {
+        filters.push(format!("concepts.id:{}", super::encode_query(field)));
+    }
+    if !filters.is_empty() {
+        url.push_str(&format!("&filter={}", filters.join(",")));
+    }
+
+    if let Some(sort) = q.sort {
+        let by = match sort {
+            super::SortField::Relevance => "relevance_score",
+            super::SortField::Date => "publication_date",
+            super::SortField::Citations => "cited_by_count",
+        };
+        let order = match q.order {
+            super::SortOrder::Asc => "asc",
+            super::SortOrder::Desc => "desc",
+        };
+        url.push_str(&format!("&sort={}:{}", by, order));
+    }
+
+    if let Some(key) = api_key {
+        url.push_str(&format!("&api_key={}", key));
+    }
     if let Some(email) = email {
         url.push_str(&format!("&mailto={}", email));
     }
-    url
+    Ok(url)
+}
+
+/// Fetch a single work by DOI or OpenAlex ID.
+///
+/// Single-record lookups are the cheapest call OpenAlex offers, so this stays
+/// usable without a key.
+pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, String> {
+    let path = if identifier.starts_with("10.") {
+        format!("doi:{}", identifier)
+    } else {
+        identifier.to_string()
+    };
+    let mut url = format!("{}/works/{}", base_url, path);
+    if let Ok(key) = std::env::var("OPENALEX_API_KEY") {
+        url.push_str(&format!("?api_key={}", key));
+    }
+    match ureq::get(&url).call() {
+        Ok(resp) => {
+            let body = resp
+                .into_body()
+                .read_to_string()
+                .map_err(|e| format!("Failed to read response: {}", e))?;
+            // parse_search_response expects the list shape.
+            let wrapped = format!(r#"{{"results":[{}]}}"#, body);
+            Ok(parse_search_response(&wrapped)?.into_iter().next())
+        }
+        Err(ureq::Error::StatusCode(404)) => Ok(None),
+        Err(ureq::Error::StatusCode(429)) => Err("rate limited (429)".to_string()),
+        Err(ureq::Error::StatusCode(code)) if code >= 500 => Err(format!("Server error: {}", code)),
+        Err(e) => Err(format!("HTTP error: {}", e)),
+    }
 }
 
 /// Search OpenAlex API.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
+    let api_key = std::env::var("OPENALEX_API_KEY").ok();
     let email = super::contact_email();
-    let url = build_search_url(base_url, query, max_results, email.as_deref());
+    let url = build_search_url(base_url, q, api_key.as_deref(), email.as_deref())?;
 
     let mut last_err = String::new();
     for attempt in 0..3 {
@@ -256,7 +358,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -269,7 +371,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -281,7 +383,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -293,13 +395,13 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
     #[test]
     fn build_search_url_omits_mailto_without_email() {
-        let url = build_search_url("https://api.openalex.org", "attention", 3, None);
+        let url = build_search_url("https://api.openalex.org", &crate::sources::SearchQuery::simple("attention", 3), None, None).unwrap();
         assert!(
             !url.contains("mailto="),
             "url should carry no contact address: {}",
@@ -309,7 +411,7 @@ mod tests {
 
     #[test]
     fn build_search_url_includes_mailto_with_email() {
-        let url = build_search_url("https://api.openalex.org", "attention", 3, Some("a@b.com"));
+        let url = build_search_url("https://api.openalex.org", &crate::sources::SearchQuery::simple("attention", 3), None, Some("a@b.com")).unwrap();
         assert!(url.contains("mailto=a@b.com"), "got: {}", url);
     }
 
@@ -323,8 +425,134 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         unsafe { std::env::remove_var("FASTPAPER_EMAIL") };
         mock.assert();
+    }
+}
+
+#[cfg(test)]
+mod query_tests {
+    use super::*;
+    use crate::sources::{SearchQuery, SortField, SortOrder};
+
+    fn url(q: &SearchQuery) -> String {
+        build_search_url("https://api.openalex.org", q, None, None).unwrap()
+    }
+
+    #[test]
+    fn plain_query_uses_search_and_per_page() {
+        let u = url(&SearchQuery::simple("attention", 10));
+        assert!(u.contains("search=attention"), "got: {}", u);
+        assert!(u.contains("per_page=10"), "got: {}", u);
+    }
+
+    // OpenAlex pages results; it has no offset parameter.
+    #[test]
+    fn offset_becomes_a_page_number() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.offset = 20;
+        assert!(url(&q).contains("page=3"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn zero_offset_is_page_one() {
+        assert!(url(&SearchQuery::simple("attention", 10)).contains("page=1"));
+    }
+
+    #[test]
+    fn offset_that_is_not_a_whole_page_is_rejected() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.offset = 15;
+        let err = build_search_url("https://api.openalex.org", &q, None, None).unwrap_err();
+        assert!(err.contains("multiple of"), "got: {}", err);
+    }
+
+    #[test]
+    fn author_uses_the_raw_name_search_filter() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.author = Some("Vaswani".into());
+        assert!(
+            url(&q).contains("raw_author_name.search:Vaswani"),
+            "got: {}",
+            url(&q)
+        );
+    }
+
+    #[test]
+    fn year_uses_publication_year() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.year = Some(2017);
+        assert!(url(&q).contains("publication_year:2017"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn dates_use_from_and_to_publication_date() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.after = Some("2024-01-01".into());
+        q.before = Some("2024-03-31".into());
+        let u = url(&q);
+        assert!(u.contains("from_publication_date:2024-01-01"), "got: {}", u);
+        assert!(u.contains("to_publication_date:2024-03-31"), "got: {}", u);
+    }
+
+    #[test]
+    fn open_access_uses_is_oa() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.open_access = true;
+        assert!(url(&q).contains("is_oa:true"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn field_passes_through_as_a_concept_id() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.field = Some("C154945302".into());
+        assert!(url(&q).contains("concepts.id:C154945302"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn filters_share_one_comma_separated_parameter() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.year = Some(2017);
+        q.open_access = true;
+        let u = url(&q);
+        assert_eq!(u.matches("filter=").count(), 1, "one filter parameter: {}", u);
+    }
+
+    #[test]
+    fn malformed_date_is_rejected() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.after = Some("2024".into());
+        let err = build_search_url("https://api.openalex.org", &q, None, None).unwrap_err();
+        assert!(err.contains("YYYY-MM-DD"), "got: {}", err);
+    }
+
+    #[test]
+    fn sort_by_citations_uses_cited_by_count() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Citations);
+        assert!(url(&q).contains("sort=cited_by_count:desc"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn sort_by_date_uses_publication_date() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Date);
+        q.order = SortOrder::Asc;
+        assert!(url(&q).contains("sort=publication_date:asc"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn sort_by_relevance_uses_relevance_score() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Relevance);
+        assert!(url(&q).contains("sort=relevance_score:desc"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn api_key_is_sent_when_configured() {
+        let q = SearchQuery::simple("attention", 10);
+        let u = build_search_url("https://api.openalex.org", &q, Some("k123"), None).unwrap();
+        assert!(u.contains("api_key=k123"), "got: {}", u);
     }
 }

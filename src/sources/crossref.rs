@@ -1,14 +1,73 @@
 use super::Paper;
 
-/// Build the /works search URL. `mailto` opts into Crossref's polite pool; when
-/// absent the request goes to the public pool, which still works.
-fn build_search_url(base_url: &str, query: &str, max_results: u32, email: Option<&str>) -> String {
-    let encoded = super::encode_query(query);
-    let mut url = format!("{}/works?query={}&rows={}", base_url, encoded, max_results);
+/// Beyond this Crossref requires cursor paging instead of `offset`.
+const MAX_OFFSET: u32 = 10_000;
+
+/// Build the /works search URL.
+///
+/// `mailto` opts into Crossref's polite pool; without it the request goes to
+/// the public pool, which still works. Date filters go into a single
+/// comma-separated `filter` parameter, which Crossref ANDs together.
+fn build_search_url(
+    base_url: &str,
+    q: &super::SearchQuery,
+    email: Option<&str>,
+) -> Result<String, String> {
+    if q.offset > MAX_OFFSET {
+        return Err(format!(
+            "crossref supports an offset up to {} (asked for {}); deeper paging needs a cursor",
+            MAX_OFFSET, q.offset
+        ));
+    }
+
+    let mut url = format!(
+        "{}/works?query={}&rows={}&offset={}",
+        base_url,
+        super::encode_query(&q.query),
+        q.limit,
+        q.offset
+    );
+
+    if let Some(ref author) = q.author {
+        url.push_str(&format!("&query.author={}", super::encode_query(author)));
+    }
+
+    let mut filters = Vec::new();
+    match q.year {
+        Some(year) => {
+            filters.push(format!("from-pub-date:{}-01-01", year));
+            filters.push(format!("until-pub-date:{}-12-31", year));
+        }
+        None => {
+            if let Some(ref after) = q.after {
+                filters.push(format!("from-pub-date:{}", super::validate_ymd(after)?));
+            }
+            if let Some(ref before) = q.before {
+                filters.push(format!("until-pub-date:{}", super::validate_ymd(before)?));
+            }
+        }
+    }
+    if !filters.is_empty() {
+        url.push_str(&format!("&filter={}", filters.join(",")));
+    }
+
+    if let Some(sort) = q.sort {
+        let by = match sort {
+            super::SortField::Relevance => "score",
+            super::SortField::Date => "published",
+            super::SortField::Citations => "is-referenced-by-count",
+        };
+        let order = match q.order {
+            super::SortOrder::Asc => "asc",
+            super::SortOrder::Desc => "desc",
+        };
+        url.push_str(&format!("&sort={}&order={}", by, order));
+    }
+
     if let Some(email) = email {
         url.push_str(&format!("&mailto={}", email));
     }
-    url
+    Ok(url)
 }
 
 fn build_work_url(base_url: &str, doi: &str, email: Option<&str>) -> String {
@@ -20,9 +79,9 @@ fn build_work_url(base_url: &str, doi: &str, email: Option<&str>) -> String {
 }
 
 /// Search CrossRef API.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let email = super::contact_email();
-    let url = build_search_url(base_url, query, max_results, email.as_deref());
+    let url = build_search_url(base_url, q, email.as_deref())?;
     let body = http_get(&url)?;
     parse_search_response(&body)
 }
@@ -239,7 +298,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "attention", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("attention", 3));
         mock.assert();
     }
 
@@ -303,7 +362,7 @@ mod tests {
     // there, so an `expect(0)` probe behind a catch-all passes vacuously.
     #[test]
     fn build_search_url_omits_mailto_without_email() {
-        let url = build_search_url("https://api.crossref.org", "attention", 3, None);
+        let url = build_search_url("https://api.crossref.org", &crate::sources::SearchQuery::simple("attention", 3), None).unwrap();
         assert!(
             !url.contains("mailto="),
             "url should carry no contact address: {}",
@@ -313,7 +372,7 @@ mod tests {
 
     #[test]
     fn build_search_url_includes_mailto_with_email() {
-        let url = build_search_url("https://api.crossref.org", "attention", 3, Some("a@b.com"));
+        let url = build_search_url("https://api.crossref.org", &crate::sources::SearchQuery::simple("attention", 3), Some("a@b.com")).unwrap();
         assert!(url.contains("mailto=a@b.com"), "got: {}", url);
     }
 
@@ -333,8 +392,123 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         unsafe { std::env::remove_var("FASTPAPER_EMAIL") };
         mock.assert();
+    }
+}
+
+#[cfg(test)]
+mod query_tests {
+    use super::*;
+    use crate::sources::{SearchQuery, SortField, SortOrder};
+
+    fn url(q: &SearchQuery) -> String {
+        build_search_url("https://api.crossref.org", q, None).unwrap()
+    }
+
+    #[test]
+    fn plain_query_uses_query_and_rows() {
+        let u = url(&SearchQuery::simple("attention", 10));
+        assert!(u.contains("query=attention"), "got: {}", u);
+        assert!(u.contains("rows=10"), "got: {}", u);
+    }
+
+    #[test]
+    fn offset_is_passed_through() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.offset = 30;
+        assert!(url(&q).contains("offset=30"));
+    }
+
+    // Crossref caps offset at 10000 and wants a cursor beyond that.
+    #[test]
+    fn offset_beyond_the_api_limit_is_rejected() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.offset = 10_001;
+        let err = build_search_url("https://api.crossref.org", &q, None).unwrap_err();
+        assert!(err.contains("10000"), "got: {}", err);
+    }
+
+    #[test]
+    fn author_uses_the_dedicated_field_query() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.author = Some("Vaswani".into());
+        assert!(url(&q).contains("query.author=Vaswani"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn year_becomes_a_publication_date_filter() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.year = Some(2024);
+        let u = url(&q);
+        assert!(u.contains("from-pub-date:2024-01-01"), "got: {}", u);
+        assert!(u.contains("until-pub-date:2024-12-31"), "got: {}", u);
+    }
+
+    #[test]
+    fn after_and_before_become_date_filters() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.after = Some("2023-06-01".into());
+        q.before = Some("2023-12-31".into());
+        let u = url(&q);
+        assert!(u.contains("from-pub-date:2023-06-01"), "got: {}", u);
+        assert!(u.contains("until-pub-date:2023-12-31"), "got: {}", u);
+    }
+
+    #[test]
+    fn multiple_filters_are_comma_separated_in_one_parameter() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.after = Some("2023-06-01".into());
+        q.before = Some("2023-12-31".into());
+        let u = url(&q);
+        assert_eq!(u.matches("filter=").count(), 1, "one filter parameter: {}", u);
+        assert!(u.contains(','), "filters are comma separated: {}", u);
+    }
+
+    #[test]
+    fn malformed_date_is_rejected() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.before = Some("2023/12/31".into());
+        let err = build_search_url("https://api.crossref.org", &q, None).unwrap_err();
+        assert!(err.contains("YYYY-MM-DD"), "got: {}", err);
+    }
+
+    #[test]
+    fn sort_by_citations_uses_the_reference_count() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Citations);
+        let u = url(&q);
+        assert!(u.contains("sort=is-referenced-by-count"), "got: {}", u);
+        assert!(u.contains("order=desc"), "got: {}", u);
+    }
+
+    #[test]
+    fn sort_by_date_uses_published() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Date);
+        assert!(url(&q).contains("sort=published"));
+    }
+
+    #[test]
+    fn sort_by_relevance_uses_score() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Relevance);
+        assert!(url(&q).contains("sort=score"));
+    }
+
+    #[test]
+    fn ascending_order_is_honoured() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Date);
+        q.order = SortOrder::Asc;
+        assert!(url(&q).contains("order=asc"));
+    }
+
+    #[test]
+    fn mailto_is_still_appended_when_supplied() {
+        let q = SearchQuery::simple("attention", 10);
+        let u = build_search_url("https://api.crossref.org", &q, Some("a@b.com")).unwrap();
+        assert!(u.contains("mailto=a@b.com"), "got: {}", u);
     }
 }

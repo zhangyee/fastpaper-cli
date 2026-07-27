@@ -67,17 +67,9 @@ fn http_get_with_retry(url: &str) -> Result<String, String> {
 
 /// Turn `YYYY-MM-DD` into arXiv's `YYYYMMDDHHMM` stamp.
 fn date_stamp(date: &str, end_of_day: bool) -> Result<String, String> {
-    let parts: Vec<&str> = date.split('-').collect();
-    let valid = parts.len() == 3
-        && parts[0].len() == 4
-        && parts[1].len() == 2
-        && parts[2].len() == 2
-        && parts.iter().all(|p| p.chars().all(|c| c.is_ascii_digit()));
-    if !valid {
-        return Err(format!("Invalid date '{}': expected YYYY-MM-DD", date));
-    }
+    let digits: String = super::validate_ymd(date)?.replace('-', "");
     let time = if end_of_day { "2359" } else { "0000" };
-    Ok(format!("{}{}{}{}", parts[0], parts[1], parts[2], time))
+    Ok(format!("{}{}", digits, time))
 }
 
 /// Build the /api/query URL for a search.

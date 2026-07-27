@@ -199,6 +199,25 @@ pub struct Capabilities {
     pub notes: &'static str,
 }
 
+/// Check that a `--after` / `--before` value is a plain `YYYY-MM-DD` date.
+///
+/// Sources reshape it into whatever their API wants, but they all reject the
+/// same malformed input, and they should reject it before the request goes out
+/// rather than passing it along for the server to misinterpret.
+pub fn validate_ymd(date: &str) -> Result<&str, String> {
+    let parts: Vec<&str> = date.split('-').collect();
+    let ok = parts.len() == 3
+        && parts[0].len() == 4
+        && parts[1].len() == 2
+        && parts[2].len() == 2
+        && parts.iter().all(|p| p.chars().all(|c| c.is_ascii_digit()));
+    if ok {
+        Ok(date)
+    } else {
+        Err(format!("Invalid date '{}': expected YYYY-MM-DD", date))
+    }
+}
+
 /// Contact address used to identify this client to APIs that ask for one
 /// (Crossref's polite pool, OpenAlex, NCBI E-utilities).
 ///
