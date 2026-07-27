@@ -95,10 +95,10 @@ equally to anything the `download` column can fetch.
 |--------|-----------|:------:|:---:|:--------:|--------|
 | `arxiv` | arXiv | yes | yes | yes | Physics, math, CS, statistics, EE, q-bio, q-fin, econ |
 | `biorxiv` | bioRxiv | yes | | yes | Life sciences |
-| `medrxiv` | medRxiv | yes | | yes | Medical / health sciences |
+| `medrxiv` | medRxiv | yes | | | Medical / health sciences (medRxiv blocks PDF fetches) |
 | `pubmed` | PubMed | yes | yes | | Biomedical & life sciences (metadata only) |
 | `pmc` | PubMed Central | yes | yes | yes | Biomedical & life sciences (full text) |
-| `europepmc` | Europe PMC | yes | | | Life sciences superset of PMC |
+| `europepmc` | Europe PMC | yes | yes | yes | Life sciences superset of PMC; adds preprints, patents, guidelines |
 | `scholar` | Google Scholar | yes | | | All disciplines (experimental, rate-limited) |
 | `xueshu` | Baidu Xueshu (百度学术) | yes | | | All disciplines, strong Chinese-language coverage (experimental, unofficial API) |
 | `semantic` | Semantic Scholar | yes | yes | yes | All disciplines, AI-powered citation graph |
@@ -107,7 +107,7 @@ equally to anything the `download` column can fetch.
 | `dblp` | DBLP | yes | | | Computer science |
 | `core` | CORE | yes | | yes | Open access aggregator |
 | `openaire` | OpenAIRE | yes | | | EU open science |
-| `doaj` | DOAJ | yes | | yes | Open access journals, all subjects |
+| `doaj` | DOAJ | yes | yes | | Open access journals, all subjects (links go to publisher pages, not PDFs) |
 | `unpaywall` | Unpaywall | | yes | | OA link resolver (requires `UNPAYWALL_EMAIL`) |
 | `zenodo` | Zenodo | yes | | yes | All disciplines (datasets, software, papers) |
 | `hal` | HAL | yes | | yes | Multi-disciplinary, French national archive |
@@ -224,7 +224,8 @@ Every source also takes `FASTPAPER_<SOURCE>_URL` to override its base URL —
 `FASTPAPER_ARXIV_URL`, `FASTPAPER_PUBMED_URL` and so on — which is what the
 tests point at a local mock server. Sources whose files live on a different host
 than their API have a second override for that host: `FASTPAPER_ARXIV_PDF_URL`,
-`FASTPAPER_BIORXIV_DL_URL`, `FASTPAPER_MEDRXIV_DL_URL`, `FASTPAPER_PMC_DL_URL`.
+`FASTPAPER_BIORXIV_DL_URL`, `FASTPAPER_PMC_DL_URL` (which points at the PMC
+Cloud Service on AWS Open Data, not the article pages).
 
 ## Exit codes
 

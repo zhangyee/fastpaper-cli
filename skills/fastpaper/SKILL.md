@@ -19,9 +19,9 @@ Pick sources based on the user's research domain:
 **Biomedical / Life sciences**
 - `pubmed` — NLM index, 35M+ citations, biomedical and life sciences abstracts. search, get
 - `pmc` — NLM full-text archive of peer-reviewed biomedical and life sciences literature. search, get, download
-- `europepmc` — Life sciences superset of PMC by EMBL-EBI; adds patents, preprints, clinical guidelines. search
+- `europepmc` — Life sciences superset of PMC by EMBL-EBI; adds patents, preprints, clinical guidelines. search, get, download
 - `biorxiv` — Life sciences preprints by CSHL. search, download
-- `medrxiv` — Medical/health science preprints by CSHL. search, download
+- `medrxiv` — Medical/health science preprints by CSHL. search
 **Cross-discipline / Broad coverage**
 - `semantic` — Allen AI, AI-powered semantic search + citation graph, all disciplines. search, get, download
 - `crossref` — DOI registry, metadata queries across all disciplines. search, get
@@ -31,7 +31,7 @@ Pick sources based on the user's research domain:
 **Open access aggregators**
 - `core` — Largest global OA aggregator, full text from institutional repos and journals. search, download
 - `openaire` — EU open science infrastructure, aggregates worldwide OA research. search
-- `doaj` — Directory of quality-reviewed OA journals, all subjects. search, download
+- `doaj` — Directory of quality-reviewed OA journals, all subjects. search, get
 - `unpaywall` — OA link resolver by DOI, finds legal free versions (needs UNPAYWALL_EMAIL). get
 **Open repositories**
 - `zenodo` — CERN/OpenAIRE general-purpose repository (datasets, software, papers), all disciplines. search, download
@@ -90,7 +90,10 @@ fastpaper download <source> <id>         # or name it explicitly
 
 Saves to `./papers/<id>.pdf` by default (`-d` to change it).
 
-Download-capable sources: arxiv, biorxiv, medrxiv, pmc, semantic, core, doaj, zenodo, hal.
+Download-capable sources: arxiv, biorxiv, pmc, europepmc, semantic, core, zenodo, hal.
+
+A download that would have produced HTML rather than a file now fails instead of
+writing it out, so a reported success is a real PDF.
 
 ## All output uses --format json for structured agent consumption.
 ## Exit code 0 = success, non-zero = error (see --help for codes).

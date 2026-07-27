@@ -4,7 +4,9 @@
 - **基础 URL**: `https://doaj.org/api`,文章检索端点 `/v4/search/articles/{query}`
 - **查询串在路径段里,不在 query string 里。**因此空格必须编码成 `%20`:`+` 在路径段中是字面加号,`crispr+AND+bibjson.year:2024` 命中 0 条,而 `%20AND%20` 形式命中数千条。
 - **认证**: 无需
-- **能力**: search + download
+- **能力**: search + get
+- `get`:`GET /api/v4/articles/{id}`
+- **不提供 download**:`bibjson.link` 里 `type` 虽为 `fulltext`,但 `content_type` 是 HTML,URL 指向出版商落地页(Frontiers / MDPI 等)。DOAJ 本身不存 PDF 链接,要拿 PDF 只能逐家爬出版商页面
 - **实现**: `src/sources/doaj.rs`(以代码为准)
 
 ## 搜索

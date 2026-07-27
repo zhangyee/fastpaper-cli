@@ -3,7 +3,10 @@
 - **API 类型**: REST JSON
 - **基础 URL**: `https://www.ebi.ac.uk`
 - **认证**: 无需
-- **能力**: search
+- **能力**: search + get + download
+- `get`:无按 id 的路径,用字段限定检索——`PMCID:{id}` / `DOI:"{doi}"` / `EXT_ID:{pmid}+AND+SRC:MED`
+- `download`:`fullTextUrlList` 里 `documentStyle=="pdf"` 的那条,形如 `https://europepmc.org/articles/PMC*?pdf=render`(实测 `application/pdf`)
+- 另有 `/{id}/fullTextXML`、`/{id}/supplementaryFiles`(本 CLI 暂未使用)
 - **实现**: `src/sources/europepmc.rs`(以代码为准)
 
 ## 搜索

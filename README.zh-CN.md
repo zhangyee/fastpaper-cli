@@ -95,10 +95,10 @@ wait
 |--------|------|:------:|:---:|:--------:|----------|
 | `arxiv` | arXiv | yes | yes | yes | 物理、数学、计算机、统计、电子工程、量化生物/金融、经济学 |
 | `biorxiv` | bioRxiv | yes | | yes | 生命科学 |
-| `medrxiv` | medRxiv | yes | | yes | 医学 / 健康科学 |
+| `medrxiv` | medRxiv | yes | | | 医学 / 健康科学（medRxiv 拦截 PDF 抓取）|
 | `pubmed` | PubMed | yes | yes | | 生物医学与生命科学（仅元数据） |
 | `pmc` | PubMed Central | yes | yes | yes | 生物医学与生命科学（全文） |
-| `europepmc` | Europe PMC | yes | | | PMC 的生命科学超集 |
+| `europepmc` | Europe PMC | yes | yes | yes | PMC 的生命科学超集，另含预印本、专利、临床指南 |
 | `scholar` | Google Scholar | yes | | | 全学科（实验性，有频率限制） |
 | `xueshu` | 百度学术 | yes | | | 全学科，中文文献覆盖强（实验性，非官方接口） |
 | `semantic` | Semantic Scholar | yes | yes | yes | 全学科，AI 驱动的引用图谱 |
@@ -107,7 +107,7 @@ wait
 | `dblp` | DBLP | yes | | | 计算机科学 |
 | `core` | CORE | yes | | yes | 开放获取聚合器 |
 | `openaire` | OpenAIRE | yes | | | 欧盟开放科学 |
-| `doaj` | DOAJ | yes | | yes | 开放获取期刊，全学科 |
+| `doaj` | DOAJ | yes | yes | | 开放获取期刊，全学科（全文链接指向出版商页面而非 PDF）|
 | `unpaywall` | Unpaywall | | yes | | OA 链接解析（需设置 `UNPAYWALL_EMAIL`） |
 | `zenodo` | Zenodo | yes | | yes | 全学科（数据集、软件、论文） |
 | `hal` | HAL | yes | | yes | 多学科，法国国家开放存档 |
@@ -219,7 +219,7 @@ fastpaper completions bash >> ~/.bashrc
 每个源还支持用 `FASTPAPER_<SOURCE>_URL` 覆盖它的 base URL——`FASTPAPER_ARXIV_URL`、
 `FASTPAPER_PUBMED_URL` 等等——测试就是靠它指向本地 mock 服务器的。文件与 API 不在同一
 主机的源另有一个文件主机的覆盖项：`FASTPAPER_ARXIV_PDF_URL`、`FASTPAPER_BIORXIV_DL_URL`、
-`FASTPAPER_MEDRXIV_DL_URL`、`FASTPAPER_PMC_DL_URL`。
+`FASTPAPER_PMC_DL_URL`（指向 AWS Open Data 上的 PMC Cloud Service，不是文章页）。
 
 ## 退出码
 

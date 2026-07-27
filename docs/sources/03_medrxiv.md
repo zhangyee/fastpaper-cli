@@ -3,7 +3,8 @@
 - **API 类型**: REST JSON(与 BioRxiv 共用 API)
 - **基础 URL**: `https://api.biorxiv.org`(下载 `https://www.medrxiv.org`)
 - **认证**: 无需
-- **能力**: search + download
+- **能力**: search
+- **不提供 download**:`https://www.medrxiv.org/content/{doi}v{n}.full.pdf` 对项目 UA 和浏览器 UA **一律返回 403**,不是换 header 能解决的(bioRxiv 同架构却放行)
 - **实现**: `src/sources/medrxiv.rs`(以代码为准)
 
 ## 与 BioRxiv 的差异

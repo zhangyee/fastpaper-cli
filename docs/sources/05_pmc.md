@@ -4,6 +4,10 @@
 - **基础 URL**: `https://eutils.ncbi.nlm.nih.gov`(下载 `https://www.ncbi.nlm.nih.gov`)
 - **认证**: 无需(可选 `NCBI_API_KEY`,rate limit 3→10 req/s)
 - **能力**: search + get + download
+- **PDF 下载走 PMC Cloud Service（AWS Open Data）**:`https://pmc-oa-opendata.s3.amazonaws.com`
+  - 文章页的 `/pdf/` 直链**不可编程使用**——对所有客户端(含浏览器 UA)一律返回 1817 字节的 "Preparing to download" HTML 拦截页
+  - OA Web Service(`oa.fcgi`)给的是 `ftp://` 链接,而 NCBI 已停匿名 FTP(550);其 HTTPS 路径于 2026-04 迁入 `/deprecated/`,官方公告 **2026-08 删除**
+  - 取法:先 `GET /?list-type=2&prefix=PMC{id}` 拿到带版本号的 key,再取 `{key}`(形如 `PMC5334499.1/PMC5334499.1.pdf`)
 - **实现**: `src/sources/pmc.rs`(以代码为准)
 
 ## 搜索(两步)
