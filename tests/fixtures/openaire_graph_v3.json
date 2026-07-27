@@ -1,0 +1,2059 @@
+{
+  "header": {
+    "numFound": 108712,
+    "maxScore": 7.1937594,
+    "queryTime": 152,
+    "page": 1,
+    "pageSize": 5
+  },
+  "results": [
+    {
+      "authors": [
+        {
+          "id": null,
+          "fullName": "Tsang, Jennifer",
+          "name": "Jennifer",
+          "surname": "Tsang",
+          "rank": 1,
+          "pid": null
+        },
+        {
+          "id": null,
+          "fullName": "LaManna, Caroline M.",
+          "name": "Caroline M.",
+          "surname": "Lamanna",
+          "rank": 2,
+          "pid": null
+        }
+      ],
+      "openAccessColor": "hybrid",
+      "publiclyFunded": false,
+      "eoscIfGuidelines": null,
+      "type": "publication",
+      "language": {
+        "code": "eng",
+        "label": "English"
+      },
+      "countries": null,
+      "subjects": [
+        {
+          "subject": {
+            "scheme": "FOS",
+            "value": "0301 basic medicine"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "FOS",
+            "value": "03 medical and health sciences"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "First Cuts"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "SARS-CoV-2"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "COVID-19 Nucleic Acid Testing"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Genetics"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "COVID-19"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Humans"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "RNA, Viral"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Clustered Regularly Interspaced Short Palindromic Repeats"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Nucleic Acid Amplification Techniques"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Biotechnology"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Plasmids"
+          },
+          "provenance": null
+        }
+      ],
+      "mainTitle": "Open Sharing During COVID-19: CRISPR-Based Detection Tools",
+      "subTitle": null,
+      "descriptions": null,
+      "publicationDate": "2020-06-01",
+      "publisher": "SAGE Publications",
+      "embargoEndDate": null,
+      "sources": [
+        "Crossref",
+        "CRISPR J",
+        "The CRISPR Journal"
+      ],
+      "formats": null,
+      "contributors": null,
+      "coverages": null,
+      "bestAccessRight": {
+        "code": "c_abf2",
+        "label": "OPEN",
+        "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/"
+      },
+      "container": {
+        "name": "The CRISPR Journal",
+        "issnPrinted": "2573-1599",
+        "issnOnline": "2573-1602",
+        "issnLinking": null,
+        "ep": "145",
+        "iss": null,
+        "sp": "142",
+        "vol": "3",
+        "edition": null,
+        "conferencePlace": null,
+        "conferenceDate": null
+      },
+      "documentationUrls": null,
+      "codeRepositoryUrl": null,
+      "programmingLanguage": null,
+      "contactPeople": null,
+      "contactGroups": null,
+      "tools": null,
+      "size": null,
+      "version": null,
+      "geoLocations": null,
+      "id": "doi_dedup___::e1bdaa7c0656745b7f6c18ae4c0eea19",
+      "originalIds": [
+        "10.1089/crispr.2020.0030",
+        "50|doiboost____|e1bdaa7c0656745b7f6c18ae4c0eea19",
+        "od_______267::a8f6ea7f365d5d40970392606dc9fe34",
+        "33560914",
+        "PMC7307694",
+        "50|od_______267::a8f6ea7f365d5d40970392606dc9fe34",
+        "oai:pubmedcentral.nih.gov:7307694",
+        "3036521928",
+        "50|who_________::e1bdaa7c0656745b7f6c18ae4c0eea19"
+      ],
+      "pids": [
+        {
+          "scheme": "doi",
+          "value": "10.1089/crispr.2020.0030"
+        },
+        {
+          "scheme": "pmid",
+          "value": "33560914"
+        },
+        {
+          "scheme": "pmc",
+          "value": "PMC7307694"
+        }
+      ],
+      "dateOfCollection": null,
+      "lastUpdateTimeStamp": null,
+      "indicators": {
+        "citationImpact": {
+          "citationCount": 14.0,
+          "influence": 2.7350058E-9,
+          "popularity": 9.87525E-9,
+          "impulse": 11.0,
+          "citationClass": "C4",
+          "influenceClass": "C5",
+          "impulseClass": "C4",
+          "popularityClass": "C4"
+        }
+      },
+      "projects": null,
+      "organizations": null,
+      "communities": [
+        {
+          "code": "covid-19",
+          "label": "Corona Virus Disease",
+          "provenance": null
+        }
+      ],
+      "collectedFrom": [
+        {
+          "key": "who_________::53d670af9bb16ea82e7ef41ee23ec6df",
+          "value": "WHO Global literature on coronavirus disease"
+        },
+        {
+          "key": "openaire____::8ac8380272269217cb09a928c8caa993",
+          "value": "UnpayWall"
+        },
+        {
+          "key": "openaire____::081b82f96300b6a6e3d282bad31cb6e2",
+          "value": "Crossref"
+        },
+        {
+          "key": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a",
+          "value": "Microsoft Academic Graph"
+        },
+        {
+          "key": "opendoar____::8b6dd7db9af49e67306feb59a8bdc52c",
+          "value": "Europe PubMed Central"
+        },
+        {
+          "key": "opendoar____::eda80a3d5b344bc40f3bc04f65b7a357",
+          "value": "PubMed Central"
+        }
+      ],
+      "instances": [
+        {
+          "pids": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.0030"
+            }
+          ],
+          "license": "CC BY NC",
+          "accessRight": {
+            "code": "c_abf2",
+            "label": "OPEN",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": "hybrid"
+          },
+          "type": "Article",
+          "urls": [
+            "https://doi.org/10.1089/crispr.2020.0030"
+          ],
+          "publicationDate": "2020-06-01",
+          "refereed": "peerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "openaire____::081b82f96300b6a6e3d282bad31cb6e2",
+            "value": "Crossref"
+          }
+        },
+        {
+          "pids": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.0030"
+            }
+          ],
+          "license": "CC BY NC",
+          "accessRight": {
+            "code": "c_abf2",
+            "label": "OPEN",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": "hybrid"
+          },
+          "type": "Article",
+          "urls": [
+            "https://doi.org/10.1089/crispr.2020.0030"
+          ],
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "openaire____::8ac8380272269217cb09a928c8caa993",
+            "value": "UnpayWall"
+          }
+        },
+        {
+          "pids": [
+            {
+              "scheme": "pmid",
+              "value": "33560914"
+            },
+            {
+              "scheme": "pmc",
+              "value": "PMC7307694"
+            }
+          ],
+          "alternateIdentifiers": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.0030"
+            }
+          ],
+          "type": "Article",
+          "urls": [
+            "https://pubmed.ncbi.nlm.nih.gov/33560914"
+          ],
+          "publicationDate": "2021-02-18",
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "opendoar____::8b6dd7db9af49e67306feb59a8bdc52c",
+            "value": "Europe PubMed Central"
+          }
+        },
+        {
+          "alternateIdentifiers": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.0030"
+            }
+          ],
+          "accessRight": {
+            "code": "c_abf2",
+            "label": "OPEN",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": null
+          },
+          "type": "Article",
+          "urls": [
+            "http://dx.doi.org/10.1089/crispr.2020.0030"
+          ],
+          "publicationDate": "2020-06-01",
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "opendoar____::eda80a3d5b344bc40f3bc04f65b7a357",
+            "value": "PubMed Central"
+          },
+          "collectedFrom": {
+            "key": "opendoar____::eda80a3d5b344bc40f3bc04f65b7a357",
+            "value": "PubMed Central"
+          }
+        },
+        {
+          "alternateIdentifiers": [
+            {
+              "scheme": "mag_id",
+              "value": "3036521928"
+            },
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.0030"
+            }
+          ],
+          "type": "Other literature type",
+          "urls": [
+            "https://dx.doi.org/10.1089/crispr.2020.0030"
+          ],
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "openaire____::55045bd2a65019fd8e6741a755395c8c",
+            "value": "Unknown Repository"
+          },
+          "collectedFrom": {
+            "key": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a",
+            "value": "Microsoft Academic Graph"
+          }
+        },
+        {
+          "alternateIdentifiers": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.0030"
+            }
+          ],
+          "license": "Mary Ann Liebert TDM",
+          "accessRight": {
+            "code": "c_abf2",
+            "label": "OPEN",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": null
+          },
+          "type": "Article",
+          "urls": [
+            "http://dx.doi.org/10.1089/crispr.2020.0030"
+          ],
+          "publicationDate": "2020-06-01",
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "who_________::53d670af9bb16ea82e7ef41ee23ec6df",
+            "value": "WHO Global literature on coronavirus disease"
+          }
+        },
+        {
+          "alternateIdentifiers": [
+            {
+              "scheme": "mag_id",
+              "value": "3036521928"
+            },
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.0030"
+            }
+          ],
+          "type": "Other literature type",
+          "urls": [
+            "https://dx.doi.org/10.1089/crispr.2020.0030"
+          ],
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "openaire____::55045bd2a65019fd8e6741a755395c8c",
+            "value": "Unknown Repository"
+          },
+          "collectedFrom": {
+            "key": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a",
+            "value": "Microsoft Academic Graph"
+          }
+        }
+      ],
+      "links": [],
+      "otherTitles": null,
+      "inDiamondJournal": false,
+      "green": true,
+      "isGreen": true,
+      "isInDiamondJournal": false
+    },
+    {
+      "authors": null,
+      "openAccessColor": null,
+      "publiclyFunded": false,
+      "eoscIfGuidelines": null,
+      "type": "publication",
+      "language": {
+        "code": "und",
+        "label": "Undetermined"
+      },
+      "countries": null,
+      "subjects": [
+        {
+          "subject": {
+            "scheme": "FOS",
+            "value": "0206 medical engineering"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "FOS",
+            "value": "02 engineering and technology"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "SDG",
+            "value": "3. Good health"
+          },
+          "provenance": null
+        }
+      ],
+      "mainTitle": "Design and validate probes for CRISPR ON, CRISPR/CAS9, CRISPR/CAS13",
+      "subTitle": null,
+      "descriptions": [
+        "Design and validate probes for CRISPR ON, CRISPR/CAS9, CRISPR/CAS13"
+      ],
+      "publicationDate": null,
+      "publisher": null,
+      "embargoEndDate": null,
+      "sources": null,
+      "formats": null,
+      "contributors": null,
+      "coverages": null,
+      "bestAccessRight": {
+        "code": "c_abf2",
+        "label": "OPEN",
+        "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/"
+      },
+      "container": null,
+      "documentationUrls": null,
+      "codeRepositoryUrl": null,
+      "programmingLanguage": null,
+      "contactPeople": null,
+      "contactGroups": null,
+      "tools": null,
+      "size": null,
+      "version": null,
+      "geoLocations": null,
+      "id": "r3c4b2081b22::2f722a6f651d1ef37b49d3e78571648e",
+      "originalIds": [
+        "https://ec.europa.eu/research/participants/documents/downloadPublic?documentIds=080166e5de59705d",
+        "50|r3c4b2081b22::2f722a6f651d1ef37b49d3e78571648e"
+      ],
+      "pids": null,
+      "dateOfCollection": null,
+      "lastUpdateTimeStamp": null,
+      "indicators": {
+        "citationImpact": {
+          "citationCount": 0.0,
+          "influence": 2.2251732E-9,
+          "popularity": 1.8635508E-10,
+          "impulse": 0.0,
+          "citationClass": "C5",
+          "influenceClass": "C5",
+          "impulseClass": "C5",
+          "popularityClass": "C5"
+        }
+      },
+      "projects": [
+        {
+          "id": "corda__h2020::590e81301bd9ad6e4bf45f97238ae2e4",
+          "code": "874708",
+          "acronym": "TheraLymph",
+          "title": "Gene Therapy to restore lymphatic flow lymphedema",
+          "funder": "European Commission",
+          "pids": [
+            {
+              "scheme": "doi",
+              "value": "10.3030/874708"
+            }
+          ]
+        }
+      ],
+      "organizations": null,
+      "communities": null,
+      "collectedFrom": [
+        {
+          "key": "re3data_____::c4b2081b224be6b3e79d0e5e5556f631",
+          "value": "European Union Open Data Portal"
+        }
+      ],
+      "instances": [
+        {
+          "accessRight": {
+            "code": "c_abf2",
+            "label": "OPEN",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": null
+          },
+          "type": "Project deliverable",
+          "urls": [
+            "https://ec.europa.eu/research/participants/documents/downloadPublic?documentIds=080166e5de59705d&amp;appId=PPGMS"
+          ],
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "openaire____::a3da458be435bc38345d79c3d845da9d",
+            "value": "European Commission Participant Portal"
+          },
+          "collectedFrom": {
+            "key": "re3data_____::c4b2081b224be6b3e79d0e5e5556f631",
+            "value": "European Union Open Data Portal"
+          }
+        }
+      ],
+      "links": [
+        {
+          "header": {
+            "relationType": "resultProject",
+            "relationClass": "isProducedBy",
+            "relatedIdentifier": "corda__h2020::590e81301bd9ad6e4bf45f97238ae2e4",
+            "relatedRecordType": "project",
+            "relationProvenance": "sysimport:crosswalk",
+            "trust": "0.9"
+          },
+          "collectedfrom": [
+            {
+              "dsId": "openaire____::a55eb91348674d853191f4f4fd73d078",
+              "dsName": "CORDA - COmmon Research DAta Warehouse - Horizon 2020"
+            }
+          ],
+          "projectTitle": "Gene Therapy to restore lymphatic flow lymphedema",
+          "code": "874708",
+          "funding": {
+            "funder": {
+              "id": "ec__________::EC",
+              "shortname": "EC",
+              "name": "European Commission",
+              "jurisdiction": {
+                "code": "EU",
+                "label": "European Union"
+              },
+              "pid": null
+            },
+            "level0": {
+              "id": "ec__________::EC::H2020",
+              "description": "Horizon 2020 Framework Programme",
+              "name": "H2020"
+            },
+            "level1": {
+              "id": "ec__________::EC::H2020::RIA",
+              "description": "Research and Innovation action",
+              "name": "RIA"
+            },
+            "level2": {
+              "id": null,
+              "description": null,
+              "name": null
+            }
+          },
+          "startDate": "2020-01-01",
+          "endDate": "2025-06-30"
+        }
+      ],
+      "otherTitles": null,
+      "inDiamondJournal": false,
+      "green": false,
+      "isGreen": false,
+      "isInDiamondJournal": false
+    },
+    {
+      "authors": [
+        {
+          "id": "orcid_______::f58462e950da33cd2443cb1c30b7c823",
+          "fullName": "Davies, Kevin",
+          "name": "Kevin",
+          "surname": "Davies",
+          "rank": 1,
+          "pid": {
+            "id": {
+              "scheme": "orcid",
+              "value": "0000-0002-8925-1337"
+            },
+            "provenance": null
+          }
+        },
+        {
+          "id": null,
+          "fullName": "Barrangou, Rodolphe",
+          "name": "Rodolphe",
+          "surname": "Barrangou",
+          "rank": 2,
+          "pid": null
+        }
+      ],
+      "openAccessColor": "hybrid",
+      "publiclyFunded": false,
+      "eoscIfGuidelines": null,
+      "type": "publication",
+      "language": {
+        "code": "eng",
+        "label": "English"
+      },
+      "countries": null,
+      "subjects": [
+        {
+          "subject": {
+            "scheme": "FOS",
+            "value": "0301 basic medicine"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "FOS",
+            "value": "0303 health sciences"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Biomedical Research"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Clinical Laboratory Techniques"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "SARS-CoV-2"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Pneumonia, Viral"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "COVID-19"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "COVID-19 Drug Treatment"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "FOS",
+            "value": "03 medical and health sciences"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Betacoronavirus"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "COVID-19 Testing"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Genetics"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Humans"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Clustered Regularly Interspaced Short Palindromic Repeats"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "CRISPR-Cas Systems"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Coronavirus Infections"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Pandemics"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "Biotechnology"
+          },
+          "provenance": null
+        }
+      ],
+      "mainTitle": "COVID-19 and the CRISPR Community Response",
+      "subTitle": null,
+      "descriptions": null,
+      "publicationDate": "2020-04-01",
+      "publisher": "SAGE Publications",
+      "embargoEndDate": null,
+      "sources": [
+        "Crossref",
+        "The CRISPR Journal"
+      ],
+      "formats": null,
+      "contributors": null,
+      "coverages": null,
+      "bestAccessRight": {
+        "code": "c_abf2",
+        "label": "OPEN",
+        "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/"
+      },
+      "container": {
+        "name": "The CRISPR Journal",
+        "issnPrinted": "2573-1599",
+        "issnOnline": "2573-1602",
+        "issnLinking": null,
+        "ep": "67",
+        "iss": null,
+        "sp": "66",
+        "vol": "3",
+        "edition": null,
+        "conferencePlace": null,
+        "conferenceDate": null
+      },
+      "documentationUrls": null,
+      "codeRepositoryUrl": null,
+      "programmingLanguage": null,
+      "contactPeople": null,
+      "contactGroups": null,
+      "tools": null,
+      "size": null,
+      "version": null,
+      "geoLocations": null,
+      "id": "doi_dedup___::3ff99b82b8768e5a00e42cd32c155714",
+      "originalIds": [
+        "10.1089/crispr.2020.29092.rba",
+        "50|doiboost____|3ff99b82b8768e5a00e42cd32c155714",
+        "32315229",
+        "3016761672",
+        "50|who_________::3ff99b82b8768e5a00e42cd32c155714"
+      ],
+      "pids": [
+        {
+          "scheme": "doi",
+          "value": "10.1089/crispr.2020.29092.rba"
+        },
+        {
+          "scheme": "pmid",
+          "value": "32315229"
+        }
+      ],
+      "dateOfCollection": null,
+      "lastUpdateTimeStamp": null,
+      "indicators": {
+        "citationImpact": {
+          "citationCount": 1.0,
+          "influence": 2.233674E-9,
+          "popularity": 1.1598218E-9,
+          "impulse": 1.0,
+          "citationClass": "C5",
+          "influenceClass": "C5",
+          "impulseClass": "C5",
+          "popularityClass": "C5"
+        }
+      },
+      "projects": null,
+      "organizations": null,
+      "communities": [
+        {
+          "code": "covid-19",
+          "label": "Corona Virus Disease",
+          "provenance": null
+        }
+      ],
+      "collectedFrom": [
+        {
+          "key": "who_________::53d670af9bb16ea82e7ef41ee23ec6df",
+          "value": "WHO Global literature on coronavirus disease"
+        },
+        {
+          "key": "openaire____::081b82f96300b6a6e3d282bad31cb6e2",
+          "value": "Crossref"
+        },
+        {
+          "key": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a",
+          "value": "Microsoft Academic Graph"
+        },
+        {
+          "key": "opendoar____::8b6dd7db9af49e67306feb59a8bdc52c",
+          "value": "Europe PubMed Central"
+        }
+      ],
+      "instances": [
+        {
+          "pids": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.29092.rba"
+            }
+          ],
+          "license": "https://journals.sagepub.com/page/policies/text-and-data-mining-license",
+          "accessRight": {
+            "code": "c_14cb",
+            "label": "CLOSED",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": null
+          },
+          "type": "Article",
+          "urls": [
+            "https://doi.org/10.1089/crispr.2020.29092.rba"
+          ],
+          "publicationDate": "2020-04-01",
+          "refereed": "peerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "openaire____::081b82f96300b6a6e3d282bad31cb6e2",
+            "value": "Crossref"
+          }
+        },
+        {
+          "pids": [
+            {
+              "scheme": "pmid",
+              "value": "32315229"
+            }
+          ],
+          "alternateIdentifiers": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.29092.rba"
+            }
+          ],
+          "type": "Other literature type",
+          "urls": [
+            "https://pubmed.ncbi.nlm.nih.gov/32315229"
+          ],
+          "publicationDate": "2020-04-24",
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "opendoar____::8b6dd7db9af49e67306feb59a8bdc52c",
+            "value": "Europe PubMed Central"
+          }
+        },
+        {
+          "alternateIdentifiers": [
+            {
+              "scheme": "mag_id",
+              "value": "3016761672"
+            },
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.29092.rba"
+            }
+          ],
+          "type": "Other literature type",
+          "urls": [
+            "https://dx.doi.org/10.1089/crispr.2020.29092.rba"
+          ],
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "openaire____::55045bd2a65019fd8e6741a755395c8c",
+            "value": "Unknown Repository"
+          },
+          "collectedFrom": {
+            "key": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a",
+            "value": "Microsoft Academic Graph"
+          }
+        },
+        {
+          "alternateIdentifiers": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.29092.rba"
+            }
+          ],
+          "license": "Mary Ann Liebert TDM",
+          "accessRight": {
+            "code": "c_abf2",
+            "label": "OPEN",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": null
+          },
+          "type": "Article",
+          "urls": [
+            "http://dx.doi.org/10.1089/crispr.2020.29092.rba"
+          ],
+          "publicationDate": "2020-04-01",
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "who_________::53d670af9bb16ea82e7ef41ee23ec6df",
+            "value": "WHO Global literature on coronavirus disease"
+          }
+        },
+        {
+          "alternateIdentifiers": [
+            {
+              "scheme": "mag_id",
+              "value": "3016761672"
+            },
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.29092.rba"
+            }
+          ],
+          "type": "Other literature type",
+          "urls": [
+            "https://dx.doi.org/10.1089/crispr.2020.29092.rba"
+          ],
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "openaire____::55045bd2a65019fd8e6741a755395c8c",
+            "value": "Unknown Repository"
+          },
+          "collectedFrom": {
+            "key": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a",
+            "value": "Microsoft Academic Graph"
+          }
+        }
+      ],
+      "links": [],
+      "otherTitles": null,
+      "inDiamondJournal": false,
+      "green": false,
+      "isGreen": false,
+      "isInDiamondJournal": false
+    },
+    {
+      "authors": [
+        {
+          "id": "orcid_______::becfab31f86a9918dbaccbeb413aaeec",
+          "fullName": "Stanley Qi",
+          "name": "Stanley",
+          "surname": "Qi",
+          "rank": 1,
+          "pid": {
+            "id": {
+              "scheme": "orcid",
+              "value": "0000-0002-3965-3223"
+            },
+            "provenance": null
+          }
+        }
+      ],
+      "openAccessColor": "bronze",
+      "publiclyFunded": false,
+      "eoscIfGuidelines": null,
+      "type": "publication",
+      "language": {
+        "code": "eng",
+        "label": "English"
+      },
+      "countries": null,
+      "subjects": null,
+      "mainTitle": "<i>Special Issue:</i>                     Expanding the CRISPR Toolbox",
+      "subTitle": null,
+      "descriptions": null,
+      "publicationDate": "2020-02-01",
+      "publisher": "SAGE Publications",
+      "embargoEndDate": null,
+      "sources": [
+        "Crossref"
+      ],
+      "formats": null,
+      "contributors": null,
+      "coverages": null,
+      "bestAccessRight": {
+        "code": "c_abf2",
+        "label": "OPEN",
+        "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/"
+      },
+      "container": {
+        "name": "The CRISPR Journal",
+        "issnPrinted": "2573-1599",
+        "issnOnline": "2573-1602",
+        "issnLinking": null,
+        "ep": "65",
+        "iss": null,
+        "sp": "65",
+        "vol": "3",
+        "edition": null,
+        "conferencePlace": null,
+        "conferenceDate": null
+      },
+      "documentationUrls": null,
+      "codeRepositoryUrl": null,
+      "programmingLanguage": null,
+      "contactPeople": null,
+      "contactGroups": null,
+      "tools": null,
+      "size": null,
+      "version": null,
+      "geoLocations": null,
+      "id": "doi_dedup___::fb7014ea9a8721a991ab9c683d6d216e",
+      "originalIds": [
+        "10.1089/crispr.2020.29086.cfp2",
+        "50|doiboost____|444f0df8c78c92a02e98e19eedb7b840",
+        "10.1089/crispr.2020.29086.cfp3",
+        "50|doiboost____|c06cebc484f77b295600e06a42f1daa0",
+        "10.1089/crispr.2020.29086.cfp",
+        "50|doiboost____|fb7014ea9a8721a991ab9c683d6d216e",
+        "3131712510"
+      ],
+      "pids": [
+        {
+          "scheme": "doi",
+          "value": "10.1089/crispr.2020.29086.cfp2"
+        },
+        {
+          "scheme": "doi",
+          "value": "10.1089/crispr.2020.29086.cfp3"
+        },
+        {
+          "scheme": "doi",
+          "value": "10.1089/crispr.2020.29086.cfp"
+        }
+      ],
+      "dateOfCollection": null,
+      "lastUpdateTimeStamp": null,
+      "indicators": {
+        "citationImpact": {
+          "citationCount": 0.0,
+          "influence": 2.2251732E-9,
+          "popularity": 1.1551581E-9,
+          "impulse": 0.0,
+          "citationClass": "C5",
+          "influenceClass": "C5",
+          "impulseClass": "C5",
+          "popularityClass": "C5"
+        }
+      },
+      "projects": null,
+      "organizations": [
+        {
+          "legalName": "Stanford University",
+          "acronym": "SU",
+          "id": "openorgs____::53ee3650a38fe22fbba02a4b2e0a4ed9",
+          "pids": [
+            {
+              "scheme": "FundRef",
+              "value": "100011099"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100020322"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100014495"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100013720"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100011099"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100018793"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100014493"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100010869"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100014750"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100010868"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100005541"
+            },
+            {
+              "scheme": "RRID",
+              "value": "RRID:nlx_44253"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100010865"
+            },
+            {
+              "scheme": "OrgRef",
+              "value": "435330"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100010870"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100010864"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100012502"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100010866"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100010867"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100014498"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100005575"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100014374"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100014496"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100006521"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100005575"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100005492"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100016959"
+            },
+            {
+              "scheme": "mag_id",
+              "value": "97018004"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100014498"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100022370"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100011098"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100022370"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100011098"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100010863"
+            },
+            {
+              "scheme": "GRID",
+              "value": "grid.168010.e"
+            },
+            {
+              "scheme": "wikidata",
+              "value": "Q1754977"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100016959"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100013720"
+            },
+            {
+              "scheme": "Wikidata",
+              "value": "Q1754977"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100012502"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100006521"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100020322"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100014373"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100006100"
+            },
+            {
+              "scheme": "wikidata",
+              "value": "Q41506"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100014494"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100014373"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100014496"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100013120"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100008643"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100014374"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100010870"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100010865"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100010869"
+            },
+            {
+              "scheme": "ROR",
+              "value": "https://ror.org/00f54p054"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100013120"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100014495"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100006382"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100014750"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100006057"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100014494"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100010867"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100006057"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100005492"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100006382"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100006100"
+            },
+            {
+              "scheme": "RRID",
+              "value": "RRID:SCR_011538"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100010863"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100010868"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100006598"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100010864"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100010866"
+            },
+            {
+              "scheme": "OrgRef",
+              "value": "452927"
+            },
+            {
+              "scheme": "ISNI",
+              "value": "0000000419368956"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100016667"
+            },
+            {
+              "scheme": "OrgRef",
+              "value": "382431"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100014493"
+            },
+            {
+              "scheme": "Wikidata",
+              "value": "Q41506"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100006598"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100016667"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100005541"
+            },
+            {
+              "scheme": "fundref",
+              "value": "100018793"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "100008643"
+            },
+            {
+              "scheme": "OrgRef",
+              "value": "26977"
+            }
+          ]
+        }
+      ],
+      "communities": null,
+      "collectedFrom": [
+        {
+          "key": "openaire____::8ac8380272269217cb09a928c8caa993",
+          "value": "UnpayWall"
+        },
+        {
+          "key": "openaire____::081b82f96300b6a6e3d282bad31cb6e2",
+          "value": "Crossref"
+        },
+        {
+          "key": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a",
+          "value": "Microsoft Academic Graph"
+        }
+      ],
+      "instances": [
+        {
+          "pids": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.29086.cfp2"
+            }
+          ],
+          "license": "https://journals.sagepub.com/page/policies/text-and-data-mining-license",
+          "accessRight": {
+            "code": "c_14cb",
+            "label": "CLOSED",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": null
+          },
+          "type": "Article",
+          "urls": [
+            "https://doi.org/10.1089/crispr.2020.29086.cfp2"
+          ],
+          "publicationDate": "2020-04-01",
+          "refereed": "peerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "openaire____::081b82f96300b6a6e3d282bad31cb6e2",
+            "value": "Crossref"
+          }
+        },
+        {
+          "pids": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.29086.cfp3"
+            }
+          ],
+          "license": "https://journals.sagepub.com/page/policies/text-and-data-mining-license",
+          "accessRight": {
+            "code": "c_14cb",
+            "label": "CLOSED",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": null
+          },
+          "type": "Article",
+          "urls": [
+            "https://doi.org/10.1089/crispr.2020.29086.cfp3"
+          ],
+          "publicationDate": "2020-06-01",
+          "refereed": "peerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "openaire____::081b82f96300b6a6e3d282bad31cb6e2",
+            "value": "Crossref"
+          }
+        },
+        {
+          "pids": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.29086.cfp"
+            }
+          ],
+          "license": "https://journals.sagepub.com/page/policies/text-and-data-mining-license",
+          "accessRight": {
+            "code": "c_14cb",
+            "label": "CLOSED",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": null
+          },
+          "type": "Article",
+          "urls": [
+            "https://doi.org/10.1089/crispr.2020.29086.cfp"
+          ],
+          "publicationDate": "2020-02-01",
+          "refereed": "peerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "openaire____::081b82f96300b6a6e3d282bad31cb6e2",
+            "value": "Crossref"
+          }
+        },
+        {
+          "pids": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.29086.cfp"
+            }
+          ],
+          "accessRight": {
+            "code": "c_abf2",
+            "label": "OPEN",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": "bronze"
+          },
+          "type": "Article",
+          "urls": [
+            "https://www.liebertpub.com/doi/pdf/10.1089/crispr.2020.29086.cfp"
+          ],
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "openaire____::8ac8380272269217cb09a928c8caa993",
+            "value": "UnpayWall"
+          }
+        },
+        {
+          "alternateIdentifiers": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2020.29086.cfp2"
+            },
+            {
+              "scheme": "mag_id",
+              "value": "3131712510"
+            }
+          ],
+          "type": "Other literature type",
+          "urls": [
+            "https://dx.doi.org/10.1089/crispr.2020.29086.cfp2"
+          ],
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "openaire____::55045bd2a65019fd8e6741a755395c8c",
+            "value": "Unknown Repository"
+          },
+          "collectedFrom": {
+            "key": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a",
+            "value": "Microsoft Academic Graph"
+          }
+        }
+      ],
+      "links": [],
+      "otherTitles": [
+        "Deadline for Manuscript Submission: June 30, 2020"
+      ],
+      "inDiamondJournal": false,
+      "green": false,
+      "isGreen": false,
+      "isInDiamondJournal": false
+    },
+    {
+      "authors": [
+        {
+          "id": null,
+          "fullName": "Teboul, Lydia",
+          "name": "Lydia",
+          "surname": "Teboul",
+          "rank": 1,
+          "pid": null
+        },
+        {
+          "id": "orcid_______::2d1989257ba1aef712e473e89f36accb",
+          "fullName": "Greenfield, Andy",
+          "name": "Andy",
+          "surname": "Greenfield",
+          "rank": 2,
+          "pid": {
+            "id": {
+              "scheme": "orcid",
+              "value": "0000-0002-1477-1776"
+            },
+            "provenance": null
+          }
+        }
+      ],
+      "openAccessColor": "bronze",
+      "publiclyFunded": false,
+      "eoscIfGuidelines": null,
+      "type": "publication",
+      "language": {
+        "code": "eng",
+        "label": "English"
+      },
+      "countries": null,
+      "subjects": [
+        {
+          "subject": {
+            "scheme": "FOS",
+            "value": "0301 basic medicine"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "FOS",
+            "value": "03 medical and health sciences"
+          },
+          "provenance": null
+        },
+        {
+          "subject": {
+            "scheme": "keyword",
+            "value": "First Cut"
+          },
+          "provenance": null
+        }
+      ],
+      "mainTitle": "CRISPR-Cas9-Mediated Mutagenesis: Mind the Gap?",
+      "subTitle": null,
+      "descriptions": null,
+      "publicationDate": "2018-08-01",
+      "publisher": "SAGE Publications",
+      "embargoEndDate": null,
+      "sources": [
+        "Crossref",
+        "CRISPR J"
+      ],
+      "formats": null,
+      "contributors": null,
+      "coverages": null,
+      "bestAccessRight": {
+        "code": "c_abf2",
+        "label": "OPEN",
+        "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/"
+      },
+      "container": {
+        "name": "The CRISPR Journal",
+        "issnPrinted": "2573-1599",
+        "issnOnline": "2573-1602",
+        "issnLinking": null,
+        "ep": "264",
+        "iss": null,
+        "sp": "263",
+        "vol": "1",
+        "edition": null,
+        "conferencePlace": null,
+        "conferenceDate": null
+      },
+      "documentationUrls": null,
+      "codeRepositoryUrl": null,
+      "programmingLanguage": null,
+      "contactPeople": null,
+      "contactGroups": null,
+      "tools": null,
+      "size": null,
+      "version": null,
+      "geoLocations": null,
+      "id": "doi_dedup___::cde752b03e7e39821ccf01d488282b98",
+      "originalIds": [
+        "10.1089/crispr.2018.29027.gre",
+        "50|doiboost____|cde752b03e7e39821ccf01d488282b98",
+        "od_______267::dc9b7b3de7a404fbf4e5b8e0737e4bbb",
+        "31021212",
+        "PMC6636871",
+        "oai:pubmedcentral.nih.gov:6636871",
+        "50|od_______267::dc9b7b3de7a404fbf4e5b8e0737e4bbb",
+        "2888243109"
+      ],
+      "pids": [
+        {
+          "scheme": "doi",
+          "value": "10.1089/crispr.2018.29027.gre"
+        },
+        {
+          "scheme": "pmid",
+          "value": "31021212"
+        },
+        {
+          "scheme": "pmc",
+          "value": "PMC6636871"
+        }
+      ],
+      "dateOfCollection": null,
+      "lastUpdateTimeStamp": null,
+      "indicators": {
+        "citationImpact": {
+          "citationCount": 3.0,
+          "influence": 2.296695E-9,
+          "popularity": 1.7698367E-9,
+          "impulse": 3.0,
+          "citationClass": "C5",
+          "influenceClass": "C5",
+          "impulseClass": "C5",
+          "popularityClass": "C5"
+        }
+      },
+      "projects": null,
+      "organizations": [
+        {
+          "legalName": "Medical Research Council",
+          "acronym": "MRC",
+          "id": "openorgs____::254da6549a0e5eef83e591a51ccf8f9f",
+          "pids": [
+            {
+              "scheme": "GRID",
+              "value": "grid.14105.31"
+            },
+            {
+              "scheme": "GRID",
+              "value": "grid.268943.2"
+            },
+            {
+              "scheme": "GRID",
+              "value": "grid.14105.31"
+            },
+            {
+              "scheme": "RRID",
+              "value": "RRID:SCR_011018"
+            },
+            {
+              "scheme": "mag_id",
+              "value": "109541847"
+            },
+            {
+              "scheme": "OrgRef",
+              "value": "636280"
+            },
+            {
+              "scheme": "FundRef",
+              "value": "501100000265"
+            },
+            {
+              "scheme": "mag_id",
+              "value": "90344618"
+            },
+            {
+              "scheme": "RRID",
+              "value": "RRID:nlx_inv_1005080"
+            },
+            {
+              "scheme": "Wikidata",
+              "value": "Q746879"
+            },
+            {
+              "scheme": "ISNI",
+              "value": "0000000122478951"
+            },
+            {
+              "scheme": "wikidata",
+              "value": "Q746879"
+            },
+            {
+              "scheme": "fundref",
+              "value": "501100000265"
+            },
+            {
+              "scheme": "PIC",
+              "value": "999990170"
+            },
+            {
+              "scheme": "ROR",
+              "value": "https://ror.org/03x94j517"
+            }
+          ]
+        }
+      ],
+      "communities": null,
+      "collectedFrom": [
+        {
+          "key": "openaire____::8ac8380272269217cb09a928c8caa993",
+          "value": "UnpayWall"
+        },
+        {
+          "key": "openaire____::081b82f96300b6a6e3d282bad31cb6e2",
+          "value": "Crossref"
+        },
+        {
+          "key": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a",
+          "value": "Microsoft Academic Graph"
+        },
+        {
+          "key": "opendoar____::8b6dd7db9af49e67306feb59a8bdc52c",
+          "value": "Europe PubMed Central"
+        },
+        {
+          "key": "opendoar____::eda80a3d5b344bc40f3bc04f65b7a357",
+          "value": "PubMed Central"
+        }
+      ],
+      "instances": [
+        {
+          "pids": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2018.29027.gre"
+            }
+          ],
+          "license": "Mary Ann Liebert TDM",
+          "accessRight": {
+            "code": "c_14cb",
+            "label": "CLOSED",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": null
+          },
+          "type": "Article",
+          "urls": [
+            "https://doi.org/10.1089/crispr.2018.29027.gre"
+          ],
+          "publicationDate": "2018-08-01",
+          "refereed": "peerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "openaire____::081b82f96300b6a6e3d282bad31cb6e2",
+            "value": "Crossref"
+          }
+        },
+        {
+          "pids": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2018.29027.gre"
+            }
+          ],
+          "accessRight": {
+            "code": "c_abf2",
+            "label": "OPEN",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": "bronze"
+          },
+          "type": "Article",
+          "urls": [
+            "https://www.liebertpub.com/doi/pdf/10.1089/crispr.2018.29027.gre"
+          ],
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "openaire____::8ac8380272269217cb09a928c8caa993",
+            "value": "UnpayWall"
+          }
+        },
+        {
+          "pids": [
+            {
+              "scheme": "pmid",
+              "value": "31021212"
+            },
+            {
+              "scheme": "pmc",
+              "value": "PMC6636871"
+            }
+          ],
+          "alternateIdentifiers": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2018.29027.gre"
+            }
+          ],
+          "type": "Article",
+          "urls": [
+            "https://pubmed.ncbi.nlm.nih.gov/31021212"
+          ],
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "issn___print::162ead6cee98b368ca6e1d9b6fb6be19",
+            "value": "The CRISPR Journal"
+          },
+          "collectedFrom": {
+            "key": "opendoar____::8b6dd7db9af49e67306feb59a8bdc52c",
+            "value": "Europe PubMed Central"
+          }
+        },
+        {
+          "alternateIdentifiers": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2018.29027.gre"
+            }
+          ],
+          "accessRight": {
+            "code": "c_abf2",
+            "label": "OPEN",
+            "scheme": "http://vocabularies.coar-repositories.org/documentation/access_rights/",
+            "openAccessRoute": null
+          },
+          "type": "Article",
+          "urls": [
+            "http://dx.doi.org/10.1089/crispr.2018.29027.gre"
+          ],
+          "publicationDate": "2018-08-01",
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "opendoar____::eda80a3d5b344bc40f3bc04f65b7a357",
+            "value": "PubMed Central"
+          },
+          "collectedFrom": {
+            "key": "opendoar____::eda80a3d5b344bc40f3bc04f65b7a357",
+            "value": "PubMed Central"
+          }
+        },
+        {
+          "alternateIdentifiers": [
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2018.29027.gre"
+            },
+            {
+              "scheme": "mag_id",
+              "value": "2888243109"
+            }
+          ],
+          "type": "Other literature type",
+          "urls": [
+            "https://dx.doi.org/10.1089/crispr.2018.29027.gre"
+          ],
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "openaire____::55045bd2a65019fd8e6741a755395c8c",
+            "value": "Unknown Repository"
+          },
+          "collectedFrom": {
+            "key": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a",
+            "value": "Microsoft Academic Graph"
+          }
+        },
+        {
+          "alternateIdentifiers": [
+            {
+              "scheme": "mag_id",
+              "value": "2888243109"
+            },
+            {
+              "scheme": "doi",
+              "value": "10.1089/crispr.2018.29027.gre"
+            }
+          ],
+          "type": "Other literature type",
+          "urls": [
+            "https://dx.doi.org/10.1089/crispr.2018.29027.gre"
+          ],
+          "refereed": "nonPeerReviewed",
+          "hostedBy": {
+            "key": "openaire____::55045bd2a65019fd8e6741a755395c8c",
+            "value": "Unknown Repository"
+          },
+          "collectedFrom": {
+            "key": "openaire____::5f532a3fc4f1ea403f37070f59a7a53a",
+            "value": "Microsoft Academic Graph"
+          }
+        }
+      ],
+      "links": [],
+      "otherTitles": null,
+      "inDiamondJournal": false,
+      "green": true,
+      "isGreen": true,
+      "isInDiamondJournal": false
+    }
+  ]
+}

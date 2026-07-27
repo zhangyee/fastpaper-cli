@@ -134,17 +134,6 @@ impl Source {
     }
 }
 
-/// Capabilities for a source that searches but offers no native filters.
-const fn basic_search(get: bool, download: bool, max_limit: Option<u32>) -> Capabilities {
-    Capabilities {
-        search: Some(SearchCaps::BASIC),
-        get,
-        download,
-        max_limit,
-        notes: "",
-    }
-}
-
 // ── adapters ────────────────────────────────────
 //
 // Bridge each source's current signature to the table's. They shrink to nothing
@@ -165,7 +154,6 @@ basic_search_adapter!(s_scholar, sources::scholar);
 basic_search_adapter!(s_xueshu, sources::xueshu);
 basic_search_adapter!(s_dblp, sources::dblp);
 basic_search_adapter!(s_core, sources::core);
-basic_search_adapter!(s_openaire, sources::openaire);
 
 /// Unpaywall returns a bare `Paper`; a missing DOI surfaces as an error there.
 fn g_unpaywall(base: &str, id: &str) -> Result<Option<Paper>, String> {
@@ -479,12 +467,27 @@ static CORE: SourceEntry = SourceEntry {
 
 static OPENAIRE: SourceEntry = SourceEntry {
     name: "openaire",
-    caps: basic_search(false, false, None),
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            date_range: true,
+            author: true,
+            field: true,
+            open_access: true,
+        }),
+        get: false,
+        download: false,
+        max_limit: None,
+        notes: "--field takes an OpenAIRE field-of-science value; an unrecognised \
+                one is answered with the allowed list",
+    },
     env_var: "FASTPAPER_OPENAIRE_URL",
     default_base: "https://api.openaire.eu",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_openaire),
+    search: Some(sources::openaire::search),
     get: None,
     pdf: None,
 };
