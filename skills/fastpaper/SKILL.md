@@ -14,39 +14,35 @@ Fast academic paper search, download & read from 18 sources.
 Pick sources based on the user's research domain:
 
 **CS / AI / Math / Physics**
-- `arxiv` — Cornell preprint archive; physics, math, CS, statistics, EE, quantitative biology/finance, economics. search, download, read
+- `arxiv` — Cornell preprint archive; physics, math, CS, statistics, EE, quantitative biology/finance, economics. search, get, download
 - `dblp` — CS-focused bibliography index. search
-
 **Biomedical / Life sciences**
-- `pubmed` — NLM index, 35M+ citations, biomedical and life sciences abstracts. search
-- `pmc` — NLM full-text archive of peer-reviewed biomedical and life sciences literature. search, download, read
+- `pubmed` — NLM index, 35M+ citations, biomedical and life sciences abstracts. search, get
+- `pmc` — NLM full-text archive of peer-reviewed biomedical and life sciences literature. search, get, download
 - `europepmc` — Life sciences superset of PMC by EMBL-EBI; adds patents, preprints, clinical guidelines. search
-- `biorxiv` — Life sciences preprints by CSHL. search, download, read
-- `medrxiv` — Medical/health science preprints by CSHL. search, download, read
-
+- `biorxiv` — Life sciences preprints by CSHL. search, download
+- `medrxiv` — Medical/health science preprints by CSHL. search, download
 **Cross-discipline / Broad coverage**
-- `semantic` — Allen AI, AI-powered semantic search + citation graph, all disciplines. search, download, read
-- `crossref` — DOI registry, metadata queries across all disciplines. search
-- `openalex` — Open index (successor to MS Academic Graph), 200M+ works. search
+- `semantic` — Allen AI, AI-powered semantic search + citation graph, all disciplines. search, get, download
+- `crossref` — DOI registry, metadata queries across all disciplines. search, get
+- `openalex` — Open index (successor to MS Academic Graph), 200M+ works. search, get
 - `scholar` — Google Scholar, broadest coverage (experimental, rate-limited). search
 - `xueshu` — Baidu Xueshu (百度学术), strong Chinese-language coverage (experimental, unofficial API; may require captcha and stop working). search
-
 **Open access aggregators**
-- `core` — Largest global OA aggregator, full text from institutional repos and journals. search, download, read
+- `core` — Largest global OA aggregator, full text from institutional repos and journals. search, download
 - `openaire` — EU open science infrastructure, aggregates worldwide OA research. search
-- `doaj` — Directory of quality-reviewed OA journals, all subjects. search, download, read
-- `unpaywall` — OA link resolver by DOI, finds legal free versions (needs UNPAYWALL_EMAIL). search
-
+- `doaj` — Directory of quality-reviewed OA journals, all subjects. search, download
+- `unpaywall` — OA link resolver by DOI, finds legal free versions (needs UNPAYWALL_EMAIL). get
 **Open repositories**
-- `zenodo` — CERN/OpenAIRE general-purpose repository (datasets, software, papers), all disciplines. search, download, read
-- `hal` — French national multi-disciplinary open archive by CNRS (some embargo periods). search, download, read
-
+- `zenodo` — CERN/OpenAIRE general-purpose repository (datasets, software, papers), all disciplines. search, download
+- `hal` — French national multi-disciplinary open archive by CNRS (some embargo periods). search, download
 ## When you have a paper ID or DOI
 
 Auto-detect source and fetch directly:
 
 ```
-fastpaper get <DOI|arXiv_ID|PMID|URL>
+fastpaper get <DOI|arXiv_ID|PMID|PMC_ID>          # source inferred from the id
+fastpaper get <source> <DOI|arXiv_ID|PMID|PMC_ID>  # or name it explicitly
 ```
 
 ## When you need to search
@@ -54,6 +50,11 @@ fastpaper get <DOI|arXiv_ID|PMID|URL>
 ```
 fastpaper search <source> <query>
 ```
+
+Filters (`--year`, `--after`/`--before`, `--author`, `--field`, `--open-access`,
+`--sort`, `--offset`) are validated per source: one a source cannot honour is an
+error naming what it does support, never a silent no-op. Run `fastpaper sources
+--capabilities` to see the matrix before constructing a filtered query.
 
 For broad topics, search multiple sources in parallel:
 
@@ -67,20 +68,27 @@ Each process is independent; failures don't affect other sources.
 
 ## When you need full text or specific sections
 
+`read` works on a local PDF only. Download first, then read what landed:
+
 ```
-fastpaper read <source> <id>                          # full text
-fastpaper read <source> <id> --metadata-only          # metadata only
-fastpaper read <source> <id> --section <SEC>          # extract section
-fastpaper read local ./file.pdf                       # local PDF
+fastpaper download <id>                               # -> ./papers/<id>.pdf
+fastpaper read papers/<id>.pdf                        # full text
+fastpaper read papers/<id>.pdf --section <SEC>        # one section
+fastpaper read papers/<id>.pdf --max-length 4000      # truncate
 ```
 
 Sections: abstract, introduction, methods, results, discussion, conclusion, references, full (default).
 
+For metadata rather than full text, use `get` — it never downloads a file.
+
 ## When you need to download PDF
 
 ```
-fastpaper download <source> <id>
+fastpaper download <id>                  # source inferred from the id
+fastpaper download <source> <id>         # or name it explicitly
 ```
+
+Saves to `./papers/<id>.pdf` by default (`-d` to change it).
 
 Download-capable sources: arxiv, biorxiv, medrxiv, pmc, semantic, core, doaj, zenodo, hal.
 
