@@ -1,15 +1,21 @@
 use super::Paper;
 
-const DEFAULT_EMAIL: &str = "yee.zhang@gmail.com";
+fn build_search_url(base_url: &str, query: &str, max_results: u32, email: Option<&str>) -> String {
+    let encoded = super::encode_query(query);
+    let mut url = format!(
+        "{}/works?search={}&per_page={}",
+        base_url, encoded, max_results
+    );
+    if let Some(email) = email {
+        url.push_str(&format!("&mailto={}", email));
+    }
+    url
+}
 
 /// Search OpenAlex API.
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
-    let mailto = std::env::var("FASTPAPER_EMAIL").unwrap_or_else(|_| DEFAULT_EMAIL.to_string());
-    let encoded = super::encode_query(query);
-    let url = format!(
-        "{}/works?search={}&per_page={}&mailto={}",
-        base_url, encoded, max_results, mailto
-    );
+    let email = super::contact_email();
+    let url = build_search_url(base_url, query, max_results, email.as_deref());
 
     let mut last_err = String::new();
     for attempt in 0..3 {
@@ -153,6 +159,7 @@ fn reconstruct_abstract(inverted_index: &serde_json::Value) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     const FIXTURE: &str = include_str!("../../tests/fixtures/openalex_search.json");
 
@@ -291,18 +298,23 @@ mod tests {
     }
 
     #[test]
-    fn search_request_contains_mailto() {
-        let mut server = mockito::Server::new();
-        let mock = server
-            .mock("GET", mockito::Matcher::Regex("mailto=".to_string()))
-            .with_status(200)
-            .with_body(FIXTURE)
-            .create();
-        let _ = search(&server.url(), "test", 3);
-        mock.assert();
+    fn build_search_url_omits_mailto_without_email() {
+        let url = build_search_url("https://api.openalex.org", "attention", 3, None);
+        assert!(
+            !url.contains("mailto="),
+            "url should carry no contact address: {}",
+            url
+        );
     }
 
     #[test]
+    fn build_search_url_includes_mailto_with_email() {
+        let url = build_search_url("https://api.openalex.org", "attention", 3, Some("a@b.com"));
+        assert!(url.contains("mailto=a@b.com"), "got: {}", url);
+    }
+
+    #[test]
+    #[serial]
     fn search_uses_env_email_when_set() {
         unsafe { std::env::set_var("FASTPAPER_EMAIL", "custom@example.com") };
         let mut server = mockito::Server::new();

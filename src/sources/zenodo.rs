@@ -1,7 +1,17 @@
 use super::Paper;
 
+/// Zenodo rejects `size` above 25 for anonymous callers with a bare HTTP 400,
+/// so catch it here and say what the limit is.
+const ANONYMOUS_MAX_SIZE: u32 = 25;
+
 /// Search Zenodo API.
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
+    if max_results > ANONYMOUS_MAX_SIZE {
+        return Err(format!(
+            "zenodo caps results at {} per request for anonymous callers (asked for {})",
+            ANONYMOUS_MAX_SIZE, max_results
+        ));
+    }
     let encoded = super::encode_query(query);
     let url = format!(
         "{}/api/records?q={}&size={}&type=publication",
@@ -229,6 +239,34 @@ mod tests {
             .create();
         let _ = search(&server.url(), "test", 3);
         mock.assert();
+    }
+
+    // Zenodo caps `size` at 25 for anonymous callers; passing -n 50 straight
+    // through yields an unexplained HTTP 400.
+    #[test]
+    fn search_limit_above_anonymous_cap_returns_err() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(400)
+            .create();
+        let err = search(&server.url(), "test", 50).unwrap_err();
+        assert!(
+            err.contains("25"),
+            "error should state the cap of 25, got: {}",
+            err
+        );
+    }
+
+    #[test]
+    fn search_at_anonymous_cap_is_allowed() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        assert!(search(&server.url(), "test", 25).is_ok());
     }
 
     #[test]

@@ -1,11 +1,15 @@
 use super::Paper;
 
+/// Europe PMC's REST service lives under this path on the EBI host; `base_url`
+/// is the bare host, matching the convention used by the other sources.
+const SEARCH_PATH: &str = "/europepmc/webservices/rest/search";
+
 /// Search Europe PMC API.
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
     let encoded = super::encode_query(query);
     let url = format!(
-        "{}/search?query={}&pageSize={}&format=json&resultType=core",
-        base_url, encoded, max_results
+        "{}{}?query={}&pageSize={}&format=json&resultType=core",
+        base_url, SEARCH_PATH, encoded, max_results
     );
 
     let mut last_err = String::new();
@@ -227,6 +231,23 @@ mod tests {
         let mut server = mockito::Server::new();
         let mock = server
             .mock("GET", mockito::Matcher::Regex("format=json".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        mock.assert();
+    }
+
+    // The default base URL is a bare host; the source must append Europe PMC's
+    // full REST path. Matching only "/search" let a production-404 URL pass.
+    #[test]
+    fn search_request_uses_europepmc_rest_path() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("/europepmc/webservices/rest/search".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();

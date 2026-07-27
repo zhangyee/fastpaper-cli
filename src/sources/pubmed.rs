@@ -6,19 +6,61 @@ use super::Paper;
 const ESEARCH_URL: &str = "/entrez/eutils/esearch.fcgi";
 const EFETCH_URL: &str = "/entrez/eutils/efetch.fcgi";
 
+/// Build the esearch URL. NCBI treats `tool` and `email` as recommended, not
+/// required, so `email` is omitted unless the user supplied one.
+fn build_esearch_url(
+    base_url: &str,
+    query: &str,
+    max_results: u32,
+    api_key: Option<&str>,
+    email: Option<&str>,
+) -> String {
+    let encoded = super::encode_query(query);
+    let mut url = format!(
+        "{}{}?db=pubmed&term={}&retmax={}&retmode=json&tool=fastpaper",
+        base_url, ESEARCH_URL, encoded, max_results
+    );
+    if let Some(email) = email {
+        url.push_str(&format!("&email={}", email));
+    }
+    if let Some(key) = api_key {
+        url.push_str(&format!("&api_key={}", key));
+    }
+    url
+}
+
+fn build_efetch_url(
+    base_url: &str,
+    ids: &str,
+    api_key: Option<&str>,
+    email: Option<&str>,
+) -> String {
+    let mut url = format!(
+        "{}{}?db=pubmed&id={}&retmode=xml&tool=fastpaper",
+        base_url, EFETCH_URL, ids
+    );
+    if let Some(email) = email {
+        url.push_str(&format!("&email={}", email));
+    }
+    if let Some(key) = api_key {
+        url.push_str(&format!("&api_key={}", key));
+    }
+    url
+}
+
 /// Search PubMed: esearch for IDs, then efetch for details.
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
     let api_key = std::env::var("NCBI_API_KEY").ok();
+    let email = super::contact_email();
 
     // Step 1: esearch to get PMID list
-    let encoded = super::encode_query(query);
-    let mut esearch_url = format!(
-        "{}{}?db=pubmed&term={}&retmax={}&retmode=json&tool=fastpaper&email=yee.zhang@gmail.com",
-        base_url, ESEARCH_URL, encoded, max_results
+    let esearch_url = build_esearch_url(
+        base_url,
+        query,
+        max_results,
+        api_key.as_deref(),
+        email.as_deref(),
     );
-    if let Some(ref key) = api_key {
-        esearch_url.push_str(&format!("&api_key={}", key));
-    }
 
     let esearch_body = http_get(&esearch_url)?;
     let esearch_json: serde_json::Value =
@@ -34,15 +76,12 @@ pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper
     }
 
     // Step 2: efetch to get article details
-    let mut efetch_url = format!(
-        "{}{}?db=pubmed&id={}&retmode=xml&tool=fastpaper&email=yee.zhang@gmail.com",
+    let efetch_url = build_efetch_url(
         base_url,
-        EFETCH_URL,
-        ids.join(",")
+        &ids.join(","),
+        api_key.as_deref(),
+        email.as_deref(),
     );
-    if let Some(ref key) = api_key {
-        efetch_url.push_str(&format!("&api_key={}", key));
-    }
 
     let efetch_body = http_get(&efetch_url)?;
     parse_efetch_response(&efetch_body)
@@ -78,10 +117,9 @@ fn http_get(url: &str) -> Result<String, String> {
 
 /// Fetch a single paper by PMID.
 pub fn get_by_pmid(base_url: &str, pmid: &str) -> Result<Option<Paper>, String> {
-    let url = format!(
-        "{}/entrez/eutils/efetch.fcgi?db=pubmed&id={}&retmode=xml&tool=fastpaper&email=yee.zhang@gmail.com",
-        base_url, pmid
-    );
+    let api_key = std::env::var("NCBI_API_KEY").ok();
+    let email = super::contact_email();
+    let url = build_efetch_url(base_url, pmid, api_key.as_deref(), email.as_deref());
     let body = http_get(&url)?;
     let papers = parse_efetch_response(&body)?;
     Ok(papers.into_iter().next())
@@ -420,5 +458,57 @@ mod tests {
             .create();
         let result = search(&server.url(), "test", 3);
         assert!(result.is_ok());
+    }
+
+    // Contact info identifies the caller. Sending the maintainer's address on
+    // behalf of every user misattributes the traffic and risks getting that
+    // address throttled, so omit the parameter unless the user supplies one.
+    // NCBI treats `email` as recommended, not required.
+    #[test]
+    fn build_esearch_url_omits_email_when_none() {
+        let url = build_esearch_url("https://eutils.ncbi.nlm.nih.gov", "test", 3, None, None);
+        assert!(!url.contains("email="), "got: {}", url);
+        assert!(url.contains("tool=fastpaper"), "tool should stay: {}", url);
+    }
+
+    #[test]
+    fn build_esearch_url_includes_email_when_some() {
+        let url = build_esearch_url(
+            "https://eutils.ncbi.nlm.nih.gov",
+            "test",
+            3,
+            None,
+            Some("a@b.com"),
+        );
+        assert!(url.contains("email=a@b.com"), "got: {}", url);
+    }
+
+    #[test]
+    fn build_efetch_url_omits_email_when_none() {
+        let url = build_efetch_url("https://eutils.ncbi.nlm.nih.gov", "123,456", None, None);
+        assert!(!url.contains("email="), "got: {}", url);
+    }
+
+    #[test]
+    #[serial]
+    fn search_sends_env_email_when_set() {
+        unsafe { std::env::set_var("FASTPAPER_EMAIL", "custom@example.com") };
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("esearch.*email=custom".to_string()),
+            )
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .create();
+        server
+            .mock("GET", mockito::Matcher::Regex("efetch".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = search(&server.url(), "test", 3);
+        unsafe { std::env::remove_var("FASTPAPER_EMAIL") };
+        mock.assert();
     }
 }

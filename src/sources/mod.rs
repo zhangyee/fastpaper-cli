@@ -37,6 +37,21 @@ pub fn encode_query(query: &str) -> String {
     encoded
 }
 
+/// Contact address used to identify this client to APIs that ask for one
+/// (Crossref's polite pool, OpenAlex, NCBI E-utilities).
+///
+/// Returns `None` unless the user sets `FASTPAPER_EMAIL`. Sending a third
+/// party's address on the user's behalf misattributes the traffic and risks
+/// getting that address throttled, so the parameter is simply omitted when
+/// the user has not supplied one — every such API treats it as optional.
+/// Unpaywall is the exception: it *requires* an address and errors without one.
+pub fn contact_email() -> Option<String> {
+    std::env::var("FASTPAPER_EMAIL")
+        .ok()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+}
+
 /// A paper returned from any source.
 #[derive(Debug, Clone, Serialize)]
 pub struct Paper {

@@ -56,8 +56,10 @@ fn main() {
                     sources::europepmc::search(&base_url, &args.query, args.limit)
                 }
                 cli::Source::Dblp => {
+                    // dblp.org's search API has been returning HTTP 500 for every
+                    // query; the uni-trier host serves the same API correctly.
                     let base_url = std::env::var("FASTPAPER_DBLP_URL")
-                        .unwrap_or_else(|_| "https://dblp.org".to_string());
+                        .unwrap_or_else(|_| "https://dblp.uni-trier.de".to_string());
                     sources::dblp::search(&base_url, &args.query, args.limit)
                 }
                 cli::Source::Core => {

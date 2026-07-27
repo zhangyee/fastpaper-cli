@@ -1,23 +1,36 @@
 use super::Paper;
 
-const DEFAULT_EMAIL: &str = "yee.zhang@gmail.com";
+/// Build the /works search URL. `mailto` opts into Crossref's polite pool; when
+/// absent the request goes to the public pool, which still works.
+fn build_search_url(base_url: &str, query: &str, max_results: u32, email: Option<&str>) -> String {
+    let encoded = super::encode_query(query);
+    let mut url = format!("{}/works?query={}&rows={}", base_url, encoded, max_results);
+    if let Some(email) = email {
+        url.push_str(&format!("&mailto={}", email));
+    }
+    url
+}
+
+fn build_work_url(base_url: &str, doi: &str, email: Option<&str>) -> String {
+    let mut url = format!("{}/works/{}", base_url, doi);
+    if let Some(email) = email {
+        url.push_str(&format!("?mailto={}", email));
+    }
+    url
+}
 
 /// Search CrossRef API.
 pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
-    let mailto = std::env::var("FASTPAPER_EMAIL").unwrap_or_else(|_| DEFAULT_EMAIL.to_string());
-    let encoded = super::encode_query(query);
-    let url = format!(
-        "{}/works?query={}&rows={}&mailto={}",
-        base_url, encoded, max_results, mailto
-    );
+    let email = super::contact_email();
+    let url = build_search_url(base_url, query, max_results, email.as_deref());
     let body = http_get(&url)?;
     parse_search_response(&body)
 }
 
 /// Get a single paper by DOI.
 pub fn get_by_doi(base_url: &str, doi: &str) -> Result<Option<Paper>, String> {
-    let mailto = std::env::var("FASTPAPER_EMAIL").unwrap_or_else(|_| DEFAULT_EMAIL.to_string());
-    let url = format!("{}/works/{}?mailto={}", base_url, doi, mailto);
+    let email = super::contact_email();
+    let url = build_work_url(base_url, doi, email.as_deref());
     match ureq::get(&url).call() {
         Ok(resp) => {
             let body = resp
@@ -152,6 +165,7 @@ fn extract_year(item: &serde_json::Value, field: &str) -> Option<u16> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serial_test::serial;
 
     const FIXTURE: &str = include_str!("../../tests/fixtures/crossref_search.json");
 
@@ -283,15 +297,44 @@ mod tests {
         mock.assert();
     }
 
+    // Without FASTPAPER_EMAIL, fall back to Crossref's public pool rather than
+    // identifying every user's traffic as the maintainer. Asserted on the built
+    // URL rather than through mockito: later-created mocks take precedence
+    // there, so an `expect(0)` probe behind a catch-all passes vacuously.
     #[test]
-    fn search_request_contains_mailto() {
+    fn build_search_url_omits_mailto_without_email() {
+        let url = build_search_url("https://api.crossref.org", "attention", 3, None);
+        assert!(
+            !url.contains("mailto="),
+            "url should carry no contact address: {}",
+            url
+        );
+    }
+
+    #[test]
+    fn build_search_url_includes_mailto_with_email() {
+        let url = build_search_url("https://api.crossref.org", "attention", 3, Some("a@b.com"));
+        assert!(url.contains("mailto=a@b.com"), "got: {}", url);
+    }
+
+    #[test]
+    fn build_work_url_omits_mailto_without_email() {
+        let url = build_work_url("https://api.crossref.org", "10.1038/nature12373", None);
+        assert!(!url.contains("mailto="), "got: {}", url);
+    }
+
+    #[test]
+    #[serial]
+    fn search_sends_env_email_when_set() {
+        unsafe { std::env::set_var("FASTPAPER_EMAIL", "custom@example.com") };
         let mut server = mockito::Server::new();
         let mock = server
-            .mock("GET", mockito::Matcher::Regex("mailto=".to_string()))
+            .mock("GET", mockito::Matcher::Regex("mailto=custom".to_string()))
             .with_status(200)
             .with_body(FIXTURE)
             .create();
         let _ = search(&server.url(), "test", 3);
+        unsafe { std::env::remove_var("FASTPAPER_EMAIL") };
         mock.assert();
     }
 }
