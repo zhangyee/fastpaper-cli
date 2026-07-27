@@ -1,6 +1,9 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
+use crate::registry::{self, Source};
+use crate::sources::{SearchQuery, SortField, SortOrder};
+
 /// Fast academic paper search, download & read
 #[derive(Parser)]
 #[command(name = "fastpaper", version, about, long_about = None)]
@@ -27,27 +30,28 @@ pub struct GlobalOpts {
     pub format: OutputFormat,
 }
 
+/// Each command does exactly one thing:
+/// `search` finds papers, `get` reads metadata, `download` saves a PDF,
+/// `read` extracts text from a PDF already on disk.
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Search papers from a single academic source
+    /// Search papers in one academic source
     Search(SearchArgs),
 
-    /// Download paper PDF/source files
-    Download(DownloadArgs),
-
-    /// Extract and display paper content
-    Read(ReadArgs),
-
-    /// Fetch a single paper by identifier (auto-detect source)
+    /// Fetch metadata for a single paper by identifier
     Get(GetArgs),
 
-    /// List available sources and capabilities
+    /// Download a paper's PDF (default: ./papers)
+    Download(DownloadArgs),
+
+    /// Extract text from a local PDF file
+    Read(ReadArgs),
+
+    /// List available sources and what each can do
     Sources(SourcesArgs),
 
     /// Generate shell completions
-    Completions {
-        shell: clap_complete::Shell,
-    },
+    Completions { shell: clap_complete::Shell },
 }
 
 // ── search ──────────────────────────────────────
@@ -64,33 +68,33 @@ pub struct SearchArgs {
     #[arg(short = 'n', long, default_value = "10")]
     pub limit: u32,
 
-    /// Skip first N results
+    /// Skip the first N results
     #[arg(long, default_value = "0")]
     pub offset: u32,
 
     /// Sort by field
-    #[arg(long, default_value = "relevance")]
-    pub sort: SortField,
+    #[arg(long)]
+    pub sort: Option<SortField>,
 
     /// Sort direction
     #[arg(long, default_value = "desc")]
     pub order: SortOrder,
 
-    /// Filter by author
+    /// Papers in a specific year
     #[arg(long)]
-    pub author: Option<String>,
+    pub year: Option<u16>,
 
-    /// Papers after date (YYYY-MM-DD)
+    /// Papers published on or after this date (YYYY-MM-DD)
     #[arg(long)]
     pub after: Option<String>,
 
-    /// Papers before date (YYYY-MM-DD)
+    /// Papers published on or before this date (YYYY-MM-DD)
     #[arg(long)]
     pub before: Option<String>,
 
-    /// Papers in specific year
+    /// Filter by author
     #[arg(long)]
-    pub year: Option<u16>,
+    pub author: Option<String>,
 
     /// Field of study / category
     #[arg(long)]
@@ -100,211 +104,134 @@ pub struct SearchArgs {
     #[arg(long)]
     pub open_access: bool,
 
-    /// Only peer-reviewed papers
-    #[arg(long)]
-    pub peer_reviewed: bool,
-
-    /// Comma-separated fields to include in output
-    #[arg(long)]
-    pub fields: Option<String>,
-
-    /// Include abstract in table output
-    #[arg(long)]
-    pub with_abstract: bool,
-
-    /// Write results to file
+    /// Write results to a file instead of stdout
     #[arg(short, long)]
     pub output: Option<PathBuf>,
 }
 
-// ── download ────────────────────────────────────
-
-#[derive(clap::Args)]
-pub struct DownloadArgs {
-    /// Source to download from
-    pub source: Source,
-
-    /// Paper identifier
-    pub identifier: String,
-
-    /// Download directory
-    #[arg(short, long, env = "FASTPAPER_DOWNLOAD_DIR", default_value = "./papers")]
-    pub dir: PathBuf,
-
-    /// Filename template: {id}, {title}, {authors}, {year}, {doi}
-    #[arg(long, default_value = "{id}.{title}")]
-    pub filename: String,
-
-    /// Overwrite existing files
-    #[arg(long)]
-    pub overwrite: bool,
-
-    /// Download source/LaTeX instead of PDF (arXiv only)
-    #[arg(long)]
-    pub source_files: bool,
-}
-
-// ── read ────────────────────────────────────────
-
-#[derive(clap::Args)]
-pub struct ReadArgs {
-    /// Source to read from (use "local" for local files)
-    pub source: Source,
-
-    /// Paper identifier or file path
-    pub identifier: String,
-
-    /// Extract specific section
-    #[arg(long, default_value = "full")]
-    pub section: Section,
-
-    /// Only show metadata
-    #[arg(long)]
-    pub metadata_only: bool,
-
-    /// Raw text without formatting
-    #[arg(long)]
-    pub raw: bool,
-
-    /// Truncate output to N characters
-    #[arg(long)]
-    pub max_length: Option<usize>,
-
-    /// Write content to file
-    #[arg(short, long)]
-    pub output: Option<PathBuf>,
+impl SearchArgs {
+    pub fn to_query(&self) -> SearchQuery {
+        SearchQuery {
+            query: self.query.clone(),
+            limit: self.limit,
+            offset: self.offset,
+            sort: self.sort,
+            order: self.order,
+            year: self.year,
+            after: self.after.clone(),
+            before: self.before.clone(),
+            author: self.author.clone(),
+            field: self.field.clone(),
+            open_access: self.open_access,
+        }
+    }
 }
 
 // ── get ─────────────────────────────────────────
 
 #[derive(clap::Args)]
 pub struct GetArgs {
-    /// DOI, arXiv ID, PMID, PMC ID, URL, etc.
-    pub identifier: String,
+    /// Source name, or the identifier itself when no source is given
+    #[arg(value_name = "SOURCE_OR_ID")]
+    pub first: String,
 
-    /// Resolve all available OA versions
-    #[arg(long)]
-    pub resolve: bool,
+    /// Identifier (DOI, arXiv ID, PMID, PMC ID, ...) when a source is given
+    #[arg(value_name = "ID")]
+    pub second: Option<String>,
+}
 
-    /// Include citation count and references
-    #[arg(long)]
-    pub with_citations: bool,
+impl GetArgs {
+    pub fn resolve(&self) -> Result<(Option<Source>, &str), String> {
+        resolve_source_and_id(&self.first, self.second.as_deref())
+    }
+}
 
-    /// Include abstract
-    #[arg(long)]
-    pub with_abstract: bool,
+// ── download ────────────────────────────────────
 
-    /// Include related/recommended papers
+#[derive(clap::Args)]
+pub struct DownloadArgs {
+    /// Source name, or the identifier itself when no source is given
+    #[arg(value_name = "SOURCE_OR_ID")]
+    pub first: String,
+
+    /// Identifier when a source is given
+    #[arg(value_name = "ID")]
+    pub second: Option<String>,
+
+    /// Directory to save into
+    #[arg(short, long, env = "FASTPAPER_DOWNLOAD_DIR", default_value = "./papers")]
+    pub dir: PathBuf,
+
+    /// Overwrite an existing file
     #[arg(long)]
-    pub with_related: bool,
+    pub overwrite: bool,
+}
+
+impl DownloadArgs {
+    pub fn resolve(&self) -> Result<(Option<Source>, &str), String> {
+        resolve_source_and_id(&self.first, self.second.as_deref())
+    }
+}
+
+/// Disambiguate the `[source] <id>` forms.
+///
+/// The first positional cannot be typed as `Source`: clap would reject
+/// `get 10.1038/nature12373` during parsing, before we ever get to look at it.
+/// So both arrive as strings and the rule is positional — one argument is an
+/// identifier, two means the first names a source.
+fn resolve_source_and_id<'a>(
+    first: &'a str,
+    second: Option<&'a str>,
+) -> Result<(Option<Source>, &'a str), String> {
+    match second {
+        None => Ok((None, first)),
+        Some(id) => match Source::from_name(first) {
+            Some(source) => Ok((Some(source), id)),
+            None => Err(format!(
+                "'{}' is not a known source.\nValid sources: {}",
+                first,
+                registry::ALL
+                    .iter()
+                    .map(|s| s.name())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            )),
+        },
+    }
+}
+
+// ── read ────────────────────────────────────────
+
+#[derive(clap::Args)]
+pub struct ReadArgs {
+    /// Path to a local PDF file
+    pub path: PathBuf,
+
+    /// Extract a specific section
+    #[arg(long, default_value = "full")]
+    pub section: Section,
+
+    /// Truncate output to N characters
+    #[arg(long)]
+    pub max_length: Option<usize>,
+
+    /// Write content to a file instead of stdout
+    #[arg(short, long)]
+    pub output: Option<PathBuf>,
 }
 
 // ── sources ─────────────────────────────────────
 
 #[derive(clap::Args)]
 pub struct SourcesArgs {
-    /// Test connectivity to each source
-    #[arg(long)]
-    pub check: bool,
-
-    /// Show detailed capability matrix
+    /// Show per-source search filters and caveats
     #[arg(long)]
     pub capabilities: bool,
 }
 
 // ── enums ───────────────────────────────────────
 
-#[derive(ValueEnum, Clone, Debug)]
-pub enum Source {
-    Arxiv,
-    Biorxiv,
-    Medrxiv,
-    Pubmed,
-    Pmc,
-    Europepmc,
-    Scholar,
-    Xueshu,
-    Semantic,
-    Crossref,
-    Openalex,
-    Dblp,
-    Core,
-    Openaire,
-    Doaj,
-    Unpaywall,
-    Zenodo,
-    Hal,
-    Local,
-}
-
-impl Source {
-    pub fn supports_search(&self) -> bool {
-        !matches!(self, Source::Local)
-    }
-
-    pub fn supports_download(&self) -> bool {
-        matches!(
-            self,
-            Source::Arxiv
-                | Source::Biorxiv
-                | Source::Medrxiv
-                | Source::Pmc
-                | Source::Semantic
-                | Source::Core
-                | Source::Doaj
-                | Source::Zenodo
-                | Source::Hal
-                | Source::Local
-        )
-    }
-
-    pub fn supports_read(&self) -> bool {
-        self.supports_download()
-    }
-
-    pub fn name(&self) -> &'static str {
-        match self {
-            Source::Arxiv => "arxiv",
-            Source::Biorxiv => "biorxiv",
-            Source::Medrxiv => "medrxiv",
-            Source::Pubmed => "pubmed",
-            Source::Pmc => "pmc",
-            Source::Europepmc => "europepmc",
-            Source::Scholar => "scholar",
-            Source::Xueshu => "xueshu",
-            Source::Semantic => "semantic",
-            Source::Crossref => "crossref",
-            Source::Openalex => "openalex",
-            Source::Dblp => "dblp",
-            Source::Core => "core",
-            Source::Openaire => "openaire",
-            Source::Doaj => "doaj",
-            Source::Unpaywall => "unpaywall",
-            Source::Zenodo => "zenodo",
-            Source::Hal => "hal",
-            Source::Local => "local",
-        }
-    }
-
-    pub fn download_hint(&self) -> Option<&'static str> {
-        match self {
-            Source::Pubmed => Some("Try: fastpaper download pmc <PMC_ID>"),
-            Source::Scholar => Some("Google Scholar does not provide PDFs directly"),
-            Source::Xueshu => {
-                Some("Baidu Xueshu aggregates external links only. Try: fastpaper get <DOI> --resolve")
-            }
-            Source::Crossref | Source::Openalex | Source::Dblp => {
-                Some("This source only provides metadata. Try: fastpaper get <ID> --resolve")
-            }
-            Source::Openaire | Source::Unpaywall => {
-                Some("This source only provides metadata. Try: fastpaper get <ID> --resolve")
-            }
-            _ => None,
-        }
-    }
-}
-
-#[derive(ValueEnum, Clone, Debug)]
+#[derive(ValueEnum, Clone, Copy, Debug)]
 pub enum OutputFormat {
     Table,
     Json,
@@ -313,20 +240,7 @@ pub enum OutputFormat {
     Bibtex,
 }
 
-#[derive(ValueEnum, Clone, Debug)]
-pub enum SortField {
-    Relevance,
-    Date,
-    Citations,
-}
-
-#[derive(ValueEnum, Clone, Debug)]
-pub enum SortOrder {
-    Asc,
-    Desc,
-}
-
-#[derive(ValueEnum, Clone, Debug)]
+#[derive(ValueEnum, Clone, Copy, Debug, PartialEq)]
 pub enum Section {
     Abstract,
     Introduction,
@@ -336,4 +250,39 @@ pub enum Section {
     Conclusion,
     References,
     Full,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn one_argument_is_an_identifier() {
+        let (source, id) = resolve_source_and_id("10.1038/nature12373", None).unwrap();
+        assert_eq!(source, None);
+        assert_eq!(id, "10.1038/nature12373");
+    }
+
+    #[test]
+    fn two_arguments_name_a_source() {
+        let (source, id) = resolve_source_and_id("arxiv", Some("2301.08745")).unwrap();
+        assert_eq!(source, Some(Source::Arxiv));
+        assert_eq!(id, "2301.08745");
+    }
+
+    #[test]
+    fn unknown_source_name_is_rejected_with_the_valid_list() {
+        let err = resolve_source_and_id("arxvi", Some("2301.08745")).unwrap_err();
+        assert!(err.contains("arxvi"), "should quote the bad token: {}", err);
+        assert!(err.contains("arxiv"), "should list valid sources: {}", err);
+    }
+
+    // A lone identifier that happens to look like nothing is still an
+    // identifier -- source detection happens later, in the get command.
+    #[test]
+    fn one_argument_is_never_treated_as_a_source() {
+        let (source, id) = resolve_source_and_id("arxiv", None).unwrap();
+        assert_eq!(source, None);
+        assert_eq!(id, "arxiv");
+    }
 }

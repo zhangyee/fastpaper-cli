@@ -60,7 +60,7 @@ fn download_pubmed_rejects_with_hint() {
         .args(["download", "pubmed", "PMID:123"])
         .assert()
         .failure()
-        .stderr(contains("does not support"))
+        .stderr(contains("cannot provide PDFs"))
         .stderr(contains("pmc"));
 }
 
@@ -93,7 +93,7 @@ fn get_unknown_identifier_fails() {
         .args(["get", "blahblah"])
         .assert()
         .failure()
-        .stderr(contains("Unrecognized identifier format"));
+        .stderr(contains("Unrecognized identifier"));
 }
 
 #[test]
@@ -218,84 +218,21 @@ fn download_pubmed_exits_nonzero_with_not_supported() {
         .args(["download", "pubmed", "12345678"])
         .assert()
         .failure()
-        .stderr(contains("does not support"));
+        .stderr(contains("cannot provide PDFs"));
 }
 
 // ── read --metadata-only integration tests ──────
 
-#[test]
-fn read_arxiv_metadata_only_json_contains_title() {
-    let fixture = include_str!("fixtures/arxiv_search.xml");
-    let mut server = mockito::Server::new();
-    server
-        .mock("GET", mockito::Matcher::Any)
-        .with_status(200)
-        .with_body(fixture)
-        .create();
-    let output = cmd()
-        .args(["read", "arxiv", "2301.08745", "--metadata-only", "--format", "json"])
-        .env("FASTPAPER_ARXIV_URL", server.url())
-        .output()
-        .unwrap();
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let v: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
-    let title = v["results"][0]["title"].as_str().unwrap_or("");
-    assert!(!title.is_empty(), "title should not be empty");
-}
 
-#[test]
-fn read_arxiv_metadata_only_json_contains_authors() {
-    let fixture = include_str!("fixtures/arxiv_search.xml");
-    let mut server = mockito::Server::new();
-    server
-        .mock("GET", mockito::Matcher::Any)
-        .with_status(200)
-        .with_body(fixture)
-        .create();
-    let output = cmd()
-        .args(["read", "arxiv", "2301.08745", "--metadata-only", "--format", "json"])
-        .env("FASTPAPER_ARXIV_URL", server.url())
-        .output()
-        .unwrap();
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let v: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
-    let authors = v["results"][0]["authors"].as_array().expect("authors should be array");
-    assert!(!authors.is_empty(), "authors should not be empty");
-}
 
-#[test]
-fn read_arxiv_metadata_only_json_no_full_text() {
-    let fixture = include_str!("fixtures/arxiv_search.xml");
-    let mut server = mockito::Server::new();
-    server
-        .mock("GET", mockito::Matcher::Any)
-        .with_status(200)
-        .with_body(fixture)
-        .create();
-    let output = cmd()
-        .args(["read", "arxiv", "2301.08745", "--metadata-only", "--format", "json"])
-        .env("FASTPAPER_ARXIV_URL", server.url())
-        .output()
-        .unwrap();
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.contains("full_text"), "metadata-only should not contain full_text");
-}
 
-#[test]
-fn read_pubmed_metadata_only_exits_nonzero() {
-    cmd()
-        .args(["read", "pubmed", "12345678", "--metadata-only"])
-        .assert()
-        .failure()
-        .stderr(contains("does not support"));
-}
 
 // ── read full text (local PDF) integration tests ──
 
 #[test]
 fn read_local_pdf_outputs_text() {
     let output = cmd()
-        .args(["read", "local", "tests/fixtures/test.pdf"])
+        .args(["read", "tests/fixtures/test.pdf"])
         .output()
         .unwrap();
     assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
@@ -306,7 +243,7 @@ fn read_local_pdf_outputs_text() {
 #[test]
 fn read_local_pdf_section_abstract() {
     let output = cmd()
-        .args(["read", "local", "tests/fixtures/test.pdf", "--section", "abstract"])
+        .args(["read", "tests/fixtures/test.pdf", "--section", "abstract"])
         .output()
         .unwrap();
     assert!(output.status.success());
@@ -322,7 +259,7 @@ fn read_local_pdf_section_abstract() {
 #[test]
 fn read_local_pdf_format_json_has_full_text() {
     let output = cmd()
-        .args(["read", "local", "tests/fixtures/test.pdf", "--format", "json"])
+        .args(["read", "tests/fixtures/test.pdf", "--format", "json"])
         .output()
         .unwrap();
     assert!(output.status.success());
@@ -335,7 +272,7 @@ fn read_local_pdf_format_json_has_full_text() {
 #[test]
 fn read_local_pdf_max_length_truncates() {
     let output = cmd()
-        .args(["read", "local", "tests/fixtures/test.pdf", "--max-length", "100"])
+        .args(["read", "tests/fixtures/test.pdf", "--max-length", "100"])
         .output()
         .unwrap();
     assert!(output.status.success());
@@ -352,7 +289,7 @@ fn read_local_pdf_output_to_file() {
     let dir = temp_dir();
     let out_file = dir.join("output.txt");
     let output = cmd()
-        .args(["read", "local", "tests/fixtures/test.pdf", "-o"])
+        .args(["read", "tests/fixtures/test.pdf", "-o"])
         .arg(out_file.to_str().unwrap())
         .output()
         .unwrap();
@@ -409,7 +346,7 @@ fn env_semantic_api_key_sends_header() {
 #[test]
 fn env_unpaywall_missing_email_exits_nonzero() {
     cmd()
-        .args(["search", "unpaywall", "10.1038/nature12373"])
+        .args(["get", "unpaywall", "10.1038/nature12373"])
         .env_remove("UNPAYWALL_EMAIL")
         .assert()
         .failure()
@@ -426,7 +363,7 @@ fn env_unpaywall_with_email_works() {
         .with_body(fixture)
         .create();
     cmd()
-        .args(["search", "unpaywall", "10.1038/nature12373", "--format", "json"])
+        .args(["get", "unpaywall", "10.1038/nature12373", "--format", "json"])
         .env("FASTPAPER_UNPAYWALL_URL", server.url())
         .env("UNPAYWALL_EMAIL", "test@test.com")
         .assert()
@@ -718,253 +655,13 @@ fn get_s2_id_returns_paper() {
 
 // ── read remote full text integration tests ─────
 
-#[test]
-fn read_arxiv_fulltext_outputs_text() {
-    let pdf_bytes = include_bytes!("fixtures/test.pdf");
-    let mut server = mockito::Server::new();
-    server
-        .mock("GET", mockito::Matcher::Any)
-        .with_status(200)
-        .with_body(pdf_bytes.as_slice())
-        .create();
-    let output = cmd()
-        .args(["read", "arxiv", "2301.08745"])
-        .env("FASTPAPER_ARXIV_URL", server.url())
-        .output()
-        .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.trim().is_empty(), "should output extracted text");
-}
 
-#[test]
-fn read_arxiv_fulltext_json_has_full_text() {
-    let pdf_bytes = include_bytes!("fixtures/test.pdf");
-    let mut server = mockito::Server::new();
-    server
-        .mock("GET", mockito::Matcher::Any)
-        .with_status(200)
-        .with_body(pdf_bytes.as_slice())
-        .create();
-    let output = cmd()
-        .args(["read", "arxiv", "2301.08745", "--format", "json"])
-        .env("FASTPAPER_ARXIV_URL", server.url())
-        .output()
-        .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
-    let full_text = v["content"]["full_text"].as_str().unwrap_or("");
-    assert!(!full_text.is_empty(), "full_text should not be empty");
-}
 
-#[test]
-fn read_pmc_fulltext_outputs_text() {
-    let pdf_bytes = include_bytes!("fixtures/test.pdf");
-    let mut server = mockito::Server::new();
-    server
-        .mock("GET", mockito::Matcher::Any)
-        .with_status(200)
-        .with_body(pdf_bytes.as_slice())
-        .create();
-    let output = cmd()
-        .args(["read", "pmc", "PMC7318926"])
-        .env("FASTPAPER_PMC_DL_URL", server.url())
-        .output()
-        .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.trim().is_empty(), "should output extracted text");
-}
 
-#[test]
-fn read_hal_fulltext_outputs_text() {
-    let pdf_bytes = include_bytes!("fixtures/test.pdf");
-    let mut server = mockito::Server::new();
-    let mock_pdf_url = format!("{}/fake.pdf", server.url());
-    let hal_json = serde_json::json!({
-        "response": {
-            "docs": [{
-                "halId_s": "hal-01234567",
-                "title_s": ["Test Paper"],
-                "authFullName_s": ["Grace"],
-                "abstract_s": "abstract text",
-                "doiId_s": "10.1234/test",
-                "publicationDateY_i": 2024,
-                "fileMain_s": mock_pdf_url,
-                "uri_s": "https://hal.science/hal-01234567"
-            }]
-        }
-    });
-    server
-        .mock("GET", mockito::Matcher::Regex("search".to_string()))
-        .with_status(200)
-        .with_body(hal_json.to_string())
-        .create();
-    server
-        .mock("GET", "/fake.pdf")
-        .with_status(200)
-        .with_body(pdf_bytes.as_slice())
-        .create();
-    let output = cmd()
-        .args(["read", "hal", "hal-01234567"])
-        .env("FASTPAPER_HAL_URL", server.url())
-        .output()
-        .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.trim().is_empty(), "should output extracted text");
-}
 
-#[test]
-fn read_zenodo_fulltext_outputs_text() {
-    let pdf_bytes = include_bytes!("fixtures/test.pdf");
-    let mut server = mockito::Server::new();
-    let mock_pdf_url = format!("{}/fake.pdf", server.url());
-    let zenodo_json = serde_json::json!({
-        "hits": {"hits": [{
-            "id": 99999,
-            "doi": "10.5281/zenodo.99999",
-            "metadata": {
-                "title": "Test",
-                "creators": [{"name": "Frank"}],
-                "description": "abstract",
-                "publication_date": "2024-01-01",
-                "access_right": "open"
-            },
-            "files": [{"key": "paper.pdf", "links": {"self": mock_pdf_url}}]
-        }]}
-    });
-    server
-        .mock("GET", mockito::Matcher::Regex("records".to_string()))
-        .with_status(200)
-        .with_body(zenodo_json.to_string())
-        .create();
-    server
-        .mock("GET", "/fake.pdf")
-        .with_status(200)
-        .with_body(pdf_bytes.as_slice())
-        .create();
-    let output = cmd()
-        .args(["read", "zenodo", "99999"])
-        .env("FASTPAPER_ZENODO_URL", server.url())
-        .output()
-        .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.trim().is_empty(), "should output extracted text");
-}
 
-#[test]
-fn read_doaj_fulltext_outputs_text() {
-    let pdf_bytes = include_bytes!("fixtures/test.pdf");
-    let mut server = mockito::Server::new();
-    let mock_pdf_url = format!("{}/fake.pdf", server.url());
-    let doaj_json = serde_json::json!({
-        "results": [{
-            "bibjson": {
-                "title": "Test",
-                "author": [{"name": "Eve"}],
-                "year": "2024",
-                "abstract": "test abstract",
-                "identifier": [{"type": "doi", "id": "10.1234/test"}],
-                "link": [{"type": "fulltext", "url": mock_pdf_url}],
-                "journal": {"title": "Test Journal"}
-            }
-        }]
-    });
-    server
-        .mock("GET", mockito::Matcher::Regex("search/articles".to_string()))
-        .with_status(200)
-        .with_body(doaj_json.to_string())
-        .create();
-    server
-        .mock("GET", "/fake.pdf")
-        .with_status(200)
-        .with_body(pdf_bytes.as_slice())
-        .create();
-    let output = cmd()
-        .args(["read", "doaj", "10.1234/test"])
-        .env("FASTPAPER_DOAJ_URL", server.url())
-        .output()
-        .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.trim().is_empty(), "should output extracted text");
-}
 
-#[test]
-fn read_core_fulltext_outputs_text() {
-    let pdf_bytes = include_bytes!("fixtures/test.pdf");
-    let mut server = mockito::Server::new();
-    let mock_pdf_url = format!("{}/fake.pdf", server.url());
-    let core_json = serde_json::json!({
-        "results": [{
-            "id": "12345",
-            "title": "Test Paper",
-            "authors": [{"name": "Bob"}],
-            "abstract": "test",
-            "doi": "10.1234/test",
-            "downloadUrl": mock_pdf_url,
-            "yearPublished": 2024
-        }]
-    });
-    server
-        .mock("GET", mockito::Matcher::Regex("search/works".to_string()))
-        .with_status(200)
-        .with_body(core_json.to_string())
-        .create();
-    server
-        .mock("GET", "/fake.pdf")
-        .with_status(200)
-        .with_body(pdf_bytes.as_slice())
-        .create();
-    let output = cmd()
-        .args(["read", "core", "12345"])
-        .env("FASTPAPER_CORE_URL", server.url())
-        .output()
-        .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.trim().is_empty(), "should output extracted text");
-}
 
-#[test]
-fn read_semantic_fulltext_outputs_text() {
-    let pdf_bytes = include_bytes!("fixtures/test.pdf");
-    let mut server = mockito::Server::new();
-    let mock_pdf_url = format!("{}/fake.pdf", server.url());
-    let paper_json = serde_json::json!({
-        "paperId": "abc123",
-        "title": "Test Paper",
-        "authors": [{"name": "Alice"}],
-        "year": 2024,
-        "openAccessPdf": {"url": mock_pdf_url},
-        "externalIds": {},
-        "fieldsOfStudy": [],
-        "venue": "",
-        "citationCount": 0,
-        "url": "https://example.com"
-    });
-    server
-        .mock("GET", mockito::Matcher::Regex("graph/v1/paper".to_string()))
-        .with_status(200)
-        .with_body(paper_json.to_string())
-        .create();
-    server
-        .mock("GET", "/fake.pdf")
-        .with_status(200)
-        .with_body(pdf_bytes.as_slice())
-        .create();
-    let output = cmd()
-        .args(["read", "semantic", "abc123"])
-        .env("FASTPAPER_SEMANTIC_URL", server.url())
-        .output()
-        .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.trim().is_empty(), "should output extracted text");
-}
 
 // ── xueshu integration tests ────────────────────
 
@@ -1018,7 +715,7 @@ fn download_xueshu_rejects_with_hint() {
         .args(["download", "xueshu", "5a4afe9b6df8b07138fb6bf9b275251f"])
         .assert()
         .failure()
-        .stderr(contains("does not support"));
+        .stderr(contains("cannot provide PDFs"));
 }
 
 // 真实接口健康检查,手动执行:cargo test --test cli -- --ignored
@@ -1098,4 +795,171 @@ fn real_doaj_search_works() {
 #[ignore]
 fn real_zenodo_search_works() {
     real_search_returns_results("zenodo");
+}
+
+// ── new command surface ─────────────────────────
+//
+// `get` and `download` accept both `<id>` (source auto-detected) and
+// `<source> <id>` (source forced), mirroring `search <source> <query>`.
+
+#[test]
+fn get_accepts_an_explicit_source_before_the_id() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["get", "arxiv", "2301.08745", "--format", "json"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    let v: serde_json::Value =
+        serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("valid JSON");
+    assert!(!v["results"][0]["title"].as_str().unwrap_or("").is_empty());
+}
+
+#[test]
+fn get_with_an_unknown_source_lists_the_valid_ones() {
+    cmd()
+        .args(["get", "arxvi", "2301.08745"])
+        .assert()
+        .failure()
+        .stderr(contains("not a known source"))
+        .stderr(contains("arxiv"));
+}
+
+#[test]
+fn get_rejects_a_source_that_cannot_resolve_identifiers() {
+    cmd()
+        .args(["get", "dblp", "10.1038/nature12373"])
+        .assert()
+        .failure()
+        .stderr(contains("cannot fetch a paper by identifier"));
+}
+
+#[test]
+fn download_auto_detects_the_source_from_the_id() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 auto".as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "2301.08745", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success();
+    assert_eq!(std::fs::read(dir.join("2301.08745.pdf")).unwrap(), b"%PDF-1.4 auto");
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn download_defaults_to_a_papers_directory() {
+    let output = cmd().args(["download", "--help"]).output().unwrap();
+    assert!(String::from_utf8_lossy(&output.stdout).contains("./papers"));
+}
+
+#[test]
+fn download_of_a_pmid_points_at_pmc() {
+    cmd()
+        .args(["download", "33475315"])
+        .assert()
+        .failure()
+        .stderr(contains("download pmc"));
+}
+
+// `read` is local-only now: no source argument, no network.
+
+#[test]
+fn read_takes_a_path_with_no_source_argument() {
+    cmd()
+        .args(["read", "tests/fixtures/test.pdf"])
+        .assert()
+        .success();
+}
+
+#[test]
+fn read_rejects_a_missing_file_with_advice() {
+    cmd()
+        .args(["read", "definitely/not/here.pdf"])
+        .assert()
+        .failure()
+        .stderr(contains("No such file"))
+        .stderr(contains("fastpaper download"));
+}
+
+#[test]
+fn read_no_longer_accepts_a_source_argument() {
+    // Two positionals used to mean `read <source> <id>`.
+    cmd().args(["read", "arxiv", "2301.08745"]).assert().failure();
+}
+
+// Filters are validated against what the source can actually do.
+
+#[test]
+fn search_rejects_a_filter_the_source_cannot_honour() {
+    cmd()
+        .args(["search", "dblp", "crispr", "--year", "2024"])
+        .assert()
+        .failure()
+        .stderr(contains("--year"))
+        .stderr(contains("dblp"));
+}
+
+#[test]
+fn search_rejects_a_limit_above_the_source_cap() {
+    cmd()
+        .args(["search", "zenodo", "crispr", "-n", "50"])
+        .assert()
+        .failure()
+        .stderr(contains("25"));
+}
+
+#[test]
+fn search_on_unpaywall_points_at_get() {
+    cmd()
+        .args(["search", "unpaywall", "10.1038/nature12373"])
+        .assert()
+        .failure()
+        .stderr(contains("fastpaper get unpaywall"));
+}
+
+#[test]
+fn sources_capabilities_shows_filters_and_caveats() {
+    cmd()
+        .args(["sources", "--capabilities"])
+        .assert()
+        .success()
+        .stdout(contains("Search filters"))
+        .stdout(contains("no keyword search API"));
+}
+
+#[test]
+fn format_jsonl_emits_one_object_per_line() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["search", "arxiv", "attention", "--format", "jsonl"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(!stdout.trim().is_empty(), "jsonl should not be empty");
+    for line in stdout.lines() {
+        serde_json::from_str::<serde_json::Value>(line)
+            .unwrap_or_else(|e| panic!("line is not JSON ({}): {}", e, line));
+    }
 }

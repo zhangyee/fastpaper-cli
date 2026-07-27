@@ -14,173 +14,90 @@ pub fn fetch_pdf(url: &str) -> Result<Vec<u8>, String> {
     }
 }
 
-/// Download a PDF from arXiv and save it to disk.
-pub fn download_arxiv(
-    base_url: &str,
-    identifier: &str,
-    dir: &Path,
-    overwrite: bool,
-) -> Result<PathBuf, String> {
-    let bytes = sources::arxiv::download_pdf(base_url, identifier)?;
-    save_pdf(&bytes, dir, identifier, overwrite)
+// ── PDF byte fetchers ───────────────────────────
+//
+// Resolving "identifier -> PDF bytes" is separate from writing the file, so the
+// same resolution serves both `download` (save to disk) and any caller that
+// only wants the bytes. `save_pdf` below does the writing.
+
+/// Fetch arXiv PDF bytes.
+pub fn pdf_bytes_arxiv(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+    sources::arxiv::download_pdf(base_url, identifier)
 }
 
-/// Download a PDF from bioRxiv.
-pub fn download_biorxiv(
-    base_url: &str,
-    identifier: &str,
-    dir: &Path,
-    overwrite: bool,
-) -> Result<PathBuf, String> {
-    let url = format!("{}/content/{}v1.full.pdf", base_url, identifier);
-    let bytes = fetch_pdf(&url)?;
-    save_pdf(&bytes, dir, identifier, overwrite)
+/// Fetch bioRxiv PDF bytes.
+pub fn pdf_bytes_biorxiv(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+    fetch_pdf(&format!("{}/content/{}v1.full.pdf", base_url, identifier))
 }
 
-/// Download a PDF from medRxiv.
-pub fn download_medrxiv(
-    base_url: &str,
-    identifier: &str,
-    dir: &Path,
-    overwrite: bool,
-) -> Result<PathBuf, String> {
-    let url = format!("{}/content/{}v1.full.pdf", base_url, identifier);
-    let bytes = fetch_pdf(&url)?;
-    save_pdf(&bytes, dir, identifier, overwrite)
+/// Fetch medRxiv PDF bytes.
+pub fn pdf_bytes_medrxiv(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+    fetch_pdf(&format!("{}/content/{}v1.full.pdf", base_url, identifier))
 }
 
-/// Download a PDF from PMC.
-pub fn download_pmc(
-    base_url: &str,
-    identifier: &str,
-    dir: &Path,
-    overwrite: bool,
-) -> Result<PathBuf, String> {
+/// Fetch PMC PDF bytes.
+pub fn pdf_bytes_pmc(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
     let numeric_id = identifier.strip_prefix("PMC").unwrap_or(identifier);
-    let url = format!("{}/pmc/articles/PMC{}/pdf/", base_url, numeric_id);
-    let bytes = fetch_pdf(&url)?;
-    save_pdf(&bytes, dir, identifier, overwrite)
+    fetch_pdf(&format!("{}/pmc/articles/PMC{}/pdf/", base_url, numeric_id))
 }
 
-
-/// Download a PDF from Semantic Scholar (fetch metadata to get openAccessPdf URL).
-pub fn download_semantic(
-    base_url: &str,
-    identifier: &str,
-    dir: &Path,
-    overwrite: bool,
-) -> Result<PathBuf, String> {
+/// Fetch Semantic Scholar PDF bytes via the record's openAccessPdf URL.
+pub fn pdf_bytes_semantic(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
     let paper = sources::semantic::get_by_id(base_url, identifier)?
         .ok_or_else(|| format!("Paper not found: {}", identifier))?;
     let pdf_url = paper
         .pdf_url
         .ok_or_else(|| "No open access PDF available".to_string())?;
-    let bytes = fetch_pdf(&pdf_url)?;
-    save_pdf(&bytes, dir, identifier, overwrite)
+    fetch_pdf(&pdf_url)
 }
 
-/// Download a PDF from CORE (fetch metadata to get downloadUrl).
-pub fn download_core(
-    base_url: &str,
-    identifier: &str,
-    dir: &Path,
-    overwrite: bool,
-) -> Result<PathBuf, String> {
-    let meta_url = format!(
-        "{}/v3/search/works?q={}&limit=1",
-        base_url, identifier
-    );
-    let body = ureq::get(&meta_url)
-        .call()
-        .map_err(|e| format!("HTTP error: {}", e))?
-        .into_body()
-        .read_to_string()
-        .map_err(|e| format!("Read error: {}", e))?;
-    let papers = sources::core::parse_search_response(&body)?;
-    let pdf_url = papers
-        .first()
-        .and_then(|p| p.pdf_url.as_deref())
-        .ok_or_else(|| "No PDF URL found".to_string())?;
-    let bytes = fetch_pdf(pdf_url)?;
-    save_pdf(&bytes, dir, identifier, overwrite)
+/// Fetch CORE PDF bytes via the record's downloadUrl.
+pub fn pdf_bytes_core(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+    let meta_url = format!("{}/v3/search/works?q={}&limit=1", base_url, identifier);
+    resolve_and_fetch(&meta_url, sources::core::parse_search_response)
 }
 
-/// Download a PDF from DOAJ (fetch metadata to get fulltext URL).
-pub fn download_doaj(
-    base_url: &str,
-    identifier: &str,
-    dir: &Path,
-    overwrite: bool,
-) -> Result<PathBuf, String> {
-    let meta_url = format!(
-        "{}/api/search/articles/{}?pageSize=1",
-        base_url, identifier
-    );
-    let body = ureq::get(&meta_url)
-        .call()
-        .map_err(|e| format!("HTTP error: {}", e))?
-        .into_body()
-        .read_to_string()
-        .map_err(|e| format!("Read error: {}", e))?;
-    let papers = sources::doaj::parse_search_response(&body)?;
-    let pdf_url = papers
-        .first()
-        .and_then(|p| p.pdf_url.as_deref())
-        .ok_or_else(|| "No PDF URL found".to_string())?;
-    let bytes = fetch_pdf(pdf_url)?;
-    save_pdf(&bytes, dir, identifier, overwrite)
+/// Fetch DOAJ PDF bytes via the record's fulltext link.
+pub fn pdf_bytes_doaj(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+    let meta_url = format!("{}/api/search/articles/{}?pageSize=1", base_url, identifier);
+    resolve_and_fetch(&meta_url, sources::doaj::parse_search_response)
 }
 
-/// Download a PDF from Zenodo (fetch metadata to get file URL).
-pub fn download_zenodo(
-    base_url: &str,
-    identifier: &str,
-    dir: &Path,
-    overwrite: bool,
-) -> Result<PathBuf, String> {
+/// Fetch Zenodo PDF bytes via the record's file link.
+pub fn pdf_bytes_zenodo(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
     let meta_url = format!(
         "{}/api/records?q={}&size=1&type=publication",
         base_url, identifier
     );
-    let body = ureq::get(&meta_url)
-        .call()
-        .map_err(|e| format!("HTTP error: {}", e))?
-        .into_body()
-        .read_to_string()
-        .map_err(|e| format!("Read error: {}", e))?;
-    let papers = sources::zenodo::parse_search_response(&body)?;
-    let pdf_url = papers
-        .first()
-        .and_then(|p| p.pdf_url.as_deref())
-        .ok_or_else(|| "No PDF URL found".to_string())?;
-    let bytes = fetch_pdf(pdf_url)?;
-    save_pdf(&bytes, dir, identifier, overwrite)
+    resolve_and_fetch(&meta_url, sources::zenodo::parse_search_response)
 }
 
-/// Download a PDF from HAL (fetch metadata to get fileMain_s URL).
-pub fn download_hal(
-    base_url: &str,
-    identifier: &str,
-    dir: &Path,
-    overwrite: bool,
-) -> Result<PathBuf, String> {
+/// Fetch HAL PDF bytes via the record's fileMain_s URL.
+pub fn pdf_bytes_hal(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
     let meta_url = format!(
         "{}/search/?q={}&rows=1&wt=json&fl=halId_s,title_s,authFullName_s,abstract_s,doiId_s,publicationDateY_i,fileMain_s,uri_s",
         base_url, identifier
     );
-    let body = ureq::get(&meta_url)
+    resolve_and_fetch(&meta_url, sources::hal::parse_search_response)
+}
+
+/// Fetch a metadata URL, take the first record's `pdf_url`, and download it.
+fn resolve_and_fetch(
+    meta_url: &str,
+    parse: fn(&str) -> Result<Vec<sources::Paper>, String>,
+) -> Result<Vec<u8>, String> {
+    let body = ureq::get(meta_url)
         .call()
         .map_err(|e| format!("HTTP error: {}", e))?
         .into_body()
         .read_to_string()
         .map_err(|e| format!("Read error: {}", e))?;
-    let papers = sources::hal::parse_search_response(&body)?;
+    let papers = parse(&body)?;
     let pdf_url = papers
         .first()
         .and_then(|p| p.pdf_url.as_deref())
         .ok_or_else(|| "No PDF URL found".to_string())?;
-    let bytes = fetch_pdf(pdf_url)?;
-    save_pdf(&bytes, dir, identifier, overwrite)
+    fetch_pdf(pdf_url)
 }
 
 /// Save PDF bytes to a file. Returns the path where the file was saved.
@@ -231,7 +148,7 @@ mod tests {
 
     // Behavior 1: download arxiv → mock PDF → file saved to dir
     #[test]
-    fn download_arxiv_saves_file() {
+    fn arxiv_pdf_saves_file() {
         let mut server = mockito::Server::new();
         server
             .mock("GET", mockito::Matcher::Any)
@@ -239,7 +156,8 @@ mod tests {
             .with_body(b"%PDF-1.4 fake content".as_slice())
             .create();
         let dir = temp_dir();
-        let path = download_arxiv(&server.url(), "2301.08745", &dir, false).unwrap();
+        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745").unwrap();
+        let path = save_pdf(&bytes, &dir, "2301.08745", false).unwrap();
         assert!(path.exists());
         assert_eq!(fs::read(&path).unwrap(), b"%PDF-1.4 fake content");
         let _ = fs::remove_dir_all(&dir);
@@ -247,7 +165,7 @@ mod tests {
 
     // Behavior 2: saved filename contains paper ID
     #[test]
-    fn download_arxiv_filename_contains_id() {
+    fn arxiv_pdf_filename_contains_id() {
         let mut server = mockito::Server::new();
         server
             .mock("GET", mockito::Matcher::Any)
@@ -255,7 +173,8 @@ mod tests {
             .with_body(b"%PDF-1.4".as_slice())
             .create();
         let dir = temp_dir();
-        let path = download_arxiv(&server.url(), "2301.08745", &dir, false).unwrap();
+        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745").unwrap();
+        let path = save_pdf(&bytes, &dir, "2301.08745", false).unwrap();
         assert!(
             path.file_name().unwrap().to_str().unwrap().contains("2301.08745"),
             "filename {:?} should contain paper ID",
@@ -266,7 +185,7 @@ mod tests {
 
     // Behavior 3: --dir saves to specified directory
     #[test]
-    fn download_arxiv_custom_dir() {
+    fn arxiv_pdf_custom_dir() {
         let mut server = mockito::Server::new();
         server
             .mock("GET", mockito::Matcher::Any)
@@ -274,14 +193,15 @@ mod tests {
             .with_body(b"%PDF-1.4".as_slice())
             .create();
         let dir = temp_dir().join("custom_subdir");
-        let path = download_arxiv(&server.url(), "2301.08745", &dir, false).unwrap();
+        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745").unwrap();
+        let path = save_pdf(&bytes, &dir, "2301.08745", false).unwrap();
         assert!(path.starts_with(&dir));
         let _ = fs::remove_dir_all(dir.parent().unwrap());
     }
 
     // Behavior 4: file already exists → error with "already exists"
     #[test]
-    fn download_arxiv_file_exists_returns_err() {
+    fn arxiv_pdf_file_exists_returns_err() {
         let mut server = mockito::Server::new();
         server
             .mock("GET", mockito::Matcher::Any)
@@ -290,9 +210,10 @@ mod tests {
             .create();
         let dir = temp_dir();
         // First download succeeds
-        download_arxiv(&server.url(), "2301.08745", &dir, false).unwrap();
-        // Second download fails because file exists
-        let result = download_arxiv(&server.url(), "2301.08745", &dir, false);
+        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745").unwrap();
+        save_pdf(&bytes, &dir, "2301.08745", false).unwrap();
+        // Second save fails because the file exists
+        let result = save_pdf(&bytes, &dir, "2301.08745", false);
         assert!(result.is_err());
         assert!(
             result.unwrap_err().contains("already exists"),
@@ -303,7 +224,7 @@ mod tests {
 
     // Behavior 5: --overwrite overwrites existing file
     #[test]
-    fn download_arxiv_overwrite_succeeds() {
+    fn arxiv_pdf_overwrite_succeeds() {
         let mut server = mockito::Server::new();
         server
             .mock("GET", mockito::Matcher::Any)
@@ -315,21 +236,22 @@ mod tests {
         fs::create_dir_all(&dir).unwrap();
         fs::write(dir.join("2301.08745.pdf"), b"old content").unwrap();
         // Download with overwrite
-        let path = download_arxiv(&server.url(), "2301.08745", &dir, true).unwrap();
+        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745").unwrap();
+        let path = save_pdf(&bytes, &dir, "2301.08745", true).unwrap();
         assert_eq!(fs::read(&path).unwrap(), b"%PDF-1.4 version2");
         let _ = fs::remove_dir_all(&dir);
     }
 
     // Behavior 6: mock 404 → error
     #[test]
-    fn download_arxiv_404_returns_err() {
+    fn arxiv_pdf_404_returns_err() {
         let mut server = mockito::Server::new();
         server
             .mock("GET", mockito::Matcher::Any)
             .with_status(404)
             .create();
         let dir = temp_dir();
-        let result = download_arxiv(&server.url(), "9999.99999", &dir, false);
+        let result = pdf_bytes_arxiv(&server.url(), "9999.99999");
         assert!(result.is_err());
         let _ = fs::remove_dir_all(&dir);
     }
@@ -337,7 +259,7 @@ mod tests {
     // ── additional source download tests ────────
 
     #[test]
-    fn download_biorxiv_saves_file() {
+    fn biorxiv_pdf_saves_file() {
         let mut server = mockito::Server::new();
         server
             .mock("GET", mockito::Matcher::Regex("content.*full.pdf".to_string()))
@@ -345,13 +267,14 @@ mod tests {
             .with_body(b"%PDF-1.4 biorxiv".as_slice())
             .create();
         let dir = temp_dir();
-        let path = download_biorxiv(&server.url(), "10.1101/2024.01.01.574894", &dir, false).unwrap();
+        let bytes = pdf_bytes_biorxiv(&server.url(), "10.1101/2024.01.01.574894").unwrap();
+        let path = save_pdf(&bytes, &dir, "10.1101/2024.01.01.574894", false).unwrap();
         assert!(path.exists());
         let _ = fs::remove_dir_all(&dir);
     }
 
     #[test]
-    fn download_medrxiv_saves_file() {
+    fn medrxiv_pdf_saves_file() {
         let mut server = mockito::Server::new();
         server
             .mock("GET", mockito::Matcher::Regex("content.*full.pdf".to_string()))
@@ -359,13 +282,14 @@ mod tests {
             .with_body(b"%PDF-1.4 medrxiv".as_slice())
             .create();
         let dir = temp_dir();
-        let path = download_medrxiv(&server.url(), "10.1101/2024.01.01.123456", &dir, false).unwrap();
+        let bytes = pdf_bytes_medrxiv(&server.url(), "10.1101/2024.01.01.123456").unwrap();
+        let path = save_pdf(&bytes, &dir, "10.1101/2024.01.01.123456", false).unwrap();
         assert!(path.exists());
         let _ = fs::remove_dir_all(&dir);
     }
 
     #[test]
-    fn download_pmc_saves_file() {
+    fn pmc_pdf_saves_file() {
         let mut server = mockito::Server::new();
         server
             .mock("GET", mockito::Matcher::Regex("pmc/articles/PMC".to_string()))
@@ -373,13 +297,14 @@ mod tests {
             .with_body(b"%PDF-1.4 pmc".as_slice())
             .create();
         let dir = temp_dir();
-        let path = download_pmc(&server.url(), "PMC7318926", &dir, false).unwrap();
+        let bytes = pdf_bytes_pmc(&server.url(), "PMC7318926").unwrap();
+        let path = save_pdf(&bytes, &dir, "PMC7318926", false).unwrap();
         assert!(path.exists());
         let _ = fs::remove_dir_all(&dir);
     }
 
     #[test]
-    fn download_pmc_strips_prefix() {
+    fn pmc_pdf_strips_prefix() {
         let mut server = mockito::Server::new();
         server
             .mock("GET", mockito::Matcher::Regex("PMC7318926".to_string()))
@@ -387,7 +312,7 @@ mod tests {
             .with_body(b"%PDF-1.4".as_slice())
             .create();
         let dir = temp_dir();
-        let result = download_pmc(&server.url(), "PMC7318926", &dir, false);
+        let result = pdf_bytes_pmc(&server.url(), "PMC7318926");
         assert!(result.is_ok());
         let _ = fs::remove_dir_all(&dir);
     }

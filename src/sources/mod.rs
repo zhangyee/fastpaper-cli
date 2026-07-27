@@ -37,6 +37,168 @@ pub fn encode_query(query: &str) -> String {
     encoded
 }
 
+/// Field to sort search results by.
+#[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq)]
+pub enum SortField {
+    Relevance,
+    Date,
+    Citations,
+}
+
+#[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq)]
+pub enum SortOrder {
+    Asc,
+    Desc,
+}
+
+/// A normalized search request.
+///
+/// Each source maps the fields it supports onto its own API parameters. The
+/// command layer consults `Capabilities` first and rejects any field the source
+/// cannot honour, so a filter is never silently dropped.
+#[derive(Debug, Clone)]
+pub struct SearchQuery {
+    pub query: String,
+    pub limit: u32,
+    pub offset: u32,
+    pub sort: Option<SortField>,
+    pub order: SortOrder,
+    pub year: Option<u16>,
+    pub after: Option<String>,
+    pub before: Option<String>,
+    pub author: Option<String>,
+    pub field: Option<String>,
+    pub open_access: bool,
+}
+
+impl SearchQuery {
+    /// A query with no filters — what every source could already do.
+    pub fn simple(query: &str, limit: u32) -> Self {
+        SearchQuery {
+            query: query.to_string(),
+            limit,
+            offset: 0,
+            sort: None,
+            order: SortOrder::Desc,
+            year: None,
+            after: None,
+            before: None,
+            author: None,
+            field: None,
+            open_access: false,
+        }
+    }
+
+    /// Names of the filters this query actually sets, in CLI-flag form.
+    pub fn active_filters(&self) -> Vec<&'static str> {
+        let mut used = Vec::new();
+        if self.offset > 0 {
+            used.push("--offset");
+        }
+        if self.sort.is_some() {
+            used.push("--sort");
+        }
+        if self.year.is_some() {
+            used.push("--year");
+        }
+        if self.after.is_some() {
+            used.push("--after");
+        }
+        if self.before.is_some() {
+            used.push("--before");
+        }
+        if self.author.is_some() {
+            used.push("--author");
+        }
+        if self.field.is_some() {
+            used.push("--field");
+        }
+        if self.open_access {
+            used.push("--open-access");
+        }
+        used
+    }
+}
+
+/// Which search filters a source can honour natively.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct SearchCaps {
+    pub offset: bool,
+    pub sort: bool,
+    pub year: bool,
+    pub date_range: bool,
+    pub author: bool,
+    pub field: bool,
+    pub open_access: bool,
+}
+
+impl SearchCaps {
+    /// Query and limit only — no filters.
+    pub const BASIC: SearchCaps = SearchCaps {
+        offset: false,
+        sort: false,
+        year: false,
+        date_range: false,
+        author: false,
+        field: false,
+        open_access: false,
+    };
+
+    /// Whether this source supports the named CLI flag.
+    pub fn supports(&self, flag: &str) -> bool {
+        match flag {
+            "--offset" => self.offset,
+            "--sort" => self.sort,
+            "--year" => self.year,
+            "--after" | "--before" => self.date_range,
+            "--author" => self.author,
+            "--field" => self.field,
+            "--open-access" => self.open_access,
+            _ => false,
+        }
+    }
+
+    /// The flags this source does support, for use in error messages.
+    pub fn supported_flags(&self) -> Vec<&'static str> {
+        let mut flags = Vec::new();
+        if self.offset {
+            flags.push("--offset");
+        }
+        if self.sort {
+            flags.push("--sort");
+        }
+        if self.year {
+            flags.push("--year");
+        }
+        if self.date_range {
+            flags.push("--after/--before");
+        }
+        if self.author {
+            flags.push("--author");
+        }
+        if self.field {
+            flags.push("--field");
+        }
+        if self.open_access {
+            flags.push("--open-access");
+        }
+        flags
+    }
+}
+
+/// What a source can do. Drives both argument validation and `fastpaper sources`.
+#[derive(Debug, Clone, Copy)]
+pub struct Capabilities {
+    /// `None` when the source has no keyword search at all.
+    pub search: Option<SearchCaps>,
+    pub get: bool,
+    pub download: bool,
+    /// Hard per-request result cap imposed by the source, if any.
+    pub max_limit: Option<u32>,
+    /// Caveat shown by `fastpaper sources --capabilities`; empty when none.
+    pub notes: &'static str,
+}
+
 /// Contact address used to identify this client to APIs that ask for one
 /// (Crossref's polite pool, OpenAlex, NCBI E-utilities).
 ///

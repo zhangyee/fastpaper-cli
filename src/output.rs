@@ -78,6 +78,19 @@ pub fn to_json(papers: &[Paper]) -> String {
     serde_json::to_string_pretty(&result).unwrap()
 }
 
+/// Format papers as newline-delimited JSON: one paper object per line.
+///
+/// `--format jsonl` has been an accepted value all along but silently rendered
+/// the human table, since the dispatcher had no branch for it.
+pub fn to_jsonl(papers: &[Paper]) -> String {
+    let mut out = String::new();
+    for paper in papers {
+        out.push_str(&serde_json::to_string(paper).unwrap());
+        out.push('\n');
+    }
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -258,4 +271,25 @@ mod tests {
         let table = to_table(&[]);
         assert_eq!(table, "No results found");
     }
+
+    #[test]
+    fn to_jsonl_emits_one_line_per_paper() {
+        let out = to_jsonl(&[sample_paper(), sample_paper()]);
+        assert_eq!(out.lines().count(), 2);
+    }
+
+    #[test]
+    fn to_jsonl_lines_are_standalone_json_objects() {
+        let out = to_jsonl(&[sample_paper()]);
+        let line = out.lines().next().unwrap();
+        let v: serde_json::Value = serde_json::from_str(line).unwrap();
+        assert_eq!(v["title"], "Attention Is All You Need");
+        assert_eq!(v["id"], "2301.08745");
+    }
+
+    #[test]
+    fn to_jsonl_of_nothing_is_empty() {
+        assert_eq!(to_jsonl(&[]), "");
+    }
 }
+
