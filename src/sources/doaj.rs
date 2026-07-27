@@ -40,6 +40,24 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
     Ok(url)
 }
 
+/// Fetch a single article by its DOAJ id.
+pub fn get_by_id(base_url: &str, id: &str) -> Result<Option<Paper>, String> {
+    let url = format!("{}/api/v4/articles/{}", base_url, super::encode_query(id));
+    match ureq::get(&url).call() {
+        Ok(resp) => {
+            let body = resp
+                .into_body()
+                .read_to_string()
+                .map_err(|e| format!("Failed to read response: {}", e))?;
+            // parse_search_response expects the list shape.
+            let wrapped = format!(r#"{{"results":[{}]}}"#, body);
+            Ok(parse_search_response(&wrapped)?.into_iter().next())
+        }
+        Err(ureq::Error::StatusCode(404)) => Ok(None),
+        Err(e) => Err(format!("HTTP error: {}", e)),
+    }
+}
+
 /// Search DOAJ API.
 pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let url = build_search_url(base_url, q)?;

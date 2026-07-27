@@ -69,6 +69,37 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
     ))
 }
 
+/// Build the query that pins one record by identifier.
+///
+/// Europe PMC has no by-id path; a field-scoped search is the documented way,
+/// and which field depends on the identifier's shape.
+fn id_query(id: &str) -> String {
+    if id.starts_with("PMC") {
+        format!("PMCID:{}", id)
+    } else if id.starts_with("10.") {
+        format!("DOI:%22{}%22", super::encode_query(id))
+    } else {
+        format!("EXT_ID:{}+AND+SRC:MED", super::encode_query(id))
+    }
+}
+
+/// Fetch a single record by PMID, PMC ID or DOI.
+pub fn get_by_id(base_url: &str, id: &str) -> Result<Option<Paper>, String> {
+    let url = format!(
+        "{}{}?query={}&pageSize=1&format=json&resultType=core",
+        base_url,
+        SEARCH_PATH,
+        id_query(id)
+    );
+    let body = ureq::get(&url)
+        .call()
+        .map_err(|e| format!("HTTP error: {}", e))?
+        .into_body()
+        .read_to_string()
+        .map_err(|e| format!("Failed to read response: {}", e))?;
+    Ok(parse_search_response(&body)?.into_iter().next())
+}
+
 /// Search Europe PMC API.
 pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let url = build_search_url(base_url, q)?;
@@ -151,7 +182,15 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
                 .and_then(|arr| arr.first())
                 .and_then(|u| u["url"].as_str())
                 .map(|s| s.to_string()),
-            pdf_url: None,
+            // fullTextUrlList marks the PDF rendering with documentStyle "pdf".
+            pdf_url: item["fullTextUrlList"]["fullTextUrl"]
+                .as_array()
+                .and_then(|arr| {
+                    arr.iter()
+                        .find(|u| u["documentStyle"].as_str() == Some("pdf"))
+                        .and_then(|u| u["url"].as_str())
+                })
+                .map(|s| s.to_string()),
             venue: item["journalTitle"].as_str().map(|s| s.to_string()),
             citations,
             fields: vec![],

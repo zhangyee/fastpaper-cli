@@ -213,10 +213,11 @@ static MEDRXIV: SourceEntry = SourceEntry {
             open_access: true,
         }),
         get: false,
-        download: true,
+        download: false,
         max_limit: None,
         notes: "no keyword search API: browses a date window and matches the \
-                keyword locally, so --after/--before/--year decide what is searched",
+                keyword locally, so --after/--before/--year decide what is \
+                searched; PDF downloads are blocked by medRxiv (HTTP 403)",
     },
     env_var: "FASTPAPER_MEDRXIV_URL",
     default_base: "https://api.biorxiv.org",
@@ -224,7 +225,7 @@ static MEDRXIV: SourceEntry = SourceEntry {
     pdf_default_base: Some("https://www.medrxiv.org"),
     search: Some(sources::medrxiv::search),
     get: None,
-    pdf: Some(download::pdf_bytes_medrxiv),
+    pdf: None,
 };
 
 static PUBMED: SourceEntry = SourceEntry {
@@ -275,7 +276,10 @@ static PMC: SourceEntry = SourceEntry {
     env_var: "FASTPAPER_PMC_URL",
     default_base: "https://eutils.ncbi.nlm.nih.gov",
     pdf_env_var: Some("FASTPAPER_PMC_DL_URL"),
-    pdf_default_base: Some("https://www.ncbi.nlm.nih.gov"),
+    // The PMC Cloud Service on AWS Open Data; see download::pdf_bytes_pmc for
+    // why the article page's /pdf/ URL and the OA Web Service's ftp:// links
+    // are both unusable.
+    pdf_default_base: Some("https://pmc-oa-opendata.s3.amazonaws.com"),
     search: Some(sources::pmc::search),
     get: Some(sources::pmc::get_by_pmc_id),
     pdf: Some(download::pdf_bytes_pmc),
@@ -293,19 +297,20 @@ static EUROPEPMC: SourceEntry = SourceEntry {
             field: false,
             open_access: true,
         }),
-        get: false,
-        download: false,
+        get: true,
+        download: true,
         max_limit: Some(1000),
         notes: "orders newest/most-cited first only, --order asc unavailable; \
-                --offset must be a multiple of -n",
+                --offset must be a multiple of -n; PDFs come from the open \
+                access subset",
     },
     env_var: "FASTPAPER_EUROPEPMC_URL",
     default_base: "https://www.ebi.ac.uk",
     pdf_env_var: None,
     pdf_default_base: None,
     search: Some(sources::europepmc::search),
-    get: None,
-    pdf: None,
+    get: Some(sources::europepmc::get_by_id),
+    pdf: Some(download::pdf_bytes_europepmc),
 };
 
 static SCHOLAR: SourceEntry = SourceEntry {
@@ -527,18 +532,20 @@ static DOAJ: SourceEntry = SourceEntry {
             // access, so the filter is trivially satisfied.
             open_access: true,
         }),
-        get: false,
-        download: true,
+        get: true,
+        download: false,
         max_limit: Some(100),
-        notes: "year granularity only, use --year rather than --after/--before",
+        notes: "year granularity only, use --year rather than --after/--before; \
+                no PDFs -- its fulltext links point at publisher landing pages, \
+                not files",
     },
     env_var: "FASTPAPER_DOAJ_URL",
     default_base: "https://doaj.org",
     pdf_env_var: None,
     pdf_default_base: None,
     search: Some(sources::doaj::search),
-    get: None,
-    pdf: Some(download::pdf_bytes_doaj),
+    get: Some(sources::doaj::get_by_id),
+    pdf: None,
 };
 
 static UNPAYWALL: SourceEntry = SourceEntry {
