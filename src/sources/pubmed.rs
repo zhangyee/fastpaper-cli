@@ -237,7 +237,21 @@ pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
                         }
                         abstract_text.push_str(text.trim());
                     }
-                    "Year" if year.is_empty() => year.push_str(text.trim()),
+                    // Only the <Year> inside <PubDate>. DateCompleted and
+                    // DateRevised are NLM's own processing dates and appear
+                    // earlier in the record, so matching any <Year> reports
+                    // when NLM indexed the article, not when it was published.
+                    "Year"
+                        if year.is_empty()
+                            && tag_stack
+                                .iter()
+                                .rev()
+                                .nth(1)
+                                .map(|parent| parent == "PubDate")
+                                .unwrap_or(false) =>
+                    {
+                        year.push_str(text.trim())
+                    }
                     "doi" => doi.push_str(text.trim()),
                     _ => {}
                 }
@@ -624,5 +638,36 @@ mod query_tests {
         let u = url(&SearchQuery::simple("crispr", 10));
         assert!(u.contains("term=crispr&"), "got: {}", u);
         assert!(!u.contains("AND"), "no filter terms expected: {}", u);
+    }
+}
+
+#[cfg(test)]
+mod year_tests {
+    use super::*;
+
+    // PubMed puts NLM's own processing dates (DateCompleted, DateRevised)
+    // *before* the article's PubDate, so taking the first <Year> in the record
+    // reports when NLM indexed it rather than when it was published. The
+    // recorded fixture happens to have all three equal, which hid this.
+    const MIXED_DATES: &str = r#"<?xml version="1.0"?>
+<PubmedArticleSet><PubmedArticle><MedlineCitation>
+<PMID Version="1">35349206</PMID>
+<DateCompleted><Year>2022</Year><Month>04</Month><Day>04</Day></DateCompleted>
+<DateRevised><Year>2022</Year><Month>04</Month><Day>05</Day></DateRevised>
+<Article PubModel="Print-Electronic"><Journal><JournalIssue CitedMedium="Internet">
+<PubDate><Year>2021</Year><Month>Mar</Month></PubDate>
+</JournalIssue><Title>Reviews in medical virology</Title></Journal>
+<ArticleTitle>SARS-CoV-2: Mechanism of infection.</ArticleTitle>
+</Article></MedlineCitation></PubmedArticle></PubmedArticleSet>"#;
+
+    #[test]
+    fn year_comes_from_pubdate_not_the_nlm_processing_date() {
+        let papers = parse_efetch_response(MIXED_DATES).unwrap();
+        assert_eq!(papers.len(), 1);
+        assert_eq!(
+            papers[0].year,
+            Some(2021),
+            "should report the PubDate year, not DateCompleted"
+        );
     }
 }

@@ -72,6 +72,25 @@ fn date_stamp(date: &str, end_of_day: bool) -> Result<String, String> {
     Ok(format!("{}{}", digits, time))
 }
 
+/// Turn the user's keywords into one `search_query` term.
+///
+/// Every word needs its own `all:` prefix. A bare multi-word query parses as a
+/// field-prefixed first word followed by loose words, and the moment anything
+/// is ANDed onto it the whole expression stops filtering: `all:diffusion model
+/// AND submittedDate:[2025...]` returns 2011 papers. Grouping the words keeps
+/// the AND applying to the right thing.
+fn query_term(query: &str) -> String {
+    let words: Vec<String> = query
+        .split_whitespace()
+        .map(|w| format!("all:{}", super::encode_query(w)))
+        .collect();
+    match words.len() {
+        0 => "all:".to_string(),
+        1 => words.into_iter().next().unwrap(),
+        _ => format!("%28{}%29", words.join("+AND+")),
+    }
+}
+
 /// Build the /api/query URL for a search.
 ///
 /// arXiv composes filters into `search_query` itself, ANDing field-prefixed
@@ -79,7 +98,7 @@ fn date_stamp(date: &str, end_of_day: bool) -> Result<String, String> {
 /// parameters. Field prefixes and operators stay literal; only values are
 /// percent-encoded.
 fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, String> {
-    let mut terms = vec![format!("all:{}", super::encode_query(&q.query))];
+    let mut terms = vec![query_term(&q.query)];
 
     if let Some(ref author) = q.author {
         terms.push(format!("au:%22{}%22", super::encode_query(author)));
@@ -580,6 +599,33 @@ mod query_tests {
         assert!(u.contains("search_query=all:attention"), "got: {}", u);
         assert!(u.contains("max_results=10"), "got: {}", u);
         assert!(u.contains("start=0"), "got: {}", u);
+    }
+
+    // A bare multi-word query breaks the boolean structure once anything is
+    // ANDed onto it: arXiv reads `all:diffusion model AND submittedDate:[...]`
+    // as something that ignores the date range entirely, returning 2011 papers
+    // for a 2025 filter. Each word needs its own field prefix.
+    #[test]
+    fn multi_word_query_is_grouped_per_term() {
+        let u = url(&SearchQuery::simple("diffusion model", 10));
+        assert!(u.contains("all:diffusion+AND+all:model"), "got: {}", u);
+        assert!(!u.contains("all:diffusion+model"), "bare form breaks filters: {}", u);
+    }
+
+    #[test]
+    fn multi_word_query_is_parenthesised_when_a_filter_follows() {
+        let mut q = SearchQuery::simple("diffusion model", 10);
+        q.year = Some(2025);
+        let u = url(&q);
+        assert!(u.contains("%28all:diffusion+AND+all:model%29"), "got: {}", u);
+        assert!(u.contains("submittedDate:"), "got: {}", u);
+    }
+
+    #[test]
+    fn single_word_query_is_left_alone() {
+        let u = url(&SearchQuery::simple("attention", 10));
+        assert!(u.contains("search_query=all:attention"), "got: {}", u);
+        assert!(!u.contains("%28"), "no grouping needed: {}", u);
     }
 
     #[test]
