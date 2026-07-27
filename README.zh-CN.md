@@ -50,26 +50,29 @@ SKILL.md 教会智能体按研究领域选择数据源并构造命令。使用 `
 # 搜索 arXiv
 fastpaper search arxiv "transformer attention mechanism"
 
-# 带过滤条件的搜索
+# 带过滤条件的搜索——每个源各自声明能支持哪些
 fastpaper search arxiv "large language model" --after 2024-01-01 --field cs.CL --limit 20
 
-# 通过 DOI 获取论文（自动检测数据源）
+# 通过 DOI 获取论文（自动识别数据源）
 fastpaper get 10.1038/nature12373
 
 # 通过 arXiv ID 获取
 fastpaper get 2301.08745
 
-# 下载 PDF
+# 显式指定数据源，控制由谁来答
+fastpaper get openalex 10.1038/nature12373
+
+# 下载 PDF 到 ./papers
 fastpaper download arxiv 2301.08745
 
-# 阅读全文
-fastpaper read arxiv 2301.08745
+# ……或让标识符自己选源
+fastpaper download 2301.08745
 
-# 阅读特定章节
-fastpaper read pmc PMC7318926 --section methods
+# 阅读刚下载的 PDF
+fastpaper read papers/2301.08745.pdf
 
-# 阅读本地 PDF
-fastpaper read local ./paper.pdf
+# 阅读它的特定章节
+fastpaper read papers/2301.08745.pdf --section methods
 
 # JSON 输出，供脚本 / AI 智能体使用
 fastpaper search semantic "CRISPR gene editing" --format json
@@ -85,30 +88,41 @@ wait
 
 18 个学术数据源，每条命令独立访问单个数据源。
 
-| 数据源 | 全称 | search | download | read | 覆盖领域 |
-|--------|------|:------:|:--------:|:----:|----------|
+这里不列 `read`：它读的是已经落到磁盘上的 PDF，所以凡是 `download` 列能取到的，
+它都能读。
+
+| 数据源 | 全称 | search | get | download | 覆盖领域 |
+|--------|------|:------:|:---:|:--------:|----------|
 | `arxiv` | arXiv | yes | yes | yes | 物理、数学、计算机、统计、电子工程、量化生物/金融、经济学 |
-| `biorxiv` | bioRxiv | yes | yes | yes | 生命科学 |
-| `medrxiv` | medRxiv | yes | yes | yes | 医学 / 健康科学 |
-| `pubmed` | PubMed | yes | | | 生物医学与生命科学（仅元数据） |
+| `biorxiv` | bioRxiv | yes | | yes | 生命科学 |
+| `medrxiv` | medRxiv | yes | | yes | 医学 / 健康科学 |
+| `pubmed` | PubMed | yes | yes | | 生物医学与生命科学（仅元数据） |
 | `pmc` | PubMed Central | yes | yes | yes | 生物医学与生命科学（全文） |
 | `europepmc` | Europe PMC | yes | | | PMC 的生命科学超集 |
 | `scholar` | Google Scholar | yes | | | 全学科（实验性，有频率限制） |
 | `xueshu` | 百度学术 | yes | | | 全学科，中文文献覆盖强（实验性，非官方接口） |
 | `semantic` | Semantic Scholar | yes | yes | yes | 全学科，AI 驱动的引用图谱 |
-| `crossref` | CrossRef | yes | | | DOI 元数据，全学科 |
-| `openalex` | OpenAlex | yes | | | 开放元数据索引，2 亿+ 作品 |
+| `crossref` | CrossRef | yes | yes | | DOI 元数据，全学科 |
+| `openalex` | OpenAlex | yes | yes | | 开放元数据索引，2 亿+ 作品 |
 | `dblp` | DBLP | yes | | | 计算机科学 |
-| `core` | CORE | yes | yes | yes | 开放获取聚合器 |
+| `core` | CORE | yes | | yes | 开放获取聚合器 |
 | `openaire` | OpenAIRE | yes | | | 欧盟开放科学 |
-| `doaj` | DOAJ | yes | yes | yes | 开放获取期刊，全学科 |
-| `unpaywall` | Unpaywall | yes | | | OA 链接解析（需设置 `UNPAYWALL_EMAIL`） |
-| `zenodo` | Zenodo | yes | yes | yes | 全学科（数据集、软件、论文） |
-| `hal` | HAL | yes | yes | yes | 多学科，法国国家开放存档 |
+| `doaj` | DOAJ | yes | | yes | 开放获取期刊，全学科 |
+| `unpaywall` | Unpaywall | | yes | | OA 链接解析（需设置 `UNPAYWALL_EMAIL`） |
+| `zenodo` | Zenodo | yes | | yes | 全学科（数据集、软件、论文） |
+| `hal` | HAL | yes | | yes | 多学科，法国国家开放存档 |
+
+各源支持的检索过滤参数、以及单次请求的结果上限并不相同。
+`fastpaper sources --capabilities` 会打印完整矩阵和每个源的注意事项。
 
 ## 命令
 
+四条命令各做一件事：`search` 找论文，`get` 取元数据，`download` 存 PDF，
+`read` 从磁盘上的 PDF 抽文本。
+
 ### `search` -- 搜索论文
+
+数据源必填：自由文本没有标识符形状可供推断。
 
 ```
 fastpaper search <SOURCE> <QUERY> [OPTIONS]
@@ -116,60 +130,68 @@ fastpaper search <SOURCE> <QUERY> [OPTIONS]
 选项:
   -n, --limit <N>        最大结果数 [默认: 10]
       --offset <N>       跳过前 N 条结果 [默认: 0]
-      --sort <FIELD>     排序: relevance, date, citations [默认: relevance]
+      --sort <FIELD>     排序: relevance, date, citations
+      --order <DIR>      asc 或 desc [默认: desc]
       --author <NAME>    按作者过滤
       --after <DATE>     指定日期之后 (YYYY-MM-DD)
       --before <DATE>    指定日期之前 (YYYY-MM-DD)
       --year <YEAR>      指定年份
-      --field <FIELD>    学科领域 / 分类 (如 cs.AI)
+      --field <FIELD>    学科领域 / 分类 (如 cs.CL)
       --open-access      仅开放获取论文
   -f, --format <FMT>     table, json, jsonl, csv, bibtex [默认: table]
   -o, --output <PATH>    输出到文件
 ```
 
-### `get` -- 通过标识符获取论文
+过滤参数会映射到各源自己的 API 参数。源不支持某个参数时**直接报错并列出它支持哪些**，
+而不是静默忽略——被悄悄丢掉的过滤条件会产出看着对、其实不对的结果。`-n` 超过某源
+单次请求上限时同理。用 `fastpaper sources --capabilities` 查看每个源接受什么。
 
-根据标识符格式（DOI、arXiv ID、PMID、PMC ID、URL）自动检测数据源。
+### `get` -- 按标识符取元数据
+
+给一个参数时它是标识符，数据源由其形状推断（DOI、arXiv ID、PMID、PMC ID、S2 ID）；
+给两个参数时第一个显式指定数据源。
 
 ```
-fastpaper get <IDENTIFIER> [OPTIONS]
-
-选项:
-      --resolve           查找所有可用的开放获取版本
-      --with-citations    包含引用数和参考文献
-      --with-abstract     包含摘要
+fastpaper get <IDENTIFIER>
+fastpaper get <SOURCE> <IDENTIFIER>
 ```
 
 ### `download` -- 下载 PDF
 
+与 `get` 同样的两种形态。文件存为 `<标识符>.pdf`。
+
 ```
+fastpaper download <IDENTIFIER> [OPTIONS]
 fastpaper download <SOURCE> <IDENTIFIER> [OPTIONS]
 
 选项:
   -d, --dir <PATH>       下载目录 [默认: ./papers]
-      --filename <FMT>   文件名模板: {id}, {title}, {authors}, {year}, {doi}
       --overwrite        覆盖已有文件
-      --source-files     下载 LaTeX 源码（仅 arXiv）
 ```
 
-### `read` -- 阅读论文内容
+### `read` -- 阅读本地 PDF
+
+接收路径，不联网。先 download，再读落地的文件。
 
 ```
-fastpaper read <SOURCE> <IDENTIFIER> [OPTIONS]
+fastpaper read <PATH> [OPTIONS]
 
 选项:
       --section <SEC>    abstract, introduction, methods, results,
                          discussion, conclusion, references, full [默认: full]
-      --metadata-only    仅显示元数据
-      --raw              无格式纯文本
       --max-length <N>   截断输出到 N 个字符
   -o, --output <PATH>    输出到文件
+```
+
+```sh
+fastpaper download 2301.08745            # -> ./papers/2301.08745.pdf
+fastpaper read papers/2301.08745.pdf --section abstract
 ```
 
 ### `sources` -- 列出数据源及能力
 
 ```
-fastpaper sources [--check] [--capabilities]
+fastpaper sources [--capabilities]
 ```
 
 ### `completions` -- Shell 补全
@@ -187,11 +209,17 @@ fastpaper completions bash >> ~/.bashrc
 | 变量 | 用途 |
 |------|------|
 | `FASTPAPER_DOWNLOAD_DIR` | 默认下载目录（未设置则为 `./papers`） |
-| `FASTPAPER_EMAIL` | CrossRef / OpenAlex 礼貌池邮箱 |
+| `FASTPAPER_EMAIL` | 发给 CrossRef、OpenAlex 和 NCBI 的联系邮箱。不设置就不发这个参数，三者都接受 |
 | `SEMANTIC_SCHOLAR_API_KEY` | 提升 Semantic Scholar 频率限制 |
+| `OPENALEX_API_KEY` | OpenAlex 自 2026-02 起按用量计费，设置后可用更大的免费额度 |
 | `CORE_API_KEY` | 提升 CORE 频率限制 |
 | `NCBI_API_KEY` | 提升 PubMed / PMC 频率限制 |
-| `UNPAYWALL_EMAIL` | Unpaywall **必需** |
+| `UNPAYWALL_EMAIL` | Unpaywall **必需**，且必须是真实邮箱 |
+
+每个源还支持用 `FASTPAPER_<SOURCE>_URL` 覆盖它的 base URL——`FASTPAPER_ARXIV_URL`、
+`FASTPAPER_PUBMED_URL` 等等——测试就是靠它指向本地 mock 服务器的。文件与 API 不在同一
+主机的源另有一个文件主机的覆盖项：`FASTPAPER_ARXIV_PDF_URL`、`FASTPAPER_BIORXIV_DL_URL`、
+`FASTPAPER_MEDRXIV_DL_URL`、`FASTPAPER_PMC_DL_URL`。
 
 ## 退出码
 

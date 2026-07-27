@@ -50,26 +50,29 @@ The SKILL.md teaches the agent how to pick sources by domain and construct comma
 # Search arXiv
 fastpaper search arxiv "transformer attention mechanism"
 
-# Search with filters
+# Search with filters -- each source declares which ones it can honour
 fastpaper search arxiv "large language model" --after 2024-01-01 --field cs.CL --limit 20
 
-# Fetch a paper by DOI (auto-detects source)
+# Fetch a paper by DOI (source auto-detected)
 fastpaper get 10.1038/nature12373
 
 # Fetch by arXiv ID
 fastpaper get 2301.08745
 
-# Download PDF
+# Name the source explicitly to control which one answers
+fastpaper get openalex 10.1038/nature12373
+
+# Download a PDF into ./papers
 fastpaper download arxiv 2301.08745
 
-# Read full text
-fastpaper read arxiv 2301.08745
+# ...or let the identifier pick the source
+fastpaper download 2301.08745
 
-# Read a specific section
-fastpaper read pmc PMC7318926 --section methods
+# Read a PDF you already downloaded
+fastpaper read papers/2301.08745.pdf
 
-# Read a local PDF
-fastpaper read local ./paper.pdf
+# Read a specific section of it
+fastpaper read papers/2301.08745.pdf --section methods
 
 # JSON output for scripting / AI agents
 fastpaper search semantic "CRISPR gene editing" --format json
@@ -85,30 +88,43 @@ wait
 
 18 academic sources, each accessed independently per command.
 
-| Source | Full name | search | download | read | Domain |
-|--------|-----------|:------:|:--------:|:----:|--------|
+`read` is not listed here: it works on a PDF already on disk, so it applies
+equally to anything the `download` column can fetch.
+
+| Source | Full name | search | get | download | Domain |
+|--------|-----------|:------:|:---:|:--------:|--------|
 | `arxiv` | arXiv | yes | yes | yes | Physics, math, CS, statistics, EE, q-bio, q-fin, econ |
-| `biorxiv` | bioRxiv | yes | yes | yes | Life sciences |
-| `medrxiv` | medRxiv | yes | yes | yes | Medical / health sciences |
-| `pubmed` | PubMed | yes | | | Biomedical & life sciences (metadata only) |
+| `biorxiv` | bioRxiv | yes | | yes | Life sciences |
+| `medrxiv` | medRxiv | yes | | yes | Medical / health sciences |
+| `pubmed` | PubMed | yes | yes | | Biomedical & life sciences (metadata only) |
 | `pmc` | PubMed Central | yes | yes | yes | Biomedical & life sciences (full text) |
 | `europepmc` | Europe PMC | yes | | | Life sciences superset of PMC |
 | `scholar` | Google Scholar | yes | | | All disciplines (experimental, rate-limited) |
 | `xueshu` | Baidu Xueshu (百度学术) | yes | | | All disciplines, strong Chinese-language coverage (experimental, unofficial API) |
 | `semantic` | Semantic Scholar | yes | yes | yes | All disciplines, AI-powered citation graph |
-| `crossref` | CrossRef | yes | | | DOI metadata, all disciplines |
-| `openalex` | OpenAlex | yes | | | Open metadata index, 200M+ works |
+| `crossref` | CrossRef | yes | yes | | DOI metadata, all disciplines |
+| `openalex` | OpenAlex | yes | yes | | Open metadata index, 200M+ works |
 | `dblp` | DBLP | yes | | | Computer science |
-| `core` | CORE | yes | yes | yes | Open access aggregator |
+| `core` | CORE | yes | | yes | Open access aggregator |
 | `openaire` | OpenAIRE | yes | | | EU open science |
-| `doaj` | DOAJ | yes | yes | yes | Open access journals, all subjects |
-| `unpaywall` | Unpaywall | yes | | | OA link resolver (requires `UNPAYWALL_EMAIL`) |
-| `zenodo` | Zenodo | yes | yes | yes | All disciplines (datasets, software, papers) |
-| `hal` | HAL | yes | yes | yes | Multi-disciplinary, French national archive |
+| `doaj` | DOAJ | yes | | yes | Open access journals, all subjects |
+| `unpaywall` | Unpaywall | | yes | | OA link resolver (requires `UNPAYWALL_EMAIL`) |
+| `zenodo` | Zenodo | yes | | yes | All disciplines (datasets, software, papers) |
+| `hal` | HAL | yes | | yes | Multi-disciplinary, French national archive |
+
+Sources differ in which search filters they can honour, and in their per-request
+result caps. `fastpaper sources --capabilities` prints the full matrix along
+with each source's caveats.
 
 ## Commands
 
+Each command does exactly one thing: `search` finds papers, `get` reads
+metadata, `download` saves a PDF, `read` extracts text from a PDF on disk.
+
 ### `search` -- Search papers
+
+The source is required: a free-text query has no identifier shape to infer one
+from.
 
 ```
 fastpaper search <SOURCE> <QUERY> [OPTIONS]
@@ -116,60 +132,70 @@ fastpaper search <SOURCE> <QUERY> [OPTIONS]
 Options:
   -n, --limit <N>        Max results [default: 10]
       --offset <N>       Skip first N results [default: 0]
-      --sort <FIELD>     Sort by: relevance, date, citations [default: relevance]
+      --sort <FIELD>     Sort by: relevance, date, citations
+      --order <DIR>      asc or desc [default: desc]
       --author <NAME>    Filter by author
-      --after <DATE>     Papers after YYYY-MM-DD
-      --before <DATE>    Papers before YYYY-MM-DD
-      --year <YEAR>      Papers in specific year
-      --field <FIELD>    Field of study / category (e.g. cs.AI)
+      --after <DATE>     Papers published on or after YYYY-MM-DD
+      --before <DATE>    Papers published on or before YYYY-MM-DD
+      --year <YEAR>      Papers in a specific year
+      --field <FIELD>    Field of study / category (e.g. cs.CL)
       --open-access      Only open access papers
   -f, --format <FMT>     table, json, jsonl, csv, bibtex [default: table]
   -o, --output <PATH>    Write results to file
 ```
 
-### `get` -- Fetch paper by identifier
+Filters map onto each source's own API parameters. A source that cannot honour
+one **fails with an error naming the filters it does support**, rather than
+dropping it silently — a filter that vanishes yields results that look right and
+are not. The same goes for `-n` above a source's per-request cap. Run
+`fastpaper sources --capabilities` to see what each source accepts.
 
-Auto-detects source from identifier format (DOI, arXiv ID, PMID, PMC ID, URL).
+### `get` -- Fetch metadata by identifier
+
+One argument is an identifier and the source is inferred from its shape (DOI,
+arXiv ID, PMID, PMC ID, S2 ID). Two arguments name the source explicitly.
 
 ```
-fastpaper get <IDENTIFIER> [OPTIONS]
-
-Options:
-      --resolve           Find all available OA versions
-      --with-citations    Include citation count and references
-      --with-abstract     Include abstract
+fastpaper get <IDENTIFIER>
+fastpaper get <SOURCE> <IDENTIFIER>
 ```
 
 ### `download` -- Download PDF
 
+Same two forms as `get`. Saves as `<identifier>.pdf`.
+
 ```
+fastpaper download <IDENTIFIER> [OPTIONS]
 fastpaper download <SOURCE> <IDENTIFIER> [OPTIONS]
 
 Options:
   -d, --dir <PATH>       Download directory [default: ./papers]
-      --filename <FMT>   Template: {id}, {title}, {authors}, {year}, {doi}
-      --overwrite        Overwrite existing files
-      --source-files     Download LaTeX source (arXiv only)
+      --overwrite        Overwrite an existing file
 ```
 
-### `read` -- Read paper content
+### `read` -- Read a local PDF
+
+Takes a path, never the network. Download first, then read what landed.
 
 ```
-fastpaper read <SOURCE> <IDENTIFIER> [OPTIONS]
+fastpaper read <PATH> [OPTIONS]
 
 Options:
       --section <SEC>    abstract, introduction, methods, results,
                          discussion, conclusion, references, full [default: full]
-      --metadata-only    Only show metadata
-      --raw              Raw text without formatting
       --max-length <N>   Truncate output to N characters
   -o, --output <PATH>    Write to file
+```
+
+```sh
+fastpaper download 2301.08745            # -> ./papers/2301.08745.pdf
+fastpaper read papers/2301.08745.pdf --section abstract
 ```
 
 ### `sources` -- List sources and capabilities
 
 ```
-fastpaper sources [--check] [--capabilities]
+fastpaper sources [--capabilities]
 ```
 
 ### `completions` -- Shell completions
@@ -187,11 +213,18 @@ All optional except where noted. 17 of 18 sources work with zero configuration.
 | Variable | Purpose |
 |----------|---------|
 | `FASTPAPER_DOWNLOAD_DIR` | Default download directory (otherwise `./papers`) |
-| `FASTPAPER_EMAIL` | CrossRef / OpenAlex polite pool email |
+| `FASTPAPER_EMAIL` | Contact address sent to CrossRef, OpenAlex and NCBI. Unset means the parameter is omitted, which all three accept |
 | `SEMANTIC_SCHOLAR_API_KEY` | Higher rate limit for Semantic Scholar |
+| `OPENALEX_API_KEY` | Larger free tier for OpenAlex, which has metered usage since 2026-02 |
 | `CORE_API_KEY` | Higher rate limit for CORE |
 | `NCBI_API_KEY` | Higher rate limit for PubMed / PMC |
-| `UNPAYWALL_EMAIL` | **Required** for Unpaywall |
+| `UNPAYWALL_EMAIL` | **Required** for Unpaywall, and it must be a real address |
+
+Every source also takes `FASTPAPER_<SOURCE>_URL` to override its base URL —
+`FASTPAPER_ARXIV_URL`, `FASTPAPER_PUBMED_URL` and so on — which is what the
+tests point at a local mock server. Sources whose files live on a different host
+than their API have a second override for that host: `FASTPAPER_ARXIV_PDF_URL`,
+`FASTPAPER_BIORXIV_DL_URL`, `FASTPAPER_MEDRXIV_DL_URL`, `FASTPAPER_PMC_DL_URL`.
 
 ## Exit codes
 
