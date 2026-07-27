@@ -159,7 +159,6 @@ macro_rules! basic_search_adapter {
     };
 }
 
-basic_search_adapter!(s_arxiv, sources::arxiv);
 basic_search_adapter!(s_biorxiv, sources::biorxiv);
 basic_search_adapter!(s_medrxiv, sources::medrxiv);
 basic_search_adapter!(s_pubmed, sources::pubmed);
@@ -186,12 +185,28 @@ fn g_unpaywall(base: &str, id: &str) -> Result<Option<Paper>, String> {
 
 static ARXIV: SourceEntry = SourceEntry {
     name: "arxiv",
-    caps: basic_search(true, true, Some(2000)),
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            date_range: true,
+            author: true,
+            field: true,
+            // Every arXiv paper is freely readable, so the filter is
+            // trivially satisfied rather than unsupported.
+            open_access: true,
+        }),
+        get: true,
+        download: true,
+        max_limit: Some(2000),
+        notes: "--sort citations is unavailable: arXiv publishes no citation counts",
+    },
     env_var: "FASTPAPER_ARXIV_URL",
     default_base: "https://export.arxiv.org",
     pdf_env_var: Some("FASTPAPER_ARXIV_PDF_URL"),
     pdf_default_base: Some("https://arxiv.org"),
-    search: Some(s_arxiv),
+    search: Some(sources::arxiv::search),
     get: Some(sources::arxiv::get_by_id),
     pdf: Some(download::pdf_bytes_arxiv),
 };

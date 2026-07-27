@@ -29,40 +29,28 @@ pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, Stri
         "{}/api/query?id_list={}&max_results=1",
         base_url, identifier
     );
-    match ureq::get(&url).call() {
-        Ok(resp) => {
-            let body = resp
-                .into_body()
-                .read_to_string()
-                .map_err(|e| format!("Failed to read response: {}", e))?;
-            let papers = parse_search_response(&body)?;
-            Ok(papers.into_iter().next())
-        }
-        Err(e) => Err(format!("HTTP error: {}", e)),
-    }
+    let body = http_get_with_retry(&url)?;
+    let papers = parse_search_response(&body)?;
+    Ok(papers.into_iter().next())
 }
 
-/// Search arXiv API and return parsed papers.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
-    let encoded = super::encode_query(query);
-    let url = format!(
-        "{}/api/query?search_query=all:{}&start=0&max_results={}",
-        base_url, encoded, max_results
-    );
-
+/// GET with backoff on 429.
+///
+/// arXiv asks callers to leave three seconds between requests and throttles
+/// hard when they don't. `search` has always retried; `get_by_id` did not, so a
+/// single 429 failed the whole lookup.
+fn http_get_with_retry(url: &str) -> Result<String, String> {
     let mut last_err = String::new();
     for attempt in 0..3 {
         if attempt > 0 {
             std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
         }
-        let response = ureq::get(&url).call();
-        match response {
+        match ureq::get(url).call() {
             Ok(resp) => {
-                let body = resp
+                return resp
                     .into_body()
                     .read_to_string()
-                    .map_err(|e| format!("Failed to read response: {}", e))?;
-                return parse_search_response(&body);
+                    .map_err(|e| format!("Failed to read response: {}", e));
             }
             Err(ureq::Error::StatusCode(429)) => {
                 last_err = "rate limited (429)".to_string();
@@ -71,12 +59,104 @@ pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper
             Err(ureq::Error::StatusCode(code)) if code >= 500 => {
                 return Err(format!("Server error: {}", code));
             }
-            Err(e) => {
-                return Err(format!("HTTP error: {}", e));
-            }
+            Err(e) => return Err(format!("HTTP error: {}", e)),
         }
     }
     Err(last_err)
+}
+
+/// Turn `YYYY-MM-DD` into arXiv's `YYYYMMDDHHMM` stamp.
+fn date_stamp(date: &str, end_of_day: bool) -> Result<String, String> {
+    let parts: Vec<&str> = date.split('-').collect();
+    let valid = parts.len() == 3
+        && parts[0].len() == 4
+        && parts[1].len() == 2
+        && parts[2].len() == 2
+        && parts.iter().all(|p| p.chars().all(|c| c.is_ascii_digit()));
+    if !valid {
+        return Err(format!("Invalid date '{}': expected YYYY-MM-DD", date));
+    }
+    let time = if end_of_day { "2359" } else { "0000" };
+    Ok(format!("{}{}{}{}", parts[0], parts[1], parts[2], time))
+}
+
+/// Build the /api/query URL for a search.
+///
+/// arXiv composes filters into `search_query` itself, ANDing field-prefixed
+/// terms (`au:`, `cat:`, `submittedDate:`) rather than taking separate
+/// parameters. Field prefixes and operators stay literal; only values are
+/// percent-encoded.
+fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, String> {
+    let mut terms = vec![format!("all:{}", super::encode_query(&q.query))];
+
+    if let Some(ref author) = q.author {
+        terms.push(format!("au:%22{}%22", super::encode_query(author)));
+    }
+    if let Some(ref field) = q.field {
+        terms.push(format!("cat:{}", super::encode_query(field)));
+    }
+
+    // --year is shorthand for a whole-year range; --after/--before give the
+    // open-ended forms.
+    let range = match (q.year, q.after.as_deref(), q.before.as_deref()) {
+        (Some(year), _, _) => Some((
+            format!("{}01010000", year),
+            format!("{}12312359", year),
+        )),
+        (None, None, None) => None,
+        (None, after, before) => Some((
+            match after {
+                Some(d) => date_stamp(d, false)?,
+                None => "190001010000".to_string(),
+            },
+            match before {
+                Some(d) => date_stamp(d, true)?,
+                None => "299912312359".to_string(),
+            },
+        )),
+    };
+    if let Some((from, to)) = range {
+        terms.push(format!("submittedDate:%5B{}+TO+{}%5D", from, to));
+    }
+
+    // Every arXiv paper is freely readable, so --open-access is always
+    // satisfied and contributes no term.
+
+    let mut url = format!(
+        "{}/api/query?search_query={}&start={}&max_results={}",
+        base_url,
+        terms.join("+AND+"),
+        q.offset,
+        q.limit
+    );
+
+    if let Some(sort) = q.sort {
+        let by = match sort {
+            super::SortField::Relevance => "relevance",
+            super::SortField::Date => "submittedDate",
+            super::SortField::Citations => {
+                return Err(
+                    "arxiv cannot sort by citations: it publishes no citation counts.\n\
+                     Try --sort date, or use semantic or openalex for citation ordering."
+                        .to_string(),
+                );
+            }
+        };
+        let order = match q.order {
+            super::SortOrder::Asc => "ascending",
+            super::SortOrder::Desc => "descending",
+        };
+        url.push_str(&format!("&sortBy={}&sortOrder={}", by, order));
+    }
+
+    Ok(url)
+}
+
+/// Search arXiv API and return parsed papers.
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
+    let url = build_search_url(base_url, q)?;
+    let body = http_get_with_retry(&url)?;
+    parse_search_response(&body)
 }
 
 /// Parse arXiv Atom/XML search response into a list of Papers.
@@ -347,7 +427,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -360,7 +440,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
         assert_eq!(papers.len(), 3);
         mock.assert();
     }
@@ -373,7 +453,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "attention", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("attention", 3));
         mock.assert();
     }
 
@@ -385,7 +465,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -396,7 +476,7 @@ mod tests {
             .mock("GET", mockito::Matcher::Any)
             .with_status(500)
             .create();
-        let result = search(&server.url(), "test", 3);
+        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("500"));
         mock.assert();
@@ -410,7 +490,7 @@ mod tests {
             .with_status(429)
             .expect_at_least(2)
             .create();
-        let result = search(&server.url(), "test", 3);
+        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         assert!(result.is_err());
         mock.assert();
     }
@@ -490,5 +570,169 @@ mod tests {
         let result = download_pdf(&server.url(), "9999.99999");
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("not found"));
+    }
+}
+
+#[cfg(test)]
+mod query_tests {
+    use super::*;
+    use crate::sources::{SearchQuery, SortField, SortOrder};
+
+    fn url(q: &SearchQuery) -> String {
+        build_search_url("https://export.arxiv.org", q).unwrap()
+    }
+
+    #[test]
+    fn plain_query_searches_all_fields() {
+        let u = url(&SearchQuery::simple("attention", 10));
+        assert!(u.contains("search_query=all:attention"), "got: {}", u);
+        assert!(u.contains("max_results=10"), "got: {}", u);
+        assert!(u.contains("start=0"), "got: {}", u);
+    }
+
+    #[test]
+    fn offset_becomes_start() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.offset = 30;
+        assert!(url(&q).contains("start=30"));
+    }
+
+    #[test]
+    fn author_is_anded_onto_the_query() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.author = Some("Vaswani".into());
+        let u = url(&q);
+        assert!(u.contains("AND"), "terms should be ANDed: {}", u);
+        assert!(u.contains("au:"), "got: {}", u);
+        assert!(u.contains("Vaswani"), "got: {}", u);
+    }
+
+    #[test]
+    fn field_becomes_a_category_term() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.field = Some("cs.CL".into());
+        assert!(url(&q).contains("cat:cs.CL"), "got: {}", url(&q));
+    }
+
+    // arXiv expects submittedDate:[YYYYMMDDTTTT TO YYYYMMDDTTTT].
+    #[test]
+    fn year_becomes_a_submitted_date_range() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.year = Some(2024);
+        let u = url(&q);
+        assert!(u.contains("submittedDate:"), "got: {}", u);
+        assert!(u.contains("202401010000"), "got: {}", u);
+        assert!(u.contains("202412312359"), "got: {}", u);
+    }
+
+    #[test]
+    fn after_and_before_become_a_submitted_date_range() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.after = Some("2023-06-01".into());
+        q.before = Some("2023-12-31".into());
+        let u = url(&q);
+        assert!(u.contains("202306010000"), "got: {}", u);
+        assert!(u.contains("202312312359"), "got: {}", u);
+    }
+
+    #[test]
+    fn after_alone_runs_to_an_open_upper_bound() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.after = Some("2023-06-01".into());
+        let u = url(&q);
+        assert!(u.contains("202306010000"), "got: {}", u);
+        assert!(u.contains("TO"), "got: {}", u);
+    }
+
+    #[test]
+    fn malformed_date_is_rejected() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.after = Some("June 2023".into());
+        let err = build_search_url("https://export.arxiv.org", &q).unwrap_err();
+        assert!(err.contains("YYYY-MM-DD"), "got: {}", err);
+    }
+
+    #[test]
+    fn sort_by_date_maps_to_submitted_date() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Date);
+        let u = url(&q);
+        assert!(u.contains("sortBy=submittedDate"), "got: {}", u);
+        assert!(u.contains("sortOrder=descending"), "got: {}", u);
+    }
+
+    #[test]
+    fn sort_order_ascending_is_honoured() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Date);
+        q.order = SortOrder::Asc;
+        assert!(url(&q).contains("sortOrder=ascending"));
+    }
+
+    #[test]
+    fn sort_by_relevance_is_the_api_default_name() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Relevance);
+        assert!(url(&q).contains("sortBy=relevance"));
+    }
+
+    // arXiv exposes no citation counts, so it cannot sort by them.
+    #[test]
+    fn sort_by_citations_is_rejected_by_name() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Citations);
+        let err = build_search_url("https://export.arxiv.org", &q).unwrap_err();
+        assert!(err.contains("citations"), "got: {}", err);
+        assert!(err.contains("arxiv"), "got: {}", err);
+    }
+
+    #[test]
+    fn no_sort_flag_leaves_sort_params_off() {
+        let u = url(&SearchQuery::simple("attention", 10));
+        assert!(!u.contains("sortBy"), "got: {}", u);
+    }
+
+    // Everything on arXiv is free to read, so --open-access is always
+    // satisfied and adds no term.
+    #[test]
+    fn open_access_adds_no_term_because_arxiv_is_all_open_access() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.open_access = true;
+        assert_eq!(url(&q), url(&SearchQuery::simple("attention", 10)));
+    }
+}
+
+#[cfg(test)]
+mod get_retry_tests {
+    use super::*;
+
+    // search has always backed off on 429; get_by_id used to fail outright.
+    #[test]
+    fn get_by_id_retries_after_a_429() {
+        let fixture = include_str!("../../tests/fixtures/arxiv_search.xml");
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(429)
+            .expect(1)
+            .create();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(fixture)
+            .create();
+        let paper = get_by_id(&server.url(), "2301.08745").unwrap();
+        assert!(paper.is_some(), "should succeed on the retry");
+    }
+
+    #[test]
+    fn get_by_id_gives_up_after_repeated_429s() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(429)
+            .create();
+        let err = get_by_id(&server.url(), "2301.08745").unwrap_err();
+        assert!(err.contains("429"), "got: {}", err);
     }
 }
