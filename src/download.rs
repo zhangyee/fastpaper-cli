@@ -53,32 +53,70 @@ pub fn pdf_bytes_semantic(base_url: &str, identifier: &str) -> Result<Vec<u8>, S
 
 /// Fetch CORE PDF bytes via the record's downloadUrl.
 pub fn pdf_bytes_core(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
-    let meta_url = format!("{}/v3/search/works?q={}&limit=1", base_url, identifier);
-    resolve_and_fetch(&meta_url, sources::core::parse_search_response)
+    resolve_and_fetch(
+        &core_meta_url(base_url, identifier),
+        sources::core::parse_search_response,
+    )
 }
 
 /// Fetch DOAJ PDF bytes via the record's fulltext link.
 pub fn pdf_bytes_doaj(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
-    let meta_url = format!("{}/api/v4/search/articles/{}?pageSize=1", base_url, identifier);
-    resolve_and_fetch(&meta_url, sources::doaj::parse_search_response)
+    resolve_and_fetch(
+        &doaj_meta_url(base_url, identifier),
+        sources::doaj::parse_search_response,
+    )
 }
 
 /// Fetch Zenodo PDF bytes via the record's file link.
 pub fn pdf_bytes_zenodo(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
-    let meta_url = format!(
-        "{}/api/records?q={}&size=1&type=publication",
-        base_url, identifier
-    );
-    resolve_and_fetch(&meta_url, sources::zenodo::parse_search_response)
+    resolve_and_fetch(
+        &zenodo_meta_url(base_url, identifier),
+        sources::zenodo::parse_search_response,
+    )
 }
 
 /// Fetch HAL PDF bytes via the record's fileMain_s URL.
 pub fn pdf_bytes_hal(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
-    let meta_url = format!(
+    resolve_and_fetch(
+        &hal_meta_url(base_url, identifier),
+        sources::hal::parse_search_response,
+    )
+}
+
+// The identifier reaches these straight from the command line, so it has to be
+// encoded: a multi-word one used to produce an invalid URI rather than a query.
+
+fn core_meta_url(base_url: &str, identifier: &str) -> String {
+    format!(
+        "{}/v3/search/works?q={}&limit=1",
+        base_url,
+        sources::encode_query(identifier)
+    )
+}
+
+/// DOAJ puts the query in a path segment, where `+` stays a literal plus.
+fn doaj_meta_url(base_url: &str, identifier: &str) -> String {
+    format!(
+        "{}/api/v4/search/articles/{}?pageSize=1",
+        base_url,
+        sources::encode_query(identifier).replace('+', "%20")
+    )
+}
+
+fn zenodo_meta_url(base_url: &str, identifier: &str) -> String {
+    format!(
+        "{}/api/records?q={}&size=1&type=publication",
+        base_url,
+        sources::encode_query(identifier)
+    )
+}
+
+fn hal_meta_url(base_url: &str, identifier: &str) -> String {
+    format!(
         "{}/search/?q={}&rows=1&wt=json&fl=halId_s,title_s,authFullName_s,abstract_s,doiId_s,publicationDateY_i,fileMain_s,uri_s",
-        base_url, identifier
-    );
-    resolve_and_fetch(&meta_url, sources::hal::parse_search_response)
+        base_url,
+        sources::encode_query(identifier)
+    )
 }
 
 /// Fetch a metadata URL, take the first record's `pdf_url`, and download it.
@@ -338,5 +376,40 @@ mod tests {
             .create();
         let result = fetch_pdf(&format!("{}/missing.pdf", server.url()));
         assert!(result.is_err());
+    }
+}
+
+#[cfg(test)]
+mod meta_url_tests {
+    use super::*;
+
+    // These resolvers take whatever the user typed. Interpolating it raw makes
+    // any multi-word identifier an invalid URI: `download zenodo "machine
+    // learning dataset"` failed with "http: invalid uri character".
+    #[test]
+    fn zenodo_meta_url_encodes_spaces() {
+        let u = zenodo_meta_url("https://zenodo.org", "machine learning");
+        assert!(!u.contains(' '), "raw space in URL: {}", u);
+        assert!(u.contains("machine+learning"), "got: {}", u);
+    }
+
+    #[test]
+    fn core_meta_url_encodes_spaces() {
+        let u = core_meta_url("https://api.core.ac.uk", "machine learning");
+        assert!(!u.contains(' '), "raw space in URL: {}", u);
+    }
+
+    #[test]
+    fn hal_meta_url_encodes_spaces() {
+        let u = hal_meta_url("https://api.archives-ouvertes.fr", "machine learning");
+        assert!(!u.contains(' '), "raw space in URL: {}", u);
+    }
+
+    // DOAJ carries the query in a path segment, where '+' is a literal plus.
+    #[test]
+    fn doaj_meta_url_uses_percent_twenty_not_plus() {
+        let u = doaj_meta_url("https://doaj.org", "machine learning");
+        assert!(u.contains("machine%20learning"), "got: {}", u);
+        assert!(!u.contains("machine+learning"), "path segments need %20: {}", u);
     }
 }
