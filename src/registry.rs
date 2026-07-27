@@ -166,7 +166,6 @@ basic_search_adapter!(s_pmc, sources::pmc);
 basic_search_adapter!(s_europepmc, sources::europepmc);
 basic_search_adapter!(s_scholar, sources::scholar);
 basic_search_adapter!(s_xueshu, sources::xueshu);
-basic_search_adapter!(s_semantic, sources::semantic);
 basic_search_adapter!(s_dblp, sources::dblp);
 basic_search_adapter!(s_core, sources::core);
 basic_search_adapter!(s_openaire, sources::openaire);
@@ -325,12 +324,29 @@ static XUESHU: SourceEntry = SourceEntry {
 
 static SEMANTIC: SourceEntry = SourceEntry {
     name: "semantic",
-    caps: basic_search(true, true, Some(100)),
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            date_range: true,
+            // Paper search exposes no author parameter.
+            author: false,
+            field: true,
+            open_access: true,
+        }),
+        get: true,
+        download: true,
+        max_limit: Some(100),
+        notes: "--sort switches to the bulk endpoint, which pages by token, so it \
+                cannot be combined with --offset; set SEMANTIC_SCHOLAR_API_KEY to \
+                avoid heavy throttling",
+    },
     env_var: "FASTPAPER_SEMANTIC_URL",
     default_base: "https://api.semanticscholar.org",
     pdf_env_var: None,
     pdf_default_base: None,
-    search: Some(s_semantic),
+    search: Some(sources::semantic::search),
     get: Some(sources::semantic::get_by_id),
     pdf: Some(download::pdf_bytes_semantic),
 };

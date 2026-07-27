@@ -143,13 +143,101 @@ fn http_get_with_retry_cfg(
     FetchOutcome::RateLimited
 }
 
+/// Relevance search pages with offset only this far.
+const MAX_OFFSET: u32 = 1000;
+
+/// Build the search URL.
+///
+/// Two endpoints: `/paper/search` ranks by relevance but cannot sort, and
+/// `/paper/search/bulk` sorts but pages with an opaque token instead of an
+/// offset. Asking for an explicit order switches to bulk.
+fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, String> {
+    if let Some(ref author) = q.author {
+        return Err(format!(
+            "semantic has no author filter on paper search (asked for --author {}).\n\
+             Try arxiv, crossref or openalex, which do.",
+            author
+        ));
+    }
+
+    let sort = match q.sort {
+        // Relevance is what /paper/search already does.
+        None | Some(super::SortField::Relevance) => None,
+        Some(super::SortField::Date) => Some("publicationDate"),
+        Some(super::SortField::Citations) => Some("citationCount"),
+    };
+
+    let mut url = if sort.is_some() {
+        if q.offset > 0 {
+            return Err(
+                "semantic pages sorted results with a token, not an offset, so --offset cannot be \
+                 combined with --sort date or --sort citations"
+                    .to_string(),
+            );
+        }
+        format!(
+            "{}/graph/v1/paper/search/bulk?query={}&fields={}",
+            base_url,
+            super::encode_query(&q.query),
+            FIELDS
+        )
+    } else {
+        if q.offset > MAX_OFFSET {
+            return Err(format!(
+                "semantic supports an offset up to {} (asked for {})",
+                MAX_OFFSET, q.offset
+            ));
+        }
+        format!(
+            "{}/graph/v1/paper/search?query={}&limit={}&offset={}&fields={}",
+            base_url,
+            super::encode_query(&q.query),
+            q.limit,
+            q.offset,
+            FIELDS
+        )
+    };
+
+    if let Some(by) = sort {
+        let order = match q.order {
+            super::SortOrder::Asc => "asc",
+            super::SortOrder::Desc => "desc",
+        };
+        url.push_str(&format!("&sort={}:{}", by, order));
+    }
+
+    match q.year {
+        Some(year) => url.push_str(&format!("&year={}", year)),
+        None => {
+            if q.after.is_some() || q.before.is_some() {
+                let from = match q.after {
+                    Some(ref d) => super::validate_ymd(d)?,
+                    None => "",
+                };
+                let to = match q.before {
+                    Some(ref d) => super::validate_ymd(d)?,
+                    None => "",
+                };
+                url.push_str(&format!("&publicationDateOrYear={}:{}", from, to));
+            }
+        }
+    }
+
+    if let Some(ref field) = q.field {
+        url.push_str(&format!("&fieldsOfStudy={}", super::encode_query(field)));
+    }
+    // openAccessPdf is a presence flag; giving it a value is not the documented
+    // form.
+    if q.open_access {
+        url.push_str("&openAccessPdf");
+    }
+
+    Ok(url)
+}
+
 /// Search Semantic Scholar API and return parsed papers.
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String> {
-    let encoded = super::encode_query(query);
-    let url = format!(
-        "{}/graph/v1/paper/search?query={}&limit={}&fields={}",
-        base_url, encoded, max_results, FIELDS
-    );
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
+    let url = build_search_url(base_url, q)?;
     let api_key = std::env::var("SEMANTIC_SCHOLAR_API_KEY").ok();
     let cfg = if api_key.is_some() {
         BackoffConfig::DEFAULT_AUTH
@@ -367,7 +455,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), "test", 3).unwrap();
+        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -380,7 +468,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -392,7 +480,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -404,7 +492,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -419,7 +507,7 @@ mod tests {
             .with_body(FIXTURE)
             .create();
         unsafe { std::env::set_var("SEMANTIC_SCHOLAR_API_KEY", "test-key-123") };
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
         mock.assert();
     }
@@ -434,7 +522,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), "test", 3);
+        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         assert!(result.is_ok());
         mock.assert();
     }
@@ -544,7 +632,7 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), "test", 3);
+        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         mock.assert();
     }
 
@@ -595,7 +683,7 @@ mod tests {
             .create();
 
         let t0 = Instant::now();
-        let result = search(&server.url(), "test", 3);
+        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         let elapsed = t0.elapsed();
 
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
@@ -656,7 +744,7 @@ mod tests {
             .expect(1)
             .create();
 
-        let result = search(&server.url(), "test", 3);
+        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
 
         assert!(
@@ -667,5 +755,131 @@ mod tests {
         assert!(!result.unwrap().is_empty());
         m_403.assert();
         m_200.assert();
+    }
+}
+
+#[cfg(test)]
+mod query_tests {
+    use super::*;
+    use crate::sources::{SearchQuery, SortField, SortOrder};
+
+    fn url(q: &SearchQuery) -> String {
+        build_search_url("https://api.semanticscholar.org", q).unwrap()
+    }
+
+    #[test]
+    fn plain_query_uses_the_relevance_endpoint() {
+        let u = url(&SearchQuery::simple("attention", 10));
+        assert!(u.contains("/graph/v1/paper/search?"), "got: {}", u);
+        assert!(u.contains("query=attention"), "got: {}", u);
+        assert!(u.contains("limit=10"), "got: {}", u);
+    }
+
+    #[test]
+    fn offset_is_passed_through() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.offset = 40;
+        assert!(url(&q).contains("offset=40"));
+    }
+
+    #[test]
+    fn offset_beyond_the_api_limit_is_rejected() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.offset = 1001;
+        let err = build_search_url("https://api.semanticscholar.org", &q).unwrap_err();
+        assert!(err.contains("1000"), "got: {}", err);
+    }
+
+    #[test]
+    fn year_is_passed_through() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.year = Some(2017);
+        assert!(url(&q).contains("year=2017"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn dates_become_a_publication_date_range() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.after = Some("2024-01-01".into());
+        q.before = Some("2024-03-31".into());
+        assert!(
+            url(&q).contains("publicationDateOrYear=2024-01-01:2024-03-31"),
+            "got: {}",
+            url(&q)
+        );
+    }
+
+    #[test]
+    fn after_alone_leaves_the_upper_bound_open() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.after = Some("2024-01-01".into());
+        assert!(
+            url(&q).contains("publicationDateOrYear=2024-01-01:"),
+            "got: {}",
+            url(&q)
+        );
+    }
+
+    #[test]
+    fn field_becomes_fields_of_study() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.field = Some("Computer Science".into());
+        assert!(url(&q).contains("fieldsOfStudy=Computer"), "got: {}", url(&q));
+    }
+
+    // openAccessPdf is a valueless presence flag.
+    #[test]
+    fn open_access_adds_a_bare_flag() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.open_access = true;
+        let u = url(&q);
+        assert!(u.contains("openAccessPdf"), "got: {}", u);
+        assert!(!u.contains("openAccessPdf=true"), "flag takes no value: {}", u);
+    }
+
+    // Only the bulk endpoint sorts; relevance ranking is the default elsewhere.
+    #[test]
+    fn sorting_switches_to_the_bulk_endpoint() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Citations);
+        let u = url(&q);
+        assert!(u.contains("/paper/search/bulk?"), "got: {}", u);
+        assert!(u.contains("sort=citationCount:desc"), "got: {}", u);
+    }
+
+    #[test]
+    fn sort_by_date_uses_publication_date() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Date);
+        q.order = SortOrder::Asc;
+        assert!(url(&q).contains("sort=publicationDate:asc"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn sort_by_relevance_stays_on_the_relevance_endpoint() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Relevance);
+        let u = url(&q);
+        assert!(u.contains("/paper/search?"), "got: {}", u);
+        assert!(!u.contains("sort="), "relevance is the default ranking: {}", u);
+    }
+
+    // The bulk endpoint has a token cursor instead of offset.
+    #[test]
+    fn offset_with_sorting_is_rejected() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.sort = Some(SortField::Citations);
+        q.offset = 10;
+        let err = build_search_url("https://api.semanticscholar.org", &q).unwrap_err();
+        assert!(err.contains("--offset"), "got: {}", err);
+    }
+
+    // Semantic Scholar's paper search has no author parameter.
+    #[test]
+    fn author_is_rejected_with_an_alternative() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.author = Some("Vaswani".into());
+        let err = build_search_url("https://api.semanticscholar.org", &q).unwrap_err();
+        assert!(err.contains("--author"), "got: {}", err);
     }
 }
