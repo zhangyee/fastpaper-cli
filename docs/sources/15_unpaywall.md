@@ -3,7 +3,7 @@
 - **API 类型**: REST JSON
 - **基础 URL**: `https://api.unpaywall.org/v2`
 - **认证**: **必需**环境变量 `UNPAYWALL_EMAIL`(免费;API 条款要求提供联系邮箱)
-- **能力**: 仅按 DOI 查找 OA 链接;不支持关键词搜索 / download / read
+- **能力**: get
 - **实现**: `src/sources/unpaywall.rs`(以代码为准)
 
 ## 查找
@@ -28,3 +28,11 @@
 
 - Unpaywall 是 OA 解析器而非内容托管方,不提供下载;用返回的 `pdf_url` 到别处获取(如 `fastpaper download semantic <DOI>`)。
 - `main.rs` 把 search 子命令的 query 直接当 DOI 传给 `lookup_doi`;默认 base `https://api.unpaywall.org`,`FASTPAPER_UNPAYWALL_URL` 可覆盖。
+
+## CLI 过滤参数映射
+
+`fastpaper search` 的参数落到本源原生参数上的方式。源不支持的参数会直接报错,不会被静默忽略。
+
+| CLI 参数 | 映射 |
+|---|---|
+| —— | 本源没有检索能力,只按 DOI 解析。走 `fastpaper get unpaywall <DOI>` |

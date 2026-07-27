@@ -3,7 +3,7 @@
 - **API 类型**: REST JSON
 - **基础 URL**: `https://api.openalex.org`
 - **认证**: 无需;`mailto` 参数进入 polite pool,取 `FASTPAPER_EMAIL`(fallback 硬编码项目邮箱)
-- **能力**: search only(仅元数据,不支持 download / read)
+- **能力**: search + get
 - **实现**: `src/sources/openalex.rs`(以代码为准)
 
 ## 搜索
@@ -26,3 +26,18 @@
 ## 注意
 
 - 元数据源:下载需自行使用搜索结果里的 `pdf_url`。
+
+## CLI 过滤参数映射
+
+`fastpaper search` 的参数落到本源原生参数上的方式。源不支持的参数会直接报错,不会被静默忽略。
+
+| CLI 参数 | 映射 |
+|---|---|
+| `-n` | `per_page`(≤100) |
+| `--offset` | `page`,**必须是 `-n` 的整数倍** |
+| `--author` | `filter=raw_author_name.search:{name}` |
+| `--year` | `filter=publication_year:{year}` |
+| `--after` / `--before` | `filter=from_publication_date:` / `to_publication_date:` |
+| `--open-access` | `filter=is_oa:true` |
+| `--field` | `filter=concepts.id:{id}`。**必须是 concept ID(如 `C154945302`),不是名字**——`concepts.display_name.search` 与 `primary_topic.field.display_name` 均被 API 拒绝 |
+| `--sort` | `sort=relevance_score` / `publication_date` / `cited_by_count` + `:asc|desc` |

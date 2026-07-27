@@ -3,7 +3,7 @@
 - **API 类型**: REST JSON(v3)
 - **基础 URL**: `https://api.core.ac.uk`,搜索端点 `/v3/search/works`
 - **认证**: 可选 `CORE_API_KEY`,header `Authorization: Bearer {key}`(提升 rate limit 和结果质量)
-- **能力**: search + download + read
+- **能力**: search + download
 - **实现**: `src/sources/core.rs`(以代码为准)
 
 ## 搜索
@@ -22,9 +22,20 @@
 
 ## 下载
 
-- 无独立 PDF 端点:按标识符 search 取第一条的 `downloadUrl` 再下载(见 `src/download.rs::download_core`)。
+- 无独立 PDF 端点:按标识符 search 取第一条的 `downloadUrl` 再下载(见 `src/download.rs::pdf_bytes_core`)。
 - API 另有单篇详情 `GET /v3/works/{id}`(含 `fullText` 全文字段、`fullTextUrls`),当前实现未使用。
 
 ## 注意
 
-- 端点必须带 `/v3` 前缀:`{base}/search/works`(缺 `/v3`)对真实 API 返回 404。`core.rs::search` 与 `download.rs::download_core` 均拼 `{base}/v3/search/works`。
+- 端点必须带 `/v3` 前缀:`{base}/search/works`(缺 `/v3`)对真实 API 返回 404。`core.rs::search` 与 `download.rs::pdf_bytes_core` 均拼 `{base}/v3/search/works`。
+
+## CLI 过滤参数映射
+
+`fastpaper search` 的参数落到本源原生参数上的方式。源不支持的参数会直接报错,不会被静默忽略。
+
+| CLI 参数 | 映射 |
+|---|---|
+| `-n` / `--offset` | `limit` / `offset` |
+| `--author` | `q` 内 `authors:"{name}"` |
+| `--year` | `q` 内 `yearPublished:{year}` |
+| `--sort` / `--field` / `--open-access` | 不支持 |

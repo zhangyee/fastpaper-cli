@@ -3,7 +3,7 @@
 - **API 类型**: REST XML
 - **基础 URL**: `https://dblp.org`,搜索端点 `GET /search/publ/api`
 - **认证**: 无需
-- **能力**: search only(CS 专属;无摘要;不支持 download / read)
+- **能力**: search
 - **实现**: `src/sources/dblp.rs`(以代码为准)
 
 ## 搜索
@@ -23,3 +23,13 @@
 
 - 设计期考虑过 HTML 爬取降级(`/search/publ` 页面),未实现;当前只有 XML API。
 - 元数据源:拿 DOI 去其他源下载。
+
+## CLI 过滤参数映射
+
+`fastpaper search` 的参数落到本源原生参数上的方式。源不支持的参数会直接报错,不会被静默忽略。
+
+| CLI 参数 | 映射 |
+|---|---|
+| `-n` | `h`(≤1000) |
+| `--offset` | `f`(≤999970) |
+| 其余全部 | 不支持。该 API 只接受查询串与翻页,没有结构化过滤 |

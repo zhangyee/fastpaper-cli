@@ -3,7 +3,7 @@
 - **API 类型**: REST JSON(与 BioRxiv 共用 API)
 - **基础 URL**: `https://api.biorxiv.org`(下载 `https://www.medrxiv.org`)
 - **认证**: 无需
-- **能力**: search + download + read
+- **能力**: search + download
 - **实现**: `src/sources/medrxiv.rs`(以代码为准)
 
 ## 与 BioRxiv 的差异
@@ -15,3 +15,14 @@
 - `venue`:固定 `"medRxiv preprint"`
 - `source`:`"medrxiv"`
 - 日期格式化复用 `biorxiv::format_date`。
+
+## CLI 过滤参数映射
+
+`fastpaper search` 的参数落到本源原生参数上的方式。源不支持的参数会直接报错,不会被静默忽略。
+
+| CLI 参数 | 映射 |
+|---|---|
+| `--year` / `--after` / `--before` | **决定 `/details/medrxiv/{start}/{end}/{cursor}` 的日期区间**——这是本源唯一能原生支持的过滤 |
+| `-n` / `--offset` | 本地切片。游标每页 30 条,最多翻 20 页 |
+| `--open-access` | 恒满足 |
+| `--sort` / `--author` / `--field` | 不支持 |

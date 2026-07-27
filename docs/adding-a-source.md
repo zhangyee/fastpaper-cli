@@ -49,7 +49,7 @@ Work test-first: each behavior gets a failing test, then the minimal implementat
 Add the standard entry point:
 
 ```rust
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String>
+pub fn search(base_url: &str, q: &SearchQuery) -> Result<Vec<Paper>, String>
 ```
 
 Rules:
@@ -66,10 +66,15 @@ Test with mockito (synchronous): request path and parameters, required headers, 
 
 Four touch points:
 
-1. `src/cli.rs` — add the variant to `enum Source`, and an arm in `name()`.
-2. `src/cli.rs` — if the source cannot serve PDFs, add a helpful `download_hint()` arm.
-3. `src/main.rs` — add the dispatch arm in the `Search` match: read `FASTPAPER_<SOURCE>_URL` with the real base URL as default, call `sources::<source>::search`.
-4. `src/main.rs` — add a row to the `sources` command table.
+1. `src/registry.rs` — add the variant to `enum Source` and to `ALL`.
+2. `src/registry.rs` — add its `static <SOURCE>: SourceEntry`: name, env var and default base URL, the `search` / `get` / `pdf` function pointers, and `Capabilities` stating exactly which filters it can honour.
+3. `src/registry.rs` — add the arm in `Source::entry()`.
+
+There is no fourth step: `fastpaper sources` and the argument validation both
+read `Capabilities`, so the listing and the error messages follow from step 2.
+Declare a filter `true` only if the source really maps it onto a native
+parameter — a `true` you cannot back up produces results that look right and
+are not.
 
 Add CLI integration tests in `tests/cli.rs` (mockito server + `FASTPAPER_<SOURCE>_URL` env): a successful search printing a known title, an API-error case exiting non-zero with the message, `sources` listing the new name.
 

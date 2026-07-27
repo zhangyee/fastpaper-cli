@@ -3,7 +3,7 @@
 - **API 类型**: REST JSON
 - **基础 URL**: `https://zenodo.org/api`
 - **认证**: 无需
-- **能力**: search + download + read;CERN 运营的通用存储库(论文/数据集/软件)
+- **能力**: search + download
 - **实现**: `src/sources/zenodo.rs`(以代码为准)
 
 ## 搜索
@@ -27,9 +27,23 @@
 
 ## 下载
 
-无直接 PDF 端点:按 identifier 调 `/api/records?q={id}&size=1&type=publication` 拿 `pdf_url` 再下载,见 `src/download.rs::download_zenodo`;read = 下载后本地提取 PDF 文本。
+无直接 PDF 端点:按 identifier 调 `/api/records?q={id}&size=1&type=publication` 拿 `pdf_url` 再下载,见 `src/download.rs::pdf_bytes_zenodo`;落盘后用 `fastpaper read papers/<id>.pdf` 提取文本。
 
 ## 注意
 
-- 端点必须带 `/api`:`https://zenodo.org/records?q=...` 返回 404 HTML(2026-07 实测),须用 `/api/records`。默认 base `https://zenodo.org`(`FASTPAPER_ZENODO_URL` 可覆盖);`search()` 与 `download_zenodo` 均拼 `/api`。
+- 端点必须带 `/api`:`https://zenodo.org/records?q=...` 返回 404 HTML(2026-07 实测),须用 `/api/records`。默认 base `https://zenodo.org`(`FASTPAPER_ZENODO_URL` 可覆盖);`search()` 与 `pdf_bytes_zenodo` 均拼 `/api`。
 - 429 → 指数退避重试(实现内置 3 次);5xx → 直接报错。
+
+## CLI 过滤参数映射
+
+`fastpaper search` 的参数落到本源原生参数上的方式。源不支持的参数会直接报错,不会被静默忽略。
+
+| CLI 参数 | 映射 |
+|---|---|
+| `-n` | `size`。**匿名调用上限 25**,超出会被 Zenodo 以裸 400 拒绝,所以本地先拦 |
+| `--offset` | `page`,**必须是 `-n` 的整数倍** |
+| `--author` | `q` 内 `creators.name:{name}` |
+| `--year` / `--after` / `--before` | `q` 内 `publication_date:[{from} TO {to}]` |
+| `--open-access` | `q` 内 `access_right:open`。**注意不是 `access_right` 查询参数**——那个参数会被忽略(open 与 closed 返回同样的结果数) |
+| `--sort` | `sort=bestmatch` / `mostrecent`;**citations 不支持** |
+| `--field` | 不支持 |

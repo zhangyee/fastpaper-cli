@@ -49,7 +49,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String>
 加上标准入口:
 
 ```rust
-pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper>, String>
+pub fn search(base_url: &str, q: &SearchQuery) -> Result<Vec<Paper>, String>
 ```
 
 规则:
@@ -64,12 +64,15 @@ pub fn search(base_url: &str, query: &str, max_results: u32) -> Result<Vec<Paper
 
 ## Step 4 — 接线 CLI
 
-四个接线点:
+三个接线点,全在 `src/registry.rs`:
 
-1. `src/cli.rs` — `enum Source` 加变体,`name()` 加分支。
-2. `src/cli.rs` — 若该源不能提供 PDF,在 `download_hint()` 加一条有用的提示。
-3. `src/main.rs` — `Search` match 里加分发分支:读 `FASTPAPER_<SOURCE>_URL`(默认真实 base URL),调用 `sources::<source>::search`。
-4. `src/main.rs` — `sources` 命令的表格加一行。
+1. `enum Source` 加变体,并加进 `ALL`。
+2. 加它的 `static <SOURCE>: SourceEntry`:名字、环境变量与默认 base URL、`search` / `get` / `pdf` 函数指针,以及如实声明它能支持哪些过滤参数的 `Capabilities`。
+3. `Source::entry()` 加分支。
+
+没有第四步:`fastpaper sources` 与参数校验都读 `Capabilities`,所以列表和报错文案
+由第 2 步自动跟上。**只有该源真把某个过滤参数映射到了原生参数,才把它声明为 `true`**
+——撑不住的 `true` 会产出看着对、其实不对的结果。
 
 在 `tests/cli.rs` 加集成测试(mockito server + `FASTPAPER_<SOURCE>_URL` 环境变量):搜索成功并输出已知标题、API 错误时非零退出并带消息、`sources` 列表包含新源名。
 

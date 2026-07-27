@@ -3,7 +3,7 @@
 - **API 类型**: REST JSON(Graph API v1)
 - **基础 URL**: `https://api.semanticscholar.org`(端点自带 `/graph/v1` 前缀)
 - **认证**: 可选 `SEMANTIC_SCHOLAR_API_KEY`,header `x-api-key`(rate limit 1→100 req/s)
-- **能力**: search + download + read
+- **能力**: search + get + download
 - **实现**: `src/sources/semantic.rs`(以代码为准)
 
 ## 搜索
@@ -26,9 +26,24 @@
 
 ## 下载
 
-- 无独立 PDF 端点:先 `get_by_id` 拿 `openAccessPdf.url`,再直接下载(见 `src/download.rs::download_semantic`)。
+- 无独立 PDF 端点:先 `get_by_id` 拿 `openAccessPdf.url`,再直接下载(见 `src/download.rs::pdf_bytes_semantic`)。
 
 ## 注意
 
 - 限频严格:代码含进程级节流、指数退避(带 jitter)、`Retry-After` 解析,最多重试 5 次,超限返回 `Err("rate limited …")`。
 - 403 且带 key 时:去掉 key 重试一次(key 失效时不至于完全不可用)。
+
+## CLI 过滤参数映射
+
+`fastpaper search` 的参数落到本源原生参数上的方式。源不支持的参数会直接报错,不会被静默忽略。
+
+| CLI 参数 | 映射 |
+|---|---|
+| `-n` | `limit`(≤100) |
+| `--offset` | `offset`(≤1000);**不能与 `--sort` 同用**,见下 |
+| `--year` | `year` |
+| `--after` / `--before` | `publicationDateOrYear={from}:{to}` |
+| `--field` | `fieldsOfStudy` |
+| `--open-access` | `openAccessPdf`(**无值的存在性标志**,不是 `=true`) |
+| `--sort` | **切到 `/paper/search/bulk` 端点**,`sort=publicationDate` / `citationCount` + `:asc|desc`。bulk 用 token 游标翻页,所以不能与 `--offset` 同用 |
+| `--author` | 不支持。paper search 没有作者参数;报错会指向 arxiv / crossref / openalex |

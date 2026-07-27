@@ -3,7 +3,7 @@
 - **API 类型**: HTML 爬取(无官方 API)
 - **基础 URL**: `https://scholar.google.com`
 - **认证**: 无需
-- **能力**: search only(**实验性**,有 CAPTCHA 风险)
+- **能力**: search
 - **实现**: `src/sources/scholar.rs`(以代码为准)
 
 ## 搜索
@@ -27,3 +27,12 @@
 
 - 不支持 download / read。
 - 引用数不可靠,统一不输出。
+
+## CLI 过滤参数映射
+
+`fastpaper search` 的参数落到本源原生参数上的方式。源不支持的参数会直接报错,不会被静默忽略。
+
+| CLI 参数 | 映射 |
+|---|---|
+| `-n` / `--offset` | `num` / `start` |
+| 其余全部 | 不支持。这是 HTML 抓取而非 API,加过滤条件收益低、易碎 |

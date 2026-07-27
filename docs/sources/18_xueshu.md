@@ -3,7 +3,7 @@
 - **API 类型**: 未公开站内 JSON 接口(实验性;非正式 API,无稳定承诺)
 - **端点**: `GET https://xueshu.baidu.com/search/api/search`
 - **认证**: 无 Cookie / 无账号;需特殊请求头(见下)
-- **能力**: search only(每页固定 10 条)
+- **能力**: search
 - **实现**: `src/sources/xueshu.rs`(以代码为准)
 
 ## 必需请求头
@@ -77,3 +77,12 @@ curl --compressed -A 'fastpaper-cli/0.1' -H 'Acs-Token: parisInstance is not rea
 - `Acs-Token` 回退值可能随时被后端停止接受,表现为 7350001。
 - 风控按查询重复度与 IP 频率分级;保持串行低频请求,避免并发轰炸。
 - 绝不自动过验证码、获取 `svcp_stk` 或逆向生成风险 Token;触发验证码即报错停止。
+
+## CLI 过滤参数映射
+
+`fastpaper search` 的参数落到本源原生参数上的方式。源不支持的参数会直接报错,不会被静默忽略。
+
+| CLI 参数 | 映射 |
+|---|---|
+| `-n` / `--offset` | 本地切片(接口按 `pn` 每页 10 条串行翻页) |
+| 其余全部 | 不支持。非官方接口,不做超出必要的依赖 |

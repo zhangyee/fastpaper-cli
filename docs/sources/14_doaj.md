@@ -1,9 +1,10 @@
 # DOAJ
 
 - **API 类型**: REST JSON
-- **基础 URL**: `https://doaj.org/api`
+- **基础 URL**: `https://doaj.org/api`,文章检索端点 `/v4/search/articles/{query}`
+- **查询串在路径段里,不在 query string 里。**因此空格必须编码成 `%20`:`+` 在路径段中是字面加号,`crispr+AND+bibjson.year:2024` 命中 0 条,而 `%20AND%20` 形式命中数千条。
 - **认证**: 无需
-- **能力**: search + download + read;内容全部开放获取
+- **能力**: search + download
 - **实现**: `src/sources/doaj.rs`(以代码为准)
 
 ## 搜索
@@ -26,9 +27,24 @@
 
 ## 下载
 
-无直接 PDF 端点:按 identifier 调搜索接口(`pageSize=1`)拿 `pdf_url` 再下载,见 `src/download.rs::download_doaj`;read = 下载后本地提取 PDF 文本。
+无直接 PDF 端点:按 identifier 调搜索接口(`pageSize=1`)拿 `pdf_url` 再下载,见 `src/download.rs::pdf_bytes_doaj`;落盘后用 `fastpaper read papers/<id>.pdf` 提取文本。
 
 ## 注意
 
-- 端点必须带 `/api` 前缀:`https://doaj.org/search/articles/...` 返回 403 HTML(2026-07 实测),须用 `https://doaj.org/api/search/articles/...`。默认 base `https://doaj.org`(`FASTPAPER_DOAJ_URL` 可覆盖);`search()` 与 `download_doaj` 均在路径中拼 `/api`。
+- 端点必须带 `/api` 前缀:`https://doaj.org/search/articles/...` 返回 403 HTML(2026-07 实测),须用 `https://doaj.org/api/v4/search/articles/...`。默认 base `https://doaj.org`(`FASTPAPER_DOAJ_URL` 可覆盖);`search()` 与 `pdf_bytes_doaj` 均在路径中拼 `/api/v4`。
 - 429 → 指数退避重试(实现内置 3 次);5xx → 直接报错。
+
+## CLI 过滤参数映射
+
+`fastpaper search` 的参数落到本源原生参数上的方式。源不支持的参数会直接报错,不会被静默忽略。
+
+| CLI 参数 | 映射 |
+|---|---|
+| `-n` | `pageSize`(≤100) |
+| `--offset` | `page`,**必须是 `-n` 的整数倍** |
+| `--author` | 查询路径内 `bibjson.author.name:{name}` |
+| `--year` | 查询路径内 `bibjson.year:{year}` |
+| `--open-access` | 恒满足(DOAJ 收录的全部是开放获取) |
+| `--sort` | 不支持。`bibjson.year` 不可排序,`created_date` 是入库时间而非出版时间 |
+| `--after` / `--before` | 不支持。记录只有年份没有日期,按日过滤只能悄悄放宽成整年 |
+| `--field` | 不支持 |
