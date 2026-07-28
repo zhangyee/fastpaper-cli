@@ -1,6 +1,6 @@
-use super::{emit, failed, render, CommandError, CommandResult};
+use super::{CommandError, CommandResult, emit, failed, render};
 use crate::cli::{CiteArgs, GlobalOpts};
-use crate::identifier::{detect_id_type, IdType};
+use crate::identifier::{IdType, detect_id_type};
 use crate::registry::Source;
 
 pub fn run(args: &CiteArgs, global: &GlobalOpts) -> CommandResult {
@@ -11,11 +11,14 @@ pub fn run(args: &CiteArgs, global: &GlobalOpts) -> CommandResult {
         None => route(raw_id)?,
     };
 
-    let cite = source.entry().cite.ok_or_else(|| unsupported_cite(source))?;
+    let cite = source
+        .entry()
+        .cite
+        .ok_or_else(|| unsupported_cite(source))?;
     let id = normalize_id(source, raw_id);
 
-    let papers = cite(&source.base_url(), &id, args.direction, args.limit)
-        .map_err(CommandError::Failed)?;
+    let papers =
+        cite(&source.base_url(), &id, args.direction, args.limit).map_err(CommandError::Failed)?;
 
     // An empty edge list is a real answer — a 2026 preprint nobody has cited
     // yet, or a record whose references are not indexed. `search` returns an
@@ -118,7 +121,10 @@ mod tests {
             normalize_id(Source::Semantic, "10.1038/nature12373"),
             "DOI:10.1038/nature12373"
         );
-        assert_eq!(normalize_id(Source::Semantic, "2301.08745"), "ARXIV:2301.08745");
+        assert_eq!(
+            normalize_id(Source::Semantic, "2301.08745"),
+            "ARXIV:2301.08745"
+        );
     }
 
     #[test]

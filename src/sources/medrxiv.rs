@@ -137,7 +137,12 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
 
         let authors: Vec<String> = item["authors"]
             .as_str()
-            .map(|s| s.split(';').map(|a| a.trim().to_string()).filter(|a| !a.is_empty()).collect())
+            .map(|s| {
+                s.split(';')
+                    .map(|a| a.trim().to_string())
+                    .filter(|a| !a.is_empty())
+                    .collect()
+            })
             .unwrap_or_default();
 
         let abstract_text = item["abstract"].as_str().map(|s| s.to_string());
@@ -150,13 +155,19 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
         let category = item["category"].as_str().map(|s| s.to_string());
 
         let pdf_url = if !doi.is_empty() {
-            Some(format!("https://www.medrxiv.org/content/{}v{}.full.pdf", doi, version))
+            Some(format!(
+                "https://www.medrxiv.org/content/{}v{}.full.pdf",
+                doi, version
+            ))
         } else {
             None
         };
 
         let url = if !doi.is_empty() {
-            Some(format!("https://www.medrxiv.org/content/{}v{}", doi, version))
+            Some(format!(
+                "https://www.medrxiv.org/content/{}v{}",
+                doi, version
+            ))
         } else {
             None
         };
@@ -205,11 +216,17 @@ mod tests {
     fn search_request_path_contains_details_medrxiv() {
         let mut server = mockito::Server::new();
         let mock = server
-            .mock("GET", mockito::Matcher::Regex("/details/medrxiv/".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("/details/medrxiv/".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("risk", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("risk", 3),
+        );
         mock.assert();
     }
 
@@ -243,7 +260,10 @@ mod get_tests {
     fn get_by_id_hits_the_details_endpoint() {
         let mut server = mockito::Server::new();
         let m = server
-            .mock("GET", mockito::Matcher::Regex("/details/medrxiv/10".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("/details/medrxiv/10".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
@@ -254,7 +274,11 @@ mod get_tests {
     #[test]
     fn get_by_id_returns_the_first_preprint() {
         let mut server = mockito::Server::new();
-        server.mock("GET", mockito::Matcher::Any).with_status(200).with_body(FIXTURE).create();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
         assert!(get_by_id(&server.url(), "10.1101/x").unwrap().is_some());
     }
 }

@@ -83,7 +83,9 @@ mod tests {
     fn extract_text_contains_expected_words() {
         let text = extract_text(&fixture_path()).unwrap();
         assert!(
-            text.contains("Transformer") || text.contains("attention") || text.contains("Attention"),
+            text.contains("Transformer")
+                || text.contains("attention")
+                || text.contains("Attention"),
             "text should contain expected words, got: {}",
             &text[..text.len().min(200)]
         );
@@ -177,7 +179,10 @@ References
 
     #[test]
     fn extract_section_is_case_insensitive() {
-        assert_eq!(extract_section(PAPER, "METHODS"), extract_section(PAPER, "methods"));
+        assert_eq!(
+            extract_section(PAPER, "METHODS"),
+            extract_section(PAPER, "methods")
+        );
     }
 
     #[test]
@@ -188,7 +193,10 @@ References
     #[test]
     fn extract_section_abstract_matches_the_generic_extractor() {
         let text = extract_text(&fixture_path()).unwrap();
-        assert_eq!(extract_section_abstract(&text), extract_section(&text, "abstract"));
+        assert_eq!(
+            extract_section_abstract(&text),
+            extract_section(&text, "abstract")
+        );
     }
 
     #[test]

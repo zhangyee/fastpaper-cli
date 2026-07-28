@@ -19,7 +19,11 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
             q.offset, q.limit
         ));
     }
-    let page = if q.limit > 0 { q.offset / q.limit + 1 } else { 1 };
+    let page = if q.limit > 0 {
+        q.offset / q.limit + 1
+    } else {
+        1
+    };
 
     let mut terms = vec![super::encode_query(&q.query)];
 
@@ -167,14 +171,10 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
 
         let doi = item["doi"].as_str().map(|s| s.to_string());
         let abstract_text = item["abstractText"].as_str().map(|s| s.to_string());
-        let year = item["pubYear"]
-            .as_str()
-            .and_then(|s| s.parse::<u16>().ok());
+        let year = item["pubYear"].as_str().and_then(|s| s.parse::<u16>().ok());
         let citations = item["citedByCount"].as_u64().map(|n| n as u32);
 
-        let is_oa = item["isOpenAccess"]
-            .as_str()
-            .map(|s| s == "Y");
+        let is_oa = item["isOpenAccess"].as_str().map(|s| s == "Y");
 
         papers.push(Paper {
             id,
@@ -222,12 +222,20 @@ mod tests {
     // natively — no local filtering and no extra page fetches.
     #[test]
     fn patents_narrows_to_the_patent_subset() {
-        assert!(patent_url(true).contains("SRC:PAT"), "got: {}", patent_url(true));
+        assert!(
+            patent_url(true).contains("SRC:PAT"),
+            "got: {}",
+            patent_url(true)
+        );
     }
 
     #[test]
     fn without_the_flag_the_subset_is_not_constrained() {
-        assert!(!patent_url(false).contains("SRC"), "got: {}", patent_url(false));
+        assert!(
+            !patent_url(false).contains("SRC"),
+            "got: {}",
+            patent_url(false)
+        );
     }
 
     const FIXTURE: &str = include_str!("../../tests/fixtures/europepmc_search.json");
@@ -288,7 +296,10 @@ mod tests {
     #[test]
     fn parse_abstract() {
         let papers = parse_search_response(FIXTURE).unwrap();
-        let with_abstract: Vec<_> = papers.iter().filter(|p| p.abstract_text.is_some()).collect();
+        let with_abstract: Vec<_> = papers
+            .iter()
+            .filter(|p| p.abstract_text.is_some())
+            .collect();
         assert!(!with_abstract.is_empty(), "no papers with abstract");
     }
 
@@ -321,7 +332,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -334,7 +349,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -346,7 +364,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -358,7 +379,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -375,7 +399,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -383,11 +410,17 @@ mod tests {
     fn search_request_contains_result_type_core() {
         let mut server = mockito::Server::new();
         let mock = server
-            .mock("GET", mockito::Matcher::Regex("resultType=core".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("resultType=core".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 }
@@ -475,7 +508,8 @@ mod query_tests {
 
     #[test]
     fn the_rest_path_is_still_the_full_one() {
-        assert!(url(&SearchQuery::simple("crispr", 10))
-            .contains("/europepmc/webservices/rest/search"));
+        assert!(
+            url(&SearchQuery::simple("crispr", 10)).contains("/europepmc/webservices/rest/search")
+        );
     }
 }

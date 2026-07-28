@@ -1,7 +1,7 @@
-use super::{failed, CommandError, CommandResult};
+use super::{CommandError, CommandResult, failed};
 use crate::cli::DownloadArgs;
 use crate::download::save_pdf;
-use crate::identifier::{detect_id_type, IdType};
+use crate::identifier::{IdType, detect_id_type};
 use crate::registry::Source;
 
 pub fn run(args: &DownloadArgs) -> CommandResult {
@@ -56,17 +56,17 @@ fn unsupported_download(source: Source) -> CommandError {
         Source::Pubmed => "\nPubMed indexes abstracts only. Try: fastpaper download pmc <PMC_ID>",
         Source::Scholar => "\nGoogle Scholar does not serve PDFs itself.",
         Source::Xueshu => "\nBaidu Xueshu only aggregates external links.",
-        Source::Crossref | Source::Openalex | Source::Dblp | Source::Openaire
-        | Source::Unpaywall | Source::Europepmc => {
+        Source::Crossref
+        | Source::Openalex
+        | Source::Dblp
+        | Source::Openaire
+        | Source::Unpaywall
+        | Source::Europepmc => {
             "\nThis source is metadata only. Resolve the DOI to an open access copy: fastpaper download <DOI>"
         }
         _ => "",
     };
-    failed(format!(
-        "'{}' cannot provide PDFs.{}",
-        source.name(),
-        hint
-    ))
+    failed(format!("'{}' cannot provide PDFs.{}", source.name(), hint))
 }
 
 /// Semantic Scholar addresses external identifiers by prefix; a bare DOI is not
@@ -120,7 +120,11 @@ mod tests {
     #[test]
     fn url_is_rejected_with_advice() {
         let err = route("https://arxiv.org/abs/2301.08745").unwrap_err();
-        assert!(err.message().contains("DOI or arXiv ID"), "got: {}", err.message());
+        assert!(
+            err.message().contains("DOI or arXiv ID"),
+            "got: {}",
+            err.message()
+        );
     }
 
     #[test]
@@ -145,12 +149,20 @@ mod tests {
     #[test]
     fn metadata_only_source_error_suggests_doi_resolution() {
         let err = unsupported_download(Source::Crossref);
-        assert!(err.message().contains("metadata only"), "got: {}", err.message());
+        assert!(
+            err.message().contains("metadata only"),
+            "got: {}",
+            err.message()
+        );
     }
 
     #[test]
     fn pubmed_download_error_points_at_pmc() {
         let err = unsupported_download(Source::Pubmed);
-        assert!(err.message().contains("download pmc"), "got: {}", err.message());
+        assert!(
+            err.message().contains("download pmc"),
+            "got: {}",
+            err.message()
+        );
     }
 }

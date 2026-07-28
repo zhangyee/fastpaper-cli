@@ -1,6 +1,6 @@
-use super::{emit, failed, render, CommandError, CommandResult};
+use super::{CommandError, CommandResult, emit, failed, render};
 use crate::cli::{GetArgs, GlobalOpts};
-use crate::identifier::{detect_id_type, IdType};
+use crate::identifier::{IdType, detect_id_type};
 use crate::registry::Source;
 
 pub fn run(args: &GetArgs, global: &GlobalOpts) -> CommandResult {
@@ -12,9 +12,7 @@ pub fn run(args: &GetArgs, global: &GlobalOpts) -> CommandResult {
     };
 
     let entry = source.entry();
-    let get = entry
-        .get
-        .ok_or_else(|| unsupported_get(source))?;
+    let get = entry.get.ok_or_else(|| unsupported_get(source))?;
 
     let id = normalize_id(source, raw_id);
     match get(&source.base_url(), &id).map_err(CommandError::Failed)? {
@@ -48,8 +46,14 @@ fn route(id: &str) -> Result<Source, CommandError> {
 
 fn unsupported_get(source: Source) -> CommandError {
     let hint = match source {
-        Source::Openalex | Source::Dblp | Source::Openaire | Source::Doaj | Source::Zenodo
-        | Source::Hal | Source::Core | Source::Europepmc => {
+        Source::Openalex
+        | Source::Dblp
+        | Source::Openaire
+        | Source::Doaj
+        | Source::Zenodo
+        | Source::Hal
+        | Source::Core
+        | Source::Europepmc => {
             "\nTry a source that resolves identifiers: crossref (DOI), arxiv, pubmed, pmc, semantic."
         }
         _ => "",
@@ -105,7 +109,11 @@ mod tests {
     #[test]
     fn url_is_rejected_with_advice() {
         let err = route("https://arxiv.org/abs/2301.08745").unwrap_err();
-        assert!(err.message().contains("DOI or arXiv ID"), "got: {}", err.message());
+        assert!(
+            err.message().contains("DOI or arXiv ID"),
+            "got: {}",
+            err.message()
+        );
     }
 
     #[test]

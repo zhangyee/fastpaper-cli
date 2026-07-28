@@ -1,5 +1,5 @@
-use quick_xml::events::Event;
 use quick_xml::Reader;
+use quick_xml::events::Event;
 
 use super::Paper;
 
@@ -271,7 +271,11 @@ pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
                                     Some(abstract_text.clone())
                                 },
                                 year: year.parse::<u16>().ok(),
-                                doi: if doi.is_empty() { None } else { Some(doi.clone()) },
+                                doi: if doi.is_empty() {
+                                    None
+                                } else {
+                                    Some(doi.clone())
+                                },
                                 url: Some(format!(
                                     "https://www.ncbi.nlm.nih.gov/pmc/articles/{}/",
                                     pmcid
@@ -296,8 +300,7 @@ pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
                     }
                     "front" => in_front = false,
                     "contrib" if in_contrib_author => {
-                        let name_str =
-                            format!("{} {}", given_names, surname).trim().to_string();
+                        let name_str = format!("{} {}", given_names, surname).trim().to_string();
                         if !name_str.is_empty() {
                             authors.push(name_str);
                         }
@@ -354,7 +357,11 @@ mod tests {
     fn parse_id_is_pmc_format() {
         let papers = parse_efetch_response(FIXTURE).unwrap();
         for p in &papers {
-            assert!(p.id.starts_with("PMC"), "id should start with PMC: {}", p.id);
+            assert!(
+                p.id.starts_with("PMC"),
+                "id should start with PMC: {}",
+                p.id
+            );
         }
     }
 
@@ -402,7 +409,10 @@ mod tests {
     #[test]
     fn parse_abstract() {
         let papers = parse_efetch_response(FIXTURE).unwrap();
-        let with_abstract: Vec<_> = papers.iter().filter(|p| p.abstract_text.is_some()).collect();
+        let with_abstract: Vec<_> = papers
+            .iter()
+            .filter(|p| p.abstract_text.is_some())
+            .collect();
         assert!(!with_abstract.is_empty(), "no papers with abstract");
         for p in &with_abstract {
             assert!(p.abstract_text.as_ref().unwrap().len() > 10);
@@ -424,7 +434,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         esearch_mock.assert();
         efetch_mock.assert();
@@ -434,7 +448,10 @@ mod tests {
     fn search_esearch_contains_db_pmc() {
         let mut server = mockito::Server::new();
         let mock = server
-            .mock("GET", mockito::Matcher::Regex("esearch.*db=pmc".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("esearch.*db=pmc".to_string()),
+            )
             .with_status(200)
             .with_body(ESEARCH_FIXTURE)
             .create();
@@ -443,7 +460,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -456,11 +476,17 @@ mod tests {
             .with_body(ESEARCH_FIXTURE)
             .create();
         let mock = server
-            .mock("GET", mockito::Matcher::Regex("efetch.*rettype=xml".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("efetch.*rettype=xml".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -470,16 +496,25 @@ mod tests {
         unsafe { std::env::set_var("NCBI_API_KEY", "pmc-test-key") };
         let mut server = mockito::Server::new();
         server
-            .mock("GET", mockito::Matcher::Regex("esearch.*api_key=pmc-test-key".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("esearch.*api_key=pmc-test-key".to_string()),
+            )
             .with_status(200)
             .with_body(ESEARCH_FIXTURE)
             .create();
         server
-            .mock("GET", mockito::Matcher::Regex("efetch.*api_key=pmc-test-key".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("efetch.*api_key=pmc-test-key".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let result = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         unsafe { std::env::remove_var("NCBI_API_KEY") };
         assert!(result.is_ok());
     }
@@ -500,7 +535,11 @@ mod tests {
             .with_body(FIXTURE)
             .expect(0)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("nonexistent", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("nonexistent", 3),
+        )
+        .unwrap();
         assert!(papers.is_empty());
         efetch_mock.assert();
     }
@@ -509,7 +548,13 @@ mod tests {
     // as the caller identity.
     #[test]
     fn build_esearch_url_omits_email_when_none() {
-        let url = build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", &crate::sources::SearchQuery::simple("test", 3), None, None).unwrap();
+        let url = build_esearch_url_q(
+            "https://eutils.ncbi.nlm.nih.gov",
+            &crate::sources::SearchQuery::simple("test", 3),
+            None,
+            None,
+        )
+        .unwrap();
         assert!(!url.contains("email="), "got: {}", url);
         assert!(url.contains("db=pmc"), "got: {}", url);
     }

@@ -12,7 +12,11 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
             q.offset, q.limit
         ));
     }
-    let page = if q.limit > 0 { q.offset / q.limit + 1 } else { 1 };
+    let page = if q.limit > 0 {
+        q.offset / q.limit + 1
+    } else {
+        1
+    };
 
     let mut terms = vec![super::encode_query(&q.query)];
     if let Some(ref author) = q.author {
@@ -117,29 +121,26 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
             })
             .unwrap_or_default();
 
-        let doi = bib["identifier"]
-            .as_array()
-            .and_then(|arr| {
-                arr.iter()
-                    .find(|id| id["type"].as_str() == Some("doi"))
-                    .and_then(|id| id["id"].as_str().map(|s| s.to_string()))
-            });
+        let doi = bib["identifier"].as_array().and_then(|arr| {
+            arr.iter()
+                .find(|id| id["type"].as_str() == Some("doi"))
+                .and_then(|id| id["id"].as_str().map(|s| s.to_string()))
+        });
 
         let abstract_text = bib["abstract"].as_str().map(|s| s.to_string());
 
-        let year = bib["year"]
-            .as_str()
-            .and_then(|s| s.parse::<u16>().ok());
+        let year = bib["year"].as_str().and_then(|s| s.parse::<u16>().ok());
 
-        let pdf_url = bib["link"]
-            .as_array()
-            .and_then(|arr| {
-                arr.iter()
-                    .find(|l| {
-                        l["type"].as_str().map(|t| t.contains("fulltext")).unwrap_or(false)
-                    })
-                    .and_then(|l| l["url"].as_str().map(|s| s.to_string()))
-            });
+        let pdf_url = bib["link"].as_array().and_then(|arr| {
+            arr.iter()
+                .find(|l| {
+                    l["type"]
+                        .as_str()
+                        .map(|t| t.contains("fulltext"))
+                        .unwrap_or(false)
+                })
+                .and_then(|l| l["url"].as_str().map(|s| s.to_string()))
+        });
 
         let id = item["id"].as_str().unwrap_or("").to_string();
 
@@ -217,7 +218,10 @@ mod tests {
     #[test]
     fn parse_abstract() {
         let papers = parse_search_response(FIXTURE).unwrap();
-        let with_abstract: Vec<_> = papers.iter().filter(|p| p.abstract_text.is_some()).collect();
+        let with_abstract: Vec<_> = papers
+            .iter()
+            .filter(|p| p.abstract_text.is_some())
+            .collect();
         assert!(!with_abstract.is_empty(), "no papers with abstract");
     }
 
@@ -257,7 +261,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -273,7 +281,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -285,7 +296,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 }
@@ -335,7 +349,11 @@ mod query_tests {
         q.year = Some(2024);
         let u = url(&q);
         assert!(u.contains("%20AND%20"), "got: {}", u);
-        assert!(!u.contains("+AND+"), "path segments do not decode '+': {}", u);
+        assert!(
+            !u.contains("+AND+"),
+            "path segments do not decode '+': {}",
+            u
+        );
     }
 
     #[test]

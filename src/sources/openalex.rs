@@ -19,7 +19,11 @@ fn build_search_url(
             q.offset, q.limit
         ));
     }
-    let page = if q.limit > 0 { q.offset / q.limit + 1 } else { 1 };
+    let page = if q.limit > 0 {
+        q.offset / q.limit + 1
+    } else {
+        1
+    };
 
     let mut url = format!(
         "{}/works?search={}&per_page={}&page={}",
@@ -40,10 +44,16 @@ fn build_search_url(
         Some(year) => filters.push(format!("publication_year:{}", year)),
         None => {
             if let Some(ref after) = q.after {
-                filters.push(format!("from_publication_date:{}", super::validate_ymd(after)?));
+                filters.push(format!(
+                    "from_publication_date:{}",
+                    super::validate_ymd(after)?
+                ));
             }
             if let Some(ref before) = q.before {
-                filters.push(format!("to_publication_date:{}", super::validate_ymd(before)?));
+                filters.push(format!(
+                    "to_publication_date:{}",
+                    super::validate_ymd(before)?
+                ));
             }
         }
     }
@@ -302,7 +312,9 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
             .filter(|s| !s.is_empty())
             .or_else(|| {
                 if is_oa == Some(true) {
-                    item["open_access"]["oa_url"].as_str().filter(|s| !s.is_empty())
+                    item["open_access"]["oa_url"]
+                        .as_str()
+                        .filter(|s| !s.is_empty())
                 } else {
                     None
                 }
@@ -360,7 +372,13 @@ fn reconstruct_abstract(inverted_index: &serde_json::Value) -> Option<String> {
         return None;
     }
     word_positions.sort_by_key(|(pos, _)| *pos);
-    Some(word_positions.iter().map(|(_, word)| *word).collect::<Vec<&str>>().join(" "))
+    Some(
+        word_positions
+            .iter()
+            .map(|(_, word)| *word)
+            .collect::<Vec<&str>>()
+            .join(" "),
+    )
 }
 
 #[cfg(test)]
@@ -433,7 +451,11 @@ mod tests {
     fn parse_open_access() {
         let papers = parse_search_response(FIXTURE).unwrap();
         for p in &papers {
-            assert!(p.open_access.is_some(), "paper {} missing open_access", p.id);
+            assert!(
+                p.open_access.is_some(),
+                "paper {} missing open_access",
+                p.id
+            );
         }
     }
 
@@ -441,8 +463,14 @@ mod tests {
     fn parse_abstract_from_inverted_index() {
         let papers = parse_search_response(FIXTURE).unwrap();
         // Result 1 has abstract_inverted_index
-        let with_abstract: Vec<_> = papers.iter().filter(|p| p.abstract_text.is_some()).collect();
-        assert!(!with_abstract.is_empty(), "at least one paper should have abstract");
+        let with_abstract: Vec<_> = papers
+            .iter()
+            .filter(|p| p.abstract_text.is_some())
+            .collect();
+        assert!(
+            !with_abstract.is_empty(),
+            "at least one paper should have abstract"
+        );
         for p in &with_abstract {
             let text = p.abstract_text.as_ref().unwrap();
             assert!(text.len() > 10, "abstract too short: {}", text);
@@ -463,7 +491,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -476,7 +508,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -488,7 +523,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -500,13 +538,22 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
     #[test]
     fn build_search_url_omits_mailto_without_email() {
-        let url = build_search_url("https://api.openalex.org", &crate::sources::SearchQuery::simple("attention", 3), None, None).unwrap();
+        let url = build_search_url(
+            "https://api.openalex.org",
+            &crate::sources::SearchQuery::simple("attention", 3),
+            None,
+            None,
+        )
+        .unwrap();
         assert!(
             !url.contains("mailto="),
             "url should carry no contact address: {}",
@@ -516,7 +563,13 @@ mod tests {
 
     #[test]
     fn build_search_url_includes_mailto_with_email() {
-        let url = build_search_url("https://api.openalex.org", &crate::sources::SearchQuery::simple("attention", 3), None, Some("a@b.com")).unwrap();
+        let url = build_search_url(
+            "https://api.openalex.org",
+            &crate::sources::SearchQuery::simple("attention", 3),
+            None,
+            Some("a@b.com"),
+        )
+        .unwrap();
         assert!(url.contains("mailto=a@b.com"), "got: {}", url);
     }
 
@@ -526,11 +579,19 @@ mod tests {
         unsafe { std::env::set_var("FASTPAPER_EMAIL", "custom@example.com") };
         let mut server = mockito::Server::new();
         let mock = server
-            .mock("GET", mockito::Matcher::Regex("mailto=custom%40example.com|mailto=custom@example.com".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(
+                    "mailto=custom%40example.com|mailto=custom@example.com".to_string(),
+                ),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         unsafe { std::env::remove_var("FASTPAPER_EMAIL") };
         mock.assert();
     }
@@ -588,7 +649,11 @@ mod query_tests {
     fn year_uses_publication_year() {
         let mut q = SearchQuery::simple("attention", 10);
         q.year = Some(2017);
-        assert!(url(&q).contains("publication_year:2017"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("publication_year:2017"),
+            "got: {}",
+            url(&q)
+        );
     }
 
     #[test]
@@ -612,7 +677,11 @@ mod query_tests {
     fn field_passes_through_as_a_concept_id() {
         let mut q = SearchQuery::simple("attention", 10);
         q.field = Some("C154945302".into());
-        assert!(url(&q).contains("concepts.id:C154945302"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("concepts.id:C154945302"),
+            "got: {}",
+            url(&q)
+        );
     }
 
     #[test]
@@ -621,7 +690,12 @@ mod query_tests {
         q.year = Some(2017);
         q.open_access = true;
         let u = url(&q);
-        assert_eq!(u.matches("filter=").count(), 1, "one filter parameter: {}", u);
+        assert_eq!(
+            u.matches("filter=").count(),
+            1,
+            "one filter parameter: {}",
+            u
+        );
     }
 
     #[test]
@@ -636,7 +710,11 @@ mod query_tests {
     fn sort_by_citations_uses_cited_by_count() {
         let mut q = SearchQuery::simple("attention", 10);
         q.sort = Some(SortField::Citations);
-        assert!(url(&q).contains("sort=cited_by_count:desc"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("sort=cited_by_count:desc"),
+            "got: {}",
+            url(&q)
+        );
     }
 
     #[test]
@@ -644,14 +722,22 @@ mod query_tests {
         let mut q = SearchQuery::simple("attention", 10);
         q.sort = Some(SortField::Date);
         q.order = SortOrder::Asc;
-        assert!(url(&q).contains("sort=publication_date:asc"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("sort=publication_date:asc"),
+            "got: {}",
+            url(&q)
+        );
     }
 
     #[test]
     fn sort_by_relevance_uses_relevance_score() {
         let mut q = SearchQuery::simple("attention", 10);
         q.sort = Some(SortField::Relevance);
-        assert!(url(&q).contains("sort=relevance_score:desc"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("sort=relevance_score:desc"),
+            "got: {}",
+            url(&q)
+        );
     }
 
     #[test]

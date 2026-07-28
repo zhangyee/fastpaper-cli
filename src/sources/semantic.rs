@@ -258,10 +258,7 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
             }
             Ok(papers)
         }
-        FetchOutcome::RateLimited => Err(format!(
-            "rate limited after {} retries",
-            cfg.max_retries
-        )),
+        FetchOutcome::RateLimited => Err(format!("rate limited after {} retries", cfg.max_retries)),
         FetchOutcome::Err(e) => Err(e),
     }
 }
@@ -281,10 +278,7 @@ fn search_with_cfg_for_test(
     let api_key = std::env::var("SEMANTIC_SCHOLAR_API_KEY").ok();
     match http_get_with_retry_cfg(&url, api_key, cfg) {
         FetchOutcome::Ok(body) => parse_search_response(&body),
-        FetchOutcome::RateLimited => Err(format!(
-            "rate limited after {} retries",
-            cfg.max_retries
-        )),
+        FetchOutcome::RateLimited => Err(format!("rate limited after {} retries", cfg.max_retries)),
         FetchOutcome::Err(e) => Err(e),
     }
 }
@@ -364,10 +358,7 @@ pub fn cite(
 /// Both wrap each paper one level deeper than `/paper/search` does — under
 /// `citingPaper` coming in, `citedPaper` going out — but the paper object
 /// itself is identical, so the mapping is shared.
-pub fn parse_edge_response(
-    json: &str,
-    direction: super::Direction,
-) -> Result<Vec<Paper>, String> {
+pub fn parse_edge_response(json: &str, direction: super::Direction) -> Result<Vec<Paper>, String> {
     let root: serde_json::Value =
         serde_json::from_str(json).map_err(|e| format!("JSON parse error: {}", e))?;
     let data = root["data"].as_array().ok_or("missing 'data' array")?;
@@ -444,9 +435,7 @@ fn paper_from(item: &serde_json::Value) -> Paper {
         venue: item["venue"].as_str().map(|s| s.to_string()),
         citations,
         fields,
-        open_access: Some(
-            item["openAccessPdf"].is_object() && !item["openAccessPdf"].is_null(),
-        ),
+        open_access: Some(item["openAccessPdf"].is_object() && !item["openAccessPdf"].is_null()),
         source: "semantic".to_string(),
     }
 }
@@ -526,7 +515,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -539,7 +532,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -551,7 +547,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -563,7 +562,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -578,7 +580,10 @@ mod tests {
             .with_body(FIXTURE)
             .create();
         unsafe { std::env::set_var("SEMANTIC_SCHOLAR_API_KEY", "test-key-123") };
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
         mock.assert();
     }
@@ -593,7 +598,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let result = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         assert!(result.is_ok());
         mock.assert();
     }
@@ -703,7 +711,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -754,7 +765,10 @@ mod tests {
             .create();
 
         let t0 = Instant::now();
-        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let result = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         let elapsed = t0.elapsed();
 
         assert!(result.is_ok(), "expected Ok, got {:?}", result);
@@ -815,7 +829,10 @@ mod tests {
             .expect(1)
             .create();
 
-        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let result = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         unsafe { std::env::remove_var("SEMANTIC_SCHOLAR_API_KEY") };
 
         assert!(
@@ -895,7 +912,11 @@ mod query_tests {
     fn field_becomes_fields_of_study() {
         let mut q = SearchQuery::simple("attention", 10);
         q.field = Some("Computer Science".into());
-        assert!(url(&q).contains("fieldsOfStudy=Computer"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("fieldsOfStudy=Computer"),
+            "got: {}",
+            url(&q)
+        );
     }
 
     // openAccessPdf is a valueless presence flag.
@@ -905,7 +926,11 @@ mod query_tests {
         q.open_access = true;
         let u = url(&q);
         assert!(u.contains("openAccessPdf"), "got: {}", u);
-        assert!(!u.contains("openAccessPdf=true"), "flag takes no value: {}", u);
+        assert!(
+            !u.contains("openAccessPdf=true"),
+            "flag takes no value: {}",
+            u
+        );
     }
 
     // The bulk endpoint has no limit parameter -- it answers with up to a
@@ -947,7 +972,11 @@ mod query_tests {
         let mut q = SearchQuery::simple("attention", 10);
         q.sort = Some(SortField::Date);
         q.order = SortOrder::Asc;
-        assert!(url(&q).contains("sort=publicationDate:asc"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("sort=publicationDate:asc"),
+            "got: {}",
+            url(&q)
+        );
     }
 
     #[test]
@@ -956,7 +985,11 @@ mod query_tests {
         q.sort = Some(SortField::Relevance);
         let u = url(&q);
         assert!(u.contains("/paper/search?"), "got: {}", u);
-        assert!(!u.contains("sort="), "relevance is the default ranking: {}", u);
+        assert!(
+            !u.contains("sort="),
+            "relevance is the default ranking: {}",
+            u
+        );
     }
 
     // The bulk endpoint has a token cursor instead of offset.
@@ -1008,7 +1041,11 @@ mod edge_tests {
     // directions, which would invert every edge in a citation graph.
     #[test]
     fn reading_the_wrong_side_yields_no_papers() {
-        assert!(parse_edge_response(REFS, Direction::Incoming).unwrap().is_empty());
+        assert!(
+            parse_edge_response(REFS, Direction::Incoming)
+                .unwrap()
+                .is_empty()
+        );
     }
 
     #[test]

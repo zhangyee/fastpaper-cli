@@ -173,7 +173,12 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
 
         let authors: Vec<String> = item["authors"]
             .as_str()
-            .map(|s| s.split(';').map(|a| a.trim().to_string()).filter(|a| !a.is_empty()).collect())
+            .map(|s| {
+                s.split(';')
+                    .map(|a| a.trim().to_string())
+                    .filter(|a| !a.is_empty())
+                    .collect()
+            })
             .unwrap_or_default();
 
         let abstract_text = item["abstract"].as_str().map(|s| s.to_string());
@@ -183,18 +188,22 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
             .and_then(|s| s.get(..4))
             .and_then(|y| y.parse::<u16>().ok());
 
-        let category = item["category"]
-            .as_str()
-            .map(|s| s.to_string());
+        let category = item["category"].as_str().map(|s| s.to_string());
 
         let pdf_url = if !doi.is_empty() {
-            Some(format!("https://www.biorxiv.org/content/{}v{}.full.pdf", doi, version))
+            Some(format!(
+                "https://www.biorxiv.org/content/{}v{}.full.pdf",
+                doi, version
+            ))
         } else {
             None
         };
 
         let url = if !doi.is_empty() {
-            Some(format!("https://www.biorxiv.org/content/{}v{}", doi, version))
+            Some(format!(
+                "https://www.biorxiv.org/content/{}v{}",
+                doi, version
+            ))
         } else {
             None
         };
@@ -270,7 +279,11 @@ mod tests {
         assert!(!with_authors.is_empty(), "no papers with authors");
         for p in &with_authors {
             for a in &p.authors {
-                assert!(!a.contains(';'), "author should not contain semicolon: {}", a);
+                assert!(
+                    !a.contains(';'),
+                    "author should not contain semicolon: {}",
+                    a
+                );
             }
         }
     }
@@ -278,7 +291,10 @@ mod tests {
     #[test]
     fn parse_abstract() {
         let papers = parse_search_response(FIXTURE).unwrap();
-        let with_abstract: Vec<_> = papers.iter().filter(|p| p.abstract_text.is_some()).collect();
+        let with_abstract: Vec<_> = papers
+            .iter()
+            .filter(|p| p.abstract_text.is_some())
+            .collect();
         assert!(!with_abstract.is_empty(), "no papers with abstract");
     }
 
@@ -306,8 +322,16 @@ mod tests {
         assert!(!with_pdf.is_empty(), "no papers with pdf_url");
         for p in &with_pdf {
             let url = p.pdf_url.as_ref().unwrap();
-            assert!(url.contains("biorxiv.org"), "pdf_url should contain biorxiv.org: {}", url);
-            assert!(url.ends_with(".full.pdf"), "pdf_url should end with .full.pdf: {}", url);
+            assert!(
+                url.contains("biorxiv.org"),
+                "pdf_url should contain biorxiv.org: {}",
+                url
+            );
+            assert!(
+                url.ends_with(".full.pdf"),
+                "pdf_url should end with .full.pdf: {}",
+                url
+            );
         }
     }
 
@@ -319,7 +343,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("adaptation", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("adaptation", 3),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -328,11 +356,17 @@ mod tests {
     fn search_request_path_contains_details_biorxiv() {
         let mut server = mockito::Server::new();
         let mock = server
-            .mock("GET", mockito::Matcher::Regex("/details/biorxiv/".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("/details/biorxiv/".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("adaptation", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("adaptation", 3),
+        );
         mock.assert();
     }
 
@@ -341,11 +375,17 @@ mod tests {
         let mut server = mockito::Server::new();
         // Date range should match YYYY-MM-DD/YYYY-MM-DD pattern
         let mock = server
-            .mock("GET", mockito::Matcher::Regex(r"\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex(r"\d{4}-\d{2}-\d{2}/\d{4}-\d{2}-\d{2}".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("adaptation", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("adaptation", 3),
+        );
         mock.assert();
     }
 
@@ -358,8 +398,15 @@ mod tests {
             .with_body(FIXTURE)
             .create();
         // "zzz_nonexistent_keyword" should match no papers
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("zzz_nonexistent_keyword", 100)).unwrap();
-        assert!(papers.is_empty(), "should filter out all papers for non-matching query");
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("zzz_nonexistent_keyword", 100),
+        )
+        .unwrap();
+        assert!(
+            papers.is_empty(),
+            "should filter out all papers for non-matching query"
+        );
     }
 }
 
@@ -437,7 +484,10 @@ mod get_tests {
     fn get_by_id_hits_the_details_endpoint() {
         let mut server = mockito::Server::new();
         let m = server
-            .mock("GET", mockito::Matcher::Regex("/details/biorxiv/10".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("/details/biorxiv/10".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
@@ -448,7 +498,11 @@ mod get_tests {
     #[test]
     fn get_by_id_returns_the_first_preprint() {
         let mut server = mockito::Server::new();
-        server.mock("GET", mockito::Matcher::Any).with_status(200).with_body(FIXTURE).create();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
         assert!(get_by_id(&server.url(), "10.1101/x").unwrap().is_some());
     }
 }

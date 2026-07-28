@@ -292,4 +292,3 @@ mod tests {
         assert_eq!(to_jsonl(&[]), "");
     }
 }
-

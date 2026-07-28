@@ -134,6 +134,10 @@ mod tests {
         let result = lookup_doi("http://localhost", "10.1038/nature12373");
         assert!(result.is_err());
         let err = result.unwrap_err();
-        assert!(err.contains("UNPAYWALL_EMAIL"), "error should mention env var: {}", err);
+        assert!(
+            err.contains("UNPAYWALL_EMAIL"),
+            "error should mention env var: {}",
+            err
+        );
     }
 }

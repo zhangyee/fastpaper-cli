@@ -1,4 +1,4 @@
-use super::{emit, failed, render, CommandError, CommandResult};
+use super::{CommandError, CommandResult, emit, failed, render};
 use crate::cli::{GlobalOpts, SearchArgs};
 use crate::registry::Source;
 use crate::sources::{SearchCaps, SearchQuery};
@@ -25,7 +25,9 @@ pub fn run(args: &SearchArgs, global: &GlobalOpts) -> CommandResult {
 
 fn unsupported_search(source: Source) -> CommandError {
     let hint = match source {
-        Source::Unpaywall => "\nUnpaywall resolves a DOI to its open access copy. Try: fastpaper get unpaywall <DOI>",
+        Source::Unpaywall => {
+            "\nUnpaywall resolves a DOI to its open access copy. Try: fastpaper get unpaywall <DOI>"
+        }
         _ => "",
     };
     failed(format!(
@@ -168,7 +170,12 @@ mod tests {
         q.open_access = true;
         let err = check_filters(&q, &caps_none(), "dblp").unwrap_err();
         for flag in ["--year", "--author", "--open-access"] {
-            assert!(err.message().contains(flag), "missing {}: {}", flag, err.message());
+            assert!(
+                err.message().contains(flag),
+                "missing {}: {}",
+                flag,
+                err.message()
+            );
         }
     }
 
@@ -179,8 +186,16 @@ mod tests {
         let mut q = SearchQuery::simple("battery cathode", 10);
         q.patents = true;
         let err = check_filters(&q, &caps_year_only(), "arxiv").unwrap_err();
-        assert!(err.message().contains("--patents"), "got: {}", err.message());
-        assert!(err.message().contains("europepmc"), "got: {}", err.message());
+        assert!(
+            err.message().contains("--patents"),
+            "got: {}",
+            err.message()
+        );
+        assert!(
+            err.message().contains("europepmc"),
+            "got: {}",
+            err.message()
+        );
         assert!(err.message().contains("xueshu"), "got: {}", err.message());
     }
 

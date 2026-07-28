@@ -756,7 +756,8 @@ mod tests {
                 .is_some_and(|caps| caps.supports("--patents"));
             let expected = matches!(s, Source::Europepmc | Source::Xueshu);
             assert_eq!(
-                declared, expected,
+                declared,
+                expected,
                 "{} declares --patents support = {}",
                 s.name(),
                 declared

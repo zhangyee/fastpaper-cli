@@ -106,9 +106,7 @@ pub fn get_by_doi(base_url: &str, doi: &str) -> Result<Option<Paper>, String> {
         }
         Err(ureq::Error::StatusCode(404)) => Ok(None),
         Err(ureq::Error::StatusCode(429)) => Err("rate limited (429)".to_string()),
-        Err(ureq::Error::StatusCode(code)) if code >= 500 => {
-            Err(format!("Server error: {}", code))
-        }
+        Err(ureq::Error::StatusCode(code)) if code >= 500 => Err(format!("Server error: {}", code)),
         Err(e) => Err(format!("HTTP error: {}", e)),
     }
 }
@@ -298,7 +296,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("attention", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("attention", 3),
+        );
         mock.assert();
     }
 
@@ -362,7 +363,12 @@ mod tests {
     // there, so an `expect(0)` probe behind a catch-all passes vacuously.
     #[test]
     fn build_search_url_omits_mailto_without_email() {
-        let url = build_search_url("https://api.crossref.org", &crate::sources::SearchQuery::simple("attention", 3), None).unwrap();
+        let url = build_search_url(
+            "https://api.crossref.org",
+            &crate::sources::SearchQuery::simple("attention", 3),
+            None,
+        )
+        .unwrap();
         assert!(
             !url.contains("mailto="),
             "url should carry no contact address: {}",
@@ -372,7 +378,12 @@ mod tests {
 
     #[test]
     fn build_search_url_includes_mailto_with_email() {
-        let url = build_search_url("https://api.crossref.org", &crate::sources::SearchQuery::simple("attention", 3), Some("a@b.com")).unwrap();
+        let url = build_search_url(
+            "https://api.crossref.org",
+            &crate::sources::SearchQuery::simple("attention", 3),
+            Some("a@b.com"),
+        )
+        .unwrap();
         assert!(url.contains("mailto=a@b.com"), "got: {}", url);
     }
 
@@ -392,7 +403,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         unsafe { std::env::remove_var("FASTPAPER_EMAIL") };
         mock.assert();
     }
@@ -462,7 +476,12 @@ mod query_tests {
         q.after = Some("2023-06-01".into());
         q.before = Some("2023-12-31".into());
         let u = url(&q);
-        assert_eq!(u.matches("filter=").count(), 1, "one filter parameter: {}", u);
+        assert_eq!(
+            u.matches("filter=").count(),
+            1,
+            "one filter parameter: {}",
+            u
+        );
         assert!(u.contains(','), "filters are comma separated: {}", u);
     }
 

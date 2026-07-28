@@ -68,10 +68,7 @@ fn download_pubmed_rejects_with_hint() {
 fn search_pubmed_no_capability_error() {
     // pubmed supports search, so it should NOT fail with "does not support"
     // It will fail with "not yet implemented" but that's fine
-    let output = cmd()
-        .args(["search", "pubmed", "test"])
-        .output()
-        .unwrap();
+    let output = cmd().args(["search", "pubmed", "test"]).output().unwrap();
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(!stderr.contains("does not support"));
 }
@@ -98,20 +95,17 @@ fn get_unknown_identifier_fails() {
 
 #[test]
 fn get_arxiv_id_routes_to_arxiv() {
-    let output = cmd()
-        .args(["get", "2301.08745"])
-        .output()
-        .unwrap();
+    let output = cmd().args(["get", "2301.08745"]).output().unwrap();
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(!stderr.contains("Unrecognized"), "should recognize arXiv ID");
+    assert!(
+        !stderr.contains("Unrecognized"),
+        "should recognize arXiv ID"
+    );
 }
 
 #[test]
 fn get_pmc_id_routes_to_pmc() {
-    let output = cmd()
-        .args(["get", "PMC7318926"])
-        .output()
-        .unwrap();
+    let output = cmd().args(["get", "PMC7318926"]).output().unwrap();
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(!stderr.contains("Unrecognized"), "should recognize PMC ID");
 }
@@ -223,10 +217,6 @@ fn download_pubmed_exits_nonzero_with_not_supported() {
 
 // ── read --metadata-only integration tests ──────
 
-
-
-
-
 // ── read full text (local PDF) integration tests ──
 
 #[test]
@@ -235,7 +225,11 @@ fn read_local_pdf_outputs_text() {
         .args(["read", "tests/fixtures/test.pdf"])
         .output()
         .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(!stdout.trim().is_empty(), "should output text content");
 }
@@ -248,7 +242,10 @@ fn read_local_pdf_section_abstract() {
         .unwrap();
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(!stdout.trim().is_empty(), "abstract section should not be empty");
+    assert!(
+        !stdout.trim().is_empty(),
+        "abstract section should not be empty"
+    );
     let lower = stdout.to_lowercase();
     assert!(
         !lower.contains("introduction"),
@@ -293,10 +290,17 @@ fn read_local_pdf_output_to_file() {
         .arg(out_file.to_str().unwrap())
         .output()
         .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     assert!(out_file.exists(), "output file should exist");
     let content = std::fs::read_to_string(&out_file).unwrap();
-    assert!(!content.trim().is_empty(), "output file should not be empty");
+    assert!(
+        !content.trim().is_empty(),
+        "output file should not be empty"
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -363,7 +367,13 @@ fn env_unpaywall_with_email_works() {
         .with_body(fixture)
         .create();
     cmd()
-        .args(["get", "unpaywall", "10.1038/nature12373", "--format", "json"])
+        .args([
+            "get",
+            "unpaywall",
+            "10.1038/nature12373",
+            "--format",
+            "json",
+        ])
         .env("FASTPAPER_UNPAYWALL_URL", server.url())
         .env("UNPAYWALL_EMAIL", "test@test.com")
         .assert()
@@ -415,7 +425,11 @@ fn search_arxiv_query_with_spaces_works() {
         .env("FASTPAPER_ARXIV_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "query with spaces should work, stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "query with spaces should work, stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(!stdout.trim().is_empty());
 }
@@ -434,7 +448,11 @@ fn search_arxiv_mock_outputs_title() {
         .env("FASTPAPER_ARXIV_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(!stdout.trim().is_empty(), "should output something");
 }
@@ -456,7 +474,10 @@ fn search_arxiv_format_json_valid() {
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     let v: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
-    assert!(v["results"].as_array().is_some(), "should have results array");
+    assert!(
+        v["results"].as_array().is_some(),
+        "should have results array"
+    );
     assert!(!v["results"].as_array().unwrap().is_empty());
 }
 
@@ -477,7 +498,10 @@ fn search_arxiv_format_csv_has_header() {
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     let first_line = stdout.lines().next().unwrap_or("");
-    assert!(first_line.contains("id") && first_line.contains("title"), "first line should be header");
+    assert!(
+        first_line.contains("id") && first_line.contains("title"),
+        "first line should be header"
+    );
 }
 
 #[test]
@@ -496,7 +520,10 @@ fn search_arxiv_format_bibtex_has_article() {
         .unwrap();
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("@article"), "bibtex should contain @article");
+    assert!(
+        stdout.contains("@article"),
+        "bibtex should contain @article"
+    );
 }
 
 #[test]
@@ -513,7 +540,11 @@ fn search_arxiv_limit_passes_to_request() {
         .env("FASTPAPER_ARXIV_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 }
 
 #[test]
@@ -536,7 +567,11 @@ fn search_pubmed_mock_outputs_title() {
         .env("FASTPAPER_PUBMED_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
     let results = v["results"].as_array().expect("results array");
@@ -559,7 +594,11 @@ fn search_crossref_mock_outputs_title() {
         .env("FASTPAPER_CROSSREF_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
     let results = v["results"].as_array().expect("results array");
@@ -584,7 +623,11 @@ fn get_arxiv_id_returns_paper() {
         .env("FASTPAPER_ARXIV_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
     assert!(!v["results"][0]["title"].as_str().unwrap_or("").is_empty());
@@ -604,7 +647,11 @@ fn get_pmc_id_returns_paper() {
         .env("FASTPAPER_PMC_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
     assert!(!v["results"][0]["title"].as_str().unwrap_or("").is_empty());
@@ -624,7 +671,11 @@ fn get_pmid_returns_paper() {
         .env("FASTPAPER_PUBMED_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
     assert!(!v["results"][0]["title"].as_str().unwrap_or("").is_empty());
@@ -643,25 +694,26 @@ fn get_s2_id_returns_paper() {
         .with_body(single_paper)
         .create();
     let output = cmd()
-        .args(["get", "S2:649def34f8be52c8b66281af98ae884c09aef38b", "--format", "json"])
+        .args([
+            "get",
+            "S2:649def34f8be52c8b66281af98ae884c09aef38b",
+            "--format",
+            "json",
+        ])
         .env("FASTPAPER_SEMANTIC_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
     let v: serde_json::Value = serde_json::from_str(&stdout).expect("valid JSON");
     assert!(!v["results"][0]["title"].as_str().unwrap_or("").is_empty());
 }
 
 // ── read remote full text integration tests ─────
-
-
-
-
-
-
-
-
 
 // ── xueshu integration tests ────────────────────
 
@@ -679,9 +731,16 @@ fn search_xueshu_mock_outputs_title() {
         .env("FASTPAPER_XUESHU_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("Visual Attention Mechanisms"), "got: {stdout}");
+    assert!(
+        stdout.contains("Visual Attention Mechanisms"),
+        "got: {stdout}"
+    );
 }
 
 #[test]
@@ -816,7 +875,11 @@ fn get_accepts_an_explicit_source_before_the_id() {
         .env("FASTPAPER_ARXIV_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "stderr: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let v: serde_json::Value =
         serde_json::from_str(&String::from_utf8_lossy(&output.stdout)).expect("valid JSON");
     assert!(!v["results"][0]["title"].as_str().unwrap_or("").is_empty());
@@ -856,7 +919,10 @@ fn download_auto_detects_the_source_from_the_id() {
         .env("FASTPAPER_ARXIV_URL", server.url())
         .assert()
         .success();
-    assert_eq!(std::fs::read(dir.join("2301.08745.pdf")).unwrap(), b"%PDF-1.4 auto");
+    assert_eq!(
+        std::fs::read(dir.join("2301.08745.pdf")).unwrap(),
+        b"%PDF-1.4 auto"
+    );
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -898,7 +964,10 @@ fn read_rejects_a_missing_file_with_advice() {
 #[test]
 fn read_no_longer_accepts_a_source_argument() {
     // Two positionals used to mean `read <source> <id>`.
-    cmd().args(["read", "arxiv", "2301.08745"]).assert().failure();
+    cmd()
+        .args(["read", "arxiv", "2301.08745"])
+        .assert()
+        .failure();
 }
 
 // Filters are validated against what the source can actually do.

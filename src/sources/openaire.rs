@@ -23,7 +23,11 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
             q.offset, q.limit
         ));
     }
-    let page = if q.limit > 0 { q.offset / q.limit + 1 } else { 1 };
+    let page = if q.limit > 0 {
+        q.offset / q.limit + 1
+    } else {
+        1
+    };
 
     let mut url = format!(
         "{}/graph/v3/research-products?search={}&pageSize={}&page={}&type=publication",
@@ -40,10 +44,16 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
         Some(year) => url.push_str(&format!("&publicationYear={}", year)),
         None => {
             if let Some(ref after) = q.after {
-                url.push_str(&format!("&fromPublicationDate={}", super::validate_ymd(after)?));
+                url.push_str(&format!(
+                    "&fromPublicationDate={}",
+                    super::validate_ymd(after)?
+                ));
             }
             if let Some(ref before) = q.before {
-                url.push_str(&format!("&toPublicationDate={}", super::validate_ymd(before)?));
+                url.push_str(&format!(
+                    "&toPublicationDate={}",
+                    super::validate_ymd(before)?
+                ));
             }
         }
     }
@@ -265,7 +275,10 @@ mod tests {
     #[test]
     fn parse_abstract_from_description() {
         let papers = parse_search_response(FIXTURE).unwrap();
-        let with_abstract: Vec<_> = papers.iter().filter(|p| p.abstract_text.is_some()).collect();
+        let with_abstract: Vec<_> = papers
+            .iter()
+            .filter(|p| p.abstract_text.is_some())
+            .collect();
         assert!(!with_abstract.is_empty(), "no papers with abstract");
     }
 
@@ -287,14 +300,14 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
-
-
-
-
 }
 
 #[cfg(test)]
@@ -311,14 +324,22 @@ mod query_tests {
     fn uses_the_graph_v3_endpoint() {
         let u = url(&SearchQuery::simple("crispr", 10));
         assert!(u.contains("/graph/v3/research-products?"), "got: {}", u);
-        assert!(!u.contains("researchProducts?keywords"), "legacy shape: {}", u);
+        assert!(
+            !u.contains("researchProducts?keywords"),
+            "legacy shape: {}",
+            u
+        );
     }
 
     #[test]
     fn author_uses_author_full_name() {
         let mut q = SearchQuery::simple("crispr", 10);
         q.author = Some("Doudna".into());
-        assert!(url(&q).contains("authorFullName=Doudna"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("authorFullName=Doudna"),
+            "got: {}",
+            url(&q)
+        );
     }
 
     #[test]
@@ -370,10 +391,18 @@ mod query_tests {
     fn sort_uses_field_then_direction() {
         let mut q = SearchQuery::simple("crispr", 10);
         q.sort = Some(SortField::Citations);
-        assert!(url(&q).contains("sortBy=citationCount%20DESC"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("sortBy=citationCount%20DESC"),
+            "got: {}",
+            url(&q)
+        );
         q.sort = Some(SortField::Date);
         q.order = SortOrder::Asc;
-        assert!(url(&q).contains("sortBy=publicationDate%20ASC"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("sortBy=publicationDate%20ASC"),
+            "got: {}",
+            url(&q)
+        );
     }
 
     #[test]
@@ -393,8 +422,11 @@ mod get_tests {
     #[test]
     fn get_by_id_uses_the_id_parameter() {
         let mut server = mockito::Server::new();
-        let m = server.mock("GET", mockito::Matcher::Regex("id=openaire".to_string()))
-            .with_status(200).with_body(FIXTURE).create();
+        let m = server
+            .mock("GET", mockito::Matcher::Regex("id=openaire".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
         let _ = get_by_id(&server.url(), "openaire____::abc");
         m.assert();
     }
@@ -402,7 +434,15 @@ mod get_tests {
     #[test]
     fn get_by_id_returns_the_first_result() {
         let mut server = mockito::Server::new();
-        server.mock("GET", mockito::Matcher::Any).with_status(200).with_body(FIXTURE).create();
-        assert!(get_by_id(&server.url(), "openaire____::abc").unwrap().is_some());
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        assert!(
+            get_by_id(&server.url(), "openaire____::abc")
+                .unwrap()
+                .is_some()
+        );
     }
 }

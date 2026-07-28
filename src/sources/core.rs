@@ -22,7 +22,10 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
     }
     let mut terms = vec![super::encode_query(&q.query)];
     if let Some(ref author) = q.author {
-        terms.push(format!("authors.name:%22{}%22", super::encode_query(author)));
+        terms.push(format!(
+            "authors.name:%22{}%22",
+            super::encode_query(author)
+        ));
     }
     if let Some(year) = q.year {
         terms.push(format!("yearPublished:{}", year));
@@ -125,7 +128,9 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
             continue;
         }
 
-        let id = item["id"].as_u64().map(|n| n.to_string())
+        let id = item["id"]
+            .as_u64()
+            .map(|n| n.to_string())
             .or_else(|| item["id"].as_str().map(|s| s.to_string()))
             .unwrap_or_default();
 
@@ -236,7 +241,10 @@ mod tests {
     #[test]
     fn parse_abstract() {
         let papers = parse_search_response(FIXTURE).unwrap();
-        let with_abstract: Vec<_> = papers.iter().filter(|p| p.abstract_text.is_some()).collect();
+        let with_abstract: Vec<_> = papers
+            .iter()
+            .filter(|p| p.abstract_text.is_some())
+            .collect();
         assert!(!with_abstract.is_empty(), "no papers with abstract");
     }
 
@@ -263,7 +271,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -279,7 +291,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -291,7 +306,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -306,7 +324,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let result = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         unsafe { std::env::remove_var("CORE_API_KEY") };
         assert!(result.is_ok());
         mock.assert();
@@ -322,7 +343,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let result = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         assert!(result.is_ok());
     }
 
@@ -344,7 +368,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let result = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         unsafe { std::env::remove_var("CORE_API_KEY") };
         assert!(result.is_ok());
     }
@@ -420,7 +447,11 @@ mod url_tests {
         q.author = Some("Doudna".into());
         let u = url(&q);
         assert!(u.contains("authors.name:%22Doudna%22"), "got: {}", u);
-        assert!(!u.contains("authors:%22"), "wrong field widens results: {}", u);
+        assert!(
+            !u.contains("authors:%22"),
+            "wrong field widens results: {}",
+            u
+        );
     }
 
     #[test]
@@ -440,8 +471,8 @@ mod url_tests {
     // 200 already times out server-side with a 504.
     #[test]
     fn limit_above_the_cap_is_rejected() {
-        let err = build_search_url("https://api.core.ac.uk", &SearchQuery::simple("x", 200))
-            .unwrap_err();
+        let err =
+            build_search_url("https://api.core.ac.uk", &SearchQuery::simple("x", 200)).unwrap_err();
         assert!(err.contains("100"), "got: {}", err);
     }
 

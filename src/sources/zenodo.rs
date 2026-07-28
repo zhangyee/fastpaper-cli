@@ -23,7 +23,11 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
             q.offset, q.limit
         ));
     }
-    let page = if q.limit > 0 { q.offset / q.limit + 1 } else { 1 };
+    let page = if q.limit > 0 {
+        q.offset / q.limit + 1
+    } else {
+        1
+    };
 
     let mut terms = vec![super::encode_query(&q.query)];
     if let Some(ref author) = q.author {
@@ -88,7 +92,11 @@ pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, Stri
         .rsplit_once("zenodo.")
         .map(|(_, n)| n)
         .unwrap_or(identifier);
-    let url = format!("{}/api/records/{}", base_url, super::encode_query(record_id));
+    let url = format!(
+        "{}/api/records/{}",
+        base_url,
+        super::encode_query(record_id)
+    );
     match ureq::get(&url).call() {
         Ok(resp) => {
             let body = resp
@@ -171,22 +179,22 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
             .and_then(|s| s.get(..4))
             .and_then(|y| y.parse::<u16>().ok());
 
-        let pdf_url = item["files"]
-            .as_array()
-            .and_then(|arr| {
-                arr.iter()
-                    .find(|f| {
-                        f["key"]
-                            .as_str()
-                            .map(|k| k.ends_with(".pdf"))
-                            .unwrap_or(false)
-                    })
-                    .and_then(|f| f["links"]["self"].as_str().map(|s| s.to_string()))
-            });
+        let pdf_url = item["files"].as_array().and_then(|arr| {
+            arr.iter()
+                .find(|f| {
+                    f["key"]
+                        .as_str()
+                        .map(|k| k.ends_with(".pdf"))
+                        .unwrap_or(false)
+                })
+                .and_then(|f| f["links"]["self"].as_str().map(|s| s.to_string()))
+        });
 
         let is_open = meta["access_right"].as_str() == Some("open");
 
-        let id = item["id"].as_u64().map(|n| n.to_string())
+        let id = item["id"]
+            .as_u64()
+            .map(|n| n.to_string())
             .or_else(|| item["id"].as_str().map(|s| s.to_string()))
             .unwrap_or_default();
 
@@ -264,7 +272,10 @@ mod tests {
     #[test]
     fn parse_abstract() {
         let papers = parse_search_response(FIXTURE).unwrap();
-        let with_abstract: Vec<_> = papers.iter().filter(|p| p.abstract_text.is_some()).collect();
+        let with_abstract: Vec<_> = papers
+            .iter()
+            .filter(|p| p.abstract_text.is_some())
+            .collect();
         assert!(!with_abstract.is_empty(), "no papers with abstract");
     }
 
@@ -289,7 +300,11 @@ mod tests {
     fn parse_open_access() {
         let papers = parse_search_response(FIXTURE).unwrap();
         for p in &papers {
-            assert!(p.open_access.is_some(), "paper {} missing open_access", p.id);
+            assert!(
+                p.open_access.is_some(),
+                "paper {} missing open_access",
+                p.id
+            );
         }
     }
 
@@ -301,7 +316,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -314,7 +333,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -326,7 +348,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -339,7 +364,11 @@ mod tests {
             .mock("GET", mockito::Matcher::Any)
             .with_status(400)
             .create();
-        let err = search(&server.url(), &crate::sources::SearchQuery::simple("test", 50)).unwrap_err();
+        let err = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 50),
+        )
+        .unwrap_err();
         assert!(
             err.contains("25"),
             "error should state the cap of 25, got: {}",
@@ -355,18 +384,30 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        assert!(search(&server.url(), &crate::sources::SearchQuery::simple("test", 25)).is_ok());
+        assert!(
+            search(
+                &server.url(),
+                &crate::sources::SearchQuery::simple("test", 25)
+            )
+            .is_ok()
+        );
     }
 
     #[test]
     fn search_request_contains_type_publication() {
         let mut server = mockito::Server::new();
         let mock = server
-            .mock("GET", mockito::Matcher::Regex("type=publication".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("type=publication".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 }
@@ -388,7 +429,11 @@ mod query_tests {
         q.open_access = true;
         let u = url(&q);
         assert!(u.contains("access_right:open"), "got: {}", u);
-        assert!(!u.contains("&access_right="), "the parameter is ignored: {}", u);
+        assert!(
+            !u.contains("&access_right="),
+            "the parameter is ignored: {}",
+            u
+        );
     }
 
     #[test]
@@ -432,8 +477,8 @@ mod query_tests {
 
     #[test]
     fn limit_above_the_anonymous_cap_is_still_rejected() {
-        let err = build_search_url("https://zenodo.org", &SearchQuery::simple("x", 50))
-            .unwrap_err();
+        let err =
+            build_search_url("https://zenodo.org", &SearchQuery::simple("x", 50)).unwrap_err();
         assert!(err.contains("25"), "got: {}", err);
     }
 }
@@ -450,8 +495,14 @@ mod get_tests {
     #[test]
     fn get_by_id_parses_a_bare_record() {
         let mut server = mockito::Server::new();
-        server.mock("GET", mockito::Matcher::Regex("/api/records/1234567".to_string()))
-            .with_status(200).with_body(RECORD).create();
+        server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("/api/records/1234567".to_string()),
+            )
+            .with_status(200)
+            .with_body(RECORD)
+            .create();
         let p = get_by_id(&server.url(), "1234567").unwrap().unwrap();
         assert_eq!(p.title, "A Zenodo record");
         assert_eq!(p.source, "zenodo");
@@ -461,8 +512,14 @@ mod get_tests {
     #[test]
     fn get_by_id_accepts_a_zenodo_doi() {
         let mut server = mockito::Server::new();
-        let m = server.mock("GET", mockito::Matcher::Regex("/api/records/1234567$".to_string()))
-            .with_status(200).with_body(RECORD).create();
+        let m = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("/api/records/1234567$".to_string()),
+            )
+            .with_status(200)
+            .with_body(RECORD)
+            .create();
         let _ = get_by_id(&server.url(), "10.5281/zenodo.1234567");
         m.assert();
     }
@@ -470,7 +527,10 @@ mod get_tests {
     #[test]
     fn get_by_id_returns_none_on_404() {
         let mut server = mockito::Server::new();
-        server.mock("GET", mockito::Matcher::Any).with_status(404).create();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(404)
+            .create();
         assert!(get_by_id(&server.url(), "1").unwrap().is_none());
     }
 }

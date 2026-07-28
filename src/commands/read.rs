@@ -1,4 +1,4 @@
-use super::{emit, failed, CommandResult};
+use super::{CommandResult, emit, failed};
 use crate::cli::{GlobalOpts, OutputFormat, ReadArgs, Section};
 use crate::read as pdf;
 

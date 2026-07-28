@@ -1,5 +1,5 @@
-use quick_xml::events::Event;
 use quick_xml::Reader;
+use quick_xml::events::Event;
 
 use super::Paper;
 
@@ -201,9 +201,7 @@ pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
                         // Check EIdType attribute
                         let mut is_doi = false;
                         for attr in e.attributes().flatten() {
-                            if attr.key.as_ref() == b"EIdType"
-                                && attr.value.as_ref() == b"doi"
-                            {
+                            if attr.key.as_ref() == b"EIdType" && attr.value.as_ref() == b"doi" {
                                 is_doi = true;
                             }
                         }
@@ -272,7 +270,11 @@ pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
                                     Some(abstract_text.clone())
                                 },
                                 year: year.parse::<u16>().ok(),
-                                doi: if doi.is_empty() { None } else { Some(doi.clone()) },
+                                doi: if doi.is_empty() {
+                                    None
+                                } else {
+                                    Some(doi.clone())
+                                },
                                 url: Some(format!("https://pubmed.ncbi.nlm.nih.gov/{}/", pmid)),
                                 pdf_url: None,
                                 venue: None,
@@ -285,8 +287,7 @@ pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
                         in_article = false;
                     }
                     "Author" if in_author => {
-                        let name_str =
-                            format!("{} {}", last_name, initials).trim().to_string();
+                        let name_str = format!("{} {}", last_name, initials).trim().to_string();
                         if !name_str.is_empty() {
                             authors.push(name_str);
                         }
@@ -363,7 +364,10 @@ mod tests {
     #[test]
     fn parse_abstract_from_abstract_text() {
         let papers = parse_efetch_response(FIXTURE).unwrap();
-        let with_abstract: Vec<_> = papers.iter().filter(|p| p.abstract_text.is_some()).collect();
+        let with_abstract: Vec<_> = papers
+            .iter()
+            .filter(|p| p.abstract_text.is_some())
+            .collect();
         assert!(!with_abstract.is_empty(), "no papers with abstract");
         for p in &with_abstract {
             assert!(p.abstract_text.as_ref().unwrap().len() > 10);
@@ -425,7 +429,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         esearch_mock.assert();
         efetch_mock.assert();
@@ -446,7 +454,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -463,7 +474,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         esearch_mock.assert();
     }
 
@@ -474,18 +488,31 @@ mod tests {
         let mut server = mockito::Server::new();
         // Both esearch and efetch should contain api_key
         server
-            .mock("GET", mockito::Matcher::Regex("esearch.*api_key=test-ncbi-key".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("esearch.*api_key=test-ncbi-key".to_string()),
+            )
             .with_status(200)
             .with_body(ESEARCH_FIXTURE)
             .create();
         server
-            .mock("GET", mockito::Matcher::Regex("efetch.*api_key=test-ncbi-key".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("efetch.*api_key=test-ncbi-key".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let result = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         unsafe { std::env::remove_var("NCBI_API_KEY") };
-        assert!(result.is_ok(), "search should succeed with api key: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "search should succeed with api key: {:?}",
+            result.err()
+        );
     }
 
     #[test]
@@ -503,7 +530,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let result = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         assert!(result.is_ok());
     }
 
@@ -513,14 +543,26 @@ mod tests {
     // NCBI treats `email` as recommended, not required.
     #[test]
     fn build_esearch_url_omits_email_when_none() {
-        let url = build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", &crate::sources::SearchQuery::simple("test", 3), None, None).unwrap();
+        let url = build_esearch_url_q(
+            "https://eutils.ncbi.nlm.nih.gov",
+            &crate::sources::SearchQuery::simple("test", 3),
+            None,
+            None,
+        )
+        .unwrap();
         assert!(!url.contains("email="), "got: {}", url);
         assert!(url.contains("tool=fastpaper"), "tool should stay: {}", url);
     }
 
     #[test]
     fn build_esearch_url_includes_email_when_some() {
-        let url = build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", &crate::sources::SearchQuery::simple("test", 3), None, Some("a@b.com")).unwrap();
+        let url = build_esearch_url_q(
+            "https://eutils.ncbi.nlm.nih.gov",
+            &crate::sources::SearchQuery::simple("test", 3),
+            None,
+            Some("a@b.com"),
+        )
+        .unwrap();
         assert!(url.contains("email=a@b.com"), "got: {}", url);
     }
 
@@ -548,7 +590,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         unsafe { std::env::remove_var("FASTPAPER_EMAIL") };
         mock.assert();
     }
@@ -605,15 +650,19 @@ mod query_tests {
         q.after = Some("2024-01-01".into());
         let u = url(&q);
         assert!(u.contains("2017%5Bdp%5D"), "got: {}", u);
-        assert!(!u.contains("mindate"), "should not also send a range: {}", u);
+        assert!(
+            !u.contains("mindate"),
+            "should not also send a range: {}",
+            u
+        );
     }
 
     #[test]
     fn malformed_date_is_rejected() {
         let mut q = SearchQuery::simple("crispr", 10);
         q.before = Some("March 2024".into());
-        let err = build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", &q, None, None)
-            .unwrap_err();
+        let err =
+            build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", &q, None, None).unwrap_err();
         assert!(err.contains("YYYY-MM-DD"), "got: {}", err);
     }
 
@@ -628,8 +677,8 @@ mod query_tests {
     fn sort_by_citations_is_rejected_with_alternatives() {
         let mut q = SearchQuery::simple("crispr", 10);
         q.sort = Some(SortField::Citations);
-        let err = build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", &q, None, None)
-            .unwrap_err();
+        let err =
+            build_esearch_url_q("https://eutils.ncbi.nlm.nih.gov", &q, None, None).unwrap_err();
         assert!(err.contains("semantic"), "got: {}", err);
     }
 

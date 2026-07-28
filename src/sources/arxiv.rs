@@ -1,5 +1,5 @@
-use quick_xml::events::Event;
 use quick_xml::Reader;
+use quick_xml::events::Event;
 
 use super::Paper;
 
@@ -14,14 +14,10 @@ pub fn download_pdf(base_url: &str, identifier: &str) -> Result<Vec<u8>, String>
                 .map_err(|e| format!("Failed to read PDF: {}", e))?;
             Ok(bytes)
         }
-        Err(ureq::Error::StatusCode(404)) => {
-            Err(format!("Paper not found: {}", identifier))
-        }
+        Err(ureq::Error::StatusCode(404)) => Err(format!("Paper not found: {}", identifier)),
         Err(e) => Err(format!("HTTP error: {}", e)),
     }
 }
-
-
 
 /// Fetch a single paper by arXiv ID.
 pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, String> {
@@ -110,10 +106,7 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
     // --year is shorthand for a whole-year range; --after/--before give the
     // open-ended forms.
     let range = match (q.year, q.after.as_deref(), q.before.as_deref()) {
-        (Some(year), _, _) => Some((
-            format!("{}01010000", year),
-            format!("{}12312359", year),
-        )),
+        (Some(year), _, _) => Some((format!("{}01010000", year), format!("{}12312359", year))),
         (None, None, None) => None,
         (None, after, before) => Some((
             match after {
@@ -217,9 +210,17 @@ pub fn parse_search_response(xml: &str) -> Result<Vec<Paper>, String> {
                         let mut link_title = None;
                         for attr in e.attributes().flatten() {
                             match attr.key.as_ref() {
-                                b"href" => href = Some(String::from_utf8_lossy(&attr.value).to_string()),
-                                b"type" => link_type = Some(String::from_utf8_lossy(&attr.value).to_string()),
-                                b"title" => link_title = Some(String::from_utf8_lossy(&attr.value).to_string()),
+                                b"href" => {
+                                    href = Some(String::from_utf8_lossy(&attr.value).to_string())
+                                }
+                                b"type" => {
+                                    link_type =
+                                        Some(String::from_utf8_lossy(&attr.value).to_string())
+                                }
+                                b"title" => {
+                                    link_title =
+                                        Some(String::from_utf8_lossy(&attr.value).to_string())
+                                }
                                 _ => {}
                             }
                         }
@@ -278,11 +279,7 @@ pub fn parse_search_response(xml: &str) -> Result<Vec<Paper>, String> {
                 match local {
                     "entry" => {
                         // Extract arXiv ID from URL: last path segment, strip version
-                        let arxiv_id = id
-                            .rsplit('/')
-                            .next()
-                            .unwrap_or(&id)
-                            .to_string();
+                        let arxiv_id = id.rsplit('/').next().unwrap_or(&id).to_string();
                         // Strip version suffix for the id
                         let clean_id = if let Some(pos) = arxiv_id.rfind('v') {
                             if arxiv_id[pos + 1..].chars().all(|c| c.is_ascii_digit()) {
@@ -390,7 +387,11 @@ mod tests {
         let papers = parse_search_response(FIXTURE).unwrap();
         for p in &papers {
             let url = p.url.as_ref().expect("paper should have url");
-            assert!(url.contains("arxiv.org"), "url {} doesn't contain arxiv.org", url);
+            assert!(
+                url.contains("arxiv.org"),
+                "url {} doesn't contain arxiv.org",
+                url
+            );
         }
     }
 
@@ -417,7 +418,11 @@ mod tests {
         let papers = parse_search_response(FIXTURE).unwrap();
         let with_doi: Vec<_> = papers.iter().filter(|p| p.doi.is_some()).collect();
         for p in &with_doi {
-            assert!(!p.doi.as_ref().unwrap().is_empty(), "paper {} has empty doi", p.id);
+            assert!(
+                !p.doi.as_ref().unwrap().is_empty(),
+                "paper {} has empty doi",
+                p.id
+            );
         }
     }
 
@@ -438,7 +443,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -451,7 +460,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
         assert_eq!(papers.len(), 3);
         mock.assert();
     }
@@ -464,7 +477,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("attention", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("attention", 3),
+        );
         mock.assert();
     }
 
@@ -476,7 +492,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -487,7 +506,10 @@ mod tests {
             .mock("GET", mockito::Matcher::Any)
             .with_status(500)
             .create();
-        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let result = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("500"));
         mock.assert();
@@ -501,7 +523,10 @@ mod tests {
             .with_status(429)
             .expect_at_least(2)
             .create();
-        let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let result = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         assert!(result.is_err());
         mock.assert();
     }
@@ -510,7 +535,10 @@ mod tests {
     fn get_by_id_returns_paper() {
         let mut server = mockito::Server::new();
         server
-            .mock("GET", mockito::Matcher::Regex("id_list=2301.08745".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("id_list=2301.08745".to_string()),
+            )
             .with_status(200)
             .with_body(FIXTURE)
             .create();
@@ -609,7 +637,11 @@ mod query_tests {
     fn multi_word_query_is_grouped_per_term() {
         let u = url(&SearchQuery::simple("diffusion model", 10));
         assert!(u.contains("all:diffusion+AND+all:model"), "got: {}", u);
-        assert!(!u.contains("all:diffusion+model"), "bare form breaks filters: {}", u);
+        assert!(
+            !u.contains("all:diffusion+model"),
+            "bare form breaks filters: {}",
+            u
+        );
     }
 
     #[test]
@@ -617,7 +649,11 @@ mod query_tests {
         let mut q = SearchQuery::simple("diffusion model", 10);
         q.year = Some(2025);
         let u = url(&q);
-        assert!(u.contains("%28all:diffusion+AND+all:model%29"), "got: {}", u);
+        assert!(
+            u.contains("%28all:diffusion+AND+all:model%29"),
+            "got: {}",
+            u
+        );
         assert!(u.contains("submittedDate:"), "got: {}", u);
     }
 

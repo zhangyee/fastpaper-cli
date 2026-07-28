@@ -136,12 +136,7 @@ pub fn parse_search_response(html: &str) -> Result<Vec<Paper>, String> {
 
         let id = url
             .as_ref()
-            .map(|u| {
-                u.split('/')
-                    .last()
-                    .unwrap_or(u)
-                    .to_string()
-            })
+            .map(|u| u.split('/').last().unwrap_or(u).to_string())
             .unwrap_or_default();
 
         papers.push(Paper {
@@ -239,13 +234,17 @@ mod tests {
     #[test]
     fn parse_abstract() {
         let papers = parse_search_response(FIXTURE).unwrap();
-        let with_abstract: Vec<_> = papers.iter().filter(|p| p.abstract_text.is_some()).collect();
+        let with_abstract: Vec<_> = papers
+            .iter()
+            .filter(|p| p.abstract_text.is_some())
+            .collect();
         assert!(!with_abstract.is_empty(), "no papers with abstract");
     }
 
     #[test]
     fn parse_captcha_returns_err() {
-        let captcha_html = r#"<html><body><form id="gs_captcha_f"><input name="captcha"></form></body></html>"#;
+        let captcha_html =
+            r#"<html><body><form id="gs_captcha_f"><input name="captcha"></form></body></html>"#;
         let result = parse_search_response(captcha_html);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("CAPTCHA"));
@@ -267,7 +266,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("attention mechanism", 10)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("attention mechanism", 10),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -281,7 +284,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 10));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 10),
+        );
         mock.assert();
     }
 
@@ -293,7 +299,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 10));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 10),
+        );
         mock.assert();
     }
 
@@ -305,7 +314,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 10));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 10),
+        );
         mock.assert();
     }
 
@@ -317,7 +329,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 10));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 10),
+        );
         mock.assert();
     }
 }

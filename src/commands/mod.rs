@@ -36,7 +36,9 @@ impl CommandError {
 
     pub fn message(&self) -> &str {
         match self {
-            CommandError::Failed(m) | CommandError::NotFound(m) | CommandError::AlreadyExists(m) => m,
+            CommandError::Failed(m)
+            | CommandError::NotFound(m)
+            | CommandError::AlreadyExists(m) => m,
         }
     }
 }

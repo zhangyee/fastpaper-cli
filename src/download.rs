@@ -204,7 +204,10 @@ pub fn save_pdf(
     // name while reporting success is worse than failing.
     if !bytes.starts_with(b"%PDF") {
         let head = String::from_utf8_lossy(&bytes[..bytes.len().min(256)]);
-        let looks_like = if head.trim_start().to_lowercase().starts_with("<!doctype html")
+        let looks_like = if head
+            .trim_start()
+            .to_lowercase()
+            .starts_with("<!doctype html")
             || head.trim_start().to_lowercase().starts_with("<html")
         {
             " The server returned HTML, not a file."
@@ -288,7 +291,11 @@ mod tests {
         let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745").unwrap();
         let path = save_pdf(&bytes, &dir, "2301.08745", false).unwrap();
         assert!(
-            path.file_name().unwrap().to_str().unwrap().contains("2301.08745"),
+            path.file_name()
+                .unwrap()
+                .to_str()
+                .unwrap()
+                .contains("2301.08745"),
             "filename {:?} should contain paper ID",
             path.file_name()
         );
@@ -374,7 +381,10 @@ mod tests {
     fn biorxiv_pdf_saves_file() {
         let mut server = mockito::Server::new();
         server
-            .mock("GET", mockito::Matcher::Regex("content.*full.pdf".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("content.*full.pdf".to_string()),
+            )
             .with_status(200)
             .with_body(b"%PDF-1.4 biorxiv".as_slice())
             .create();
@@ -389,7 +399,10 @@ mod tests {
     fn medrxiv_pdf_saves_file() {
         let mut server = mockito::Server::new();
         server
-            .mock("GET", mockito::Matcher::Regex("content.*full.pdf".to_string()))
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("content.*full.pdf".to_string()),
+            )
             .with_status(200)
             .with_body(b"%PDF-1.4 medrxiv".as_slice())
             .create();
@@ -453,7 +466,6 @@ mod tests {
         assert!(err.contains("no PDF"), "got: {}", err);
     }
 
-
     #[test]
     fn fetch_pdf_returns_bytes() {
         let mut server = mockito::Server::new();
@@ -503,7 +515,11 @@ mod meta_url_tests {
     fn doaj_meta_url_uses_percent_twenty_not_plus() {
         let u = doaj_meta_url("https://doaj.org", "machine learning");
         assert!(u.contains("machine%20learning"), "got: {}", u);
-        assert!(!u.contains("machine+learning"), "path segments need %20: {}", u);
+        assert!(
+            !u.contains("machine+learning"),
+            "path segments need %20: {}",
+            u
+        );
     }
 }
 

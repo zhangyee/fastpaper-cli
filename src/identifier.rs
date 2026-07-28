@@ -34,7 +34,8 @@ pub fn detect_id_type(input: &str) -> IdType {
         return IdType::Doi;
     }
     // PMC ID: PMC followed by digits
-    if input.starts_with("PMC") && input.len() > 3 && input[3..].chars().all(|c| c.is_ascii_digit()) {
+    if input.starts_with("PMC") && input.len() > 3 && input[3..].chars().all(|c| c.is_ascii_digit())
+    {
         return IdType::Pmc;
     }
     // PMID with prefix: PMID:NNNNNNN(N)
@@ -45,7 +46,10 @@ pub fn detect_id_type(input: &str) -> IdType {
         }
     }
     // Semantic Scholar: S2:<hex>
-    if input.starts_with("S2:") && input.len() > 3 && input[3..].chars().all(|c| c.is_ascii_hexdigit()) {
+    if input.starts_with("S2:")
+        && input.len() > 3
+        && input[3..].chars().all(|c| c.is_ascii_hexdigit())
+    {
         return IdType::S2;
     }
     // URL
@@ -61,8 +65,9 @@ pub fn detect_id_type(input: &str) -> IdType {
 
 fn is_arxiv_new(input: &str) -> bool {
     let (base, _) = match input.rfind('v') {
-        Some(pos) if input[pos + 1..].chars().all(|c| c.is_ascii_digit())
-            && !input[pos + 1..].is_empty() =>
+        Some(pos)
+            if input[pos + 1..].chars().all(|c| c.is_ascii_digit())
+                && !input[pos + 1..].is_empty() =>
         {
             (&input[..pos], &input[pos..])
         }
@@ -148,12 +153,18 @@ mod tests {
 
     #[test]
     fn detect_url_arxiv() {
-        assert_eq!(detect_id_type("https://arxiv.org/abs/2301.08745"), IdType::Url);
+        assert_eq!(
+            detect_id_type("https://arxiv.org/abs/2301.08745"),
+            IdType::Url
+        );
     }
 
     #[test]
     fn detect_url_doi() {
-        assert_eq!(detect_id_type("https://doi.org/10.1038/nature12373"), IdType::Url);
+        assert_eq!(
+            detect_id_type("https://doi.org/10.1038/nature12373"),
+            IdType::Url
+        );
     }
 
     #[test]

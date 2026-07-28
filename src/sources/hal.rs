@@ -1,6 +1,7 @@
 use super::Paper;
 
-const FIELDS: &str = "halId_s,title_s,authFullName_s,abstract_s,doiId_s,publicationDateY_i,fileMain_s,uri_s";
+const FIELDS: &str =
+    "halId_s,title_s,authFullName_s,abstract_s,doiId_s,publicationDateY_i,fileMain_s,uri_s";
 
 /// Build the Solr search URL.
 ///
@@ -9,7 +10,10 @@ const FIELDS: &str = "halId_s,title_s,authFullName_s,abstract_s,doiId_s,publicat
 fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, String> {
     let mut terms = vec![super::encode_query(&q.query)];
     if let Some(ref author) = q.author {
-        terms.push(format!("authFullName_s:%22{}%22", super::encode_query(author)));
+        terms.push(format!(
+            "authFullName_s:%22{}%22",
+            super::encode_query(author)
+        ));
     }
 
     let mut url = format!(
@@ -127,7 +131,10 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
     for item in docs {
         // title_s can be array or string
         let title = if let Some(arr) = item["title_s"].as_array() {
-            arr.first().and_then(|v| v.as_str()).unwrap_or("").to_string()
+            arr.first()
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string()
         } else {
             item["title_s"].as_str().unwrap_or("").to_string()
         };
@@ -209,7 +216,11 @@ mod tests {
     fn parse_id_is_hal_format() {
         let papers = parse_search_response(FIXTURE).unwrap();
         for p in &papers {
-            assert!(p.id.starts_with("hal-"), "id should start with hal-: {}", p.id);
+            assert!(
+                p.id.starts_with("hal-"),
+                "id should start with hal-: {}",
+                p.id
+            );
         }
     }
 
@@ -241,7 +252,10 @@ mod tests {
     #[test]
     fn parse_abstract() {
         let papers = parse_search_response(FIXTURE).unwrap();
-        let with_abstract: Vec<_> = papers.iter().filter(|p| p.abstract_text.is_some()).collect();
+        let with_abstract: Vec<_> = papers
+            .iter()
+            .filter(|p| p.abstract_text.is_some())
+            .collect();
         assert!(!with_abstract.is_empty(), "no papers with abstract");
     }
 
@@ -278,7 +292,11 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let papers = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3)).unwrap();
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
         assert!(!papers.is_empty());
         mock.assert();
     }
@@ -291,7 +309,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -303,7 +324,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -315,7 +339,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 
@@ -327,7 +354,10 @@ mod tests {
             .with_status(200)
             .with_body(FIXTURE)
             .create();
-        let _ = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        );
         mock.assert();
     }
 }
@@ -356,14 +386,22 @@ mod query_tests {
     fn year_becomes_a_filter_query() {
         let mut q = SearchQuery::simple("crispr", 10);
         q.year = Some(2024);
-        assert!(url(&q).contains("fq=publicationDateY_i:2024"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("fq=publicationDateY_i:2024"),
+            "got: {}",
+            url(&q)
+        );
     }
 
     #[test]
     fn open_access_becomes_a_filter_query() {
         let mut q = SearchQuery::simple("crispr", 10);
         q.open_access = true;
-        assert!(url(&q).contains("fq=openAccess_bool:true"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("fq=openAccess_bool:true"),
+            "got: {}",
+            url(&q)
+        );
     }
 
     // domain_s holds hierarchical codes ("0.sdv", "1.sdv.bbm"), so a plain
@@ -387,7 +425,11 @@ mod query_tests {
         let mut q = SearchQuery::simple("crispr", 10);
         q.sort = Some(SortField::Date);
         q.order = SortOrder::Asc;
-        assert!(url(&q).contains("sort=publicationDateY_i+asc"), "got: {}", url(&q));
+        assert!(
+            url(&q).contains("sort=publicationDateY_i+asc"),
+            "got: {}",
+            url(&q)
+        );
     }
 
     #[test]
@@ -407,8 +449,11 @@ mod get_tests {
     #[test]
     fn get_by_id_queries_hal_id_for_a_hal_identifier() {
         let mut server = mockito::Server::new();
-        let m = server.mock("GET", mockito::Matcher::Regex("halId_s".to_string()))
-            .with_status(200).with_body(FIXTURE).create();
+        let m = server
+            .mock("GET", mockito::Matcher::Regex("halId_s".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
         let _ = get_by_id(&server.url(), "hal-00000001");
         m.assert();
     }
@@ -417,8 +462,11 @@ mod get_tests {
     #[test]
     fn get_by_id_queries_doi_id_for_a_doi() {
         let mut server = mockito::Server::new();
-        let m = server.mock("GET", mockito::Matcher::Regex("doiId_s".to_string()))
-            .with_status(200).with_body(FIXTURE).create();
+        let m = server
+            .mock("GET", mockito::Matcher::Regex("doiId_s".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
         let _ = get_by_id(&server.url(), "10.1038/nature12373");
         m.assert();
     }
@@ -426,7 +474,11 @@ mod get_tests {
     #[test]
     fn get_by_id_returns_the_first_document() {
         let mut server = mockito::Server::new();
-        server.mock("GET", mockito::Matcher::Any).with_status(200).with_body(FIXTURE).create();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
         assert!(get_by_id(&server.url(), "hal-00000001").unwrap().is_some());
     }
 }

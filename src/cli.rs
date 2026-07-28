@@ -198,7 +198,12 @@ pub struct DownloadArgs {
     pub second: Option<String>,
 
     /// Directory to save into
-    #[arg(short, long, env = "FASTPAPER_DOWNLOAD_DIR", default_value = "./papers")]
+    #[arg(
+        short,
+        long,
+        env = "FASTPAPER_DOWNLOAD_DIR",
+        default_value = "./papers"
+    )]
     pub dir: PathBuf,
 
     /// Overwrite an existing file
