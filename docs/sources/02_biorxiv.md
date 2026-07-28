@@ -3,7 +3,8 @@
 - **API 类型**: REST JSON
 - **基础 URL**: `https://api.biorxiv.org`(下载 `https://www.biorxiv.org`)
 - **认证**: 无需
-- **能力**: search + download
+- **能力**: search + get + download
+- `get`:`GET /details/biorxiv/{doi}`
 - **实现**: `src/sources/biorxiv.rs`(以代码为准)
 
 ## 搜索

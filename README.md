@@ -94,8 +94,8 @@ equally to anything the `download` column can fetch.
 | Source | Full name | search | get | download | Domain |
 |--------|-----------|:------:|:---:|:--------:|--------|
 | `arxiv` | arXiv | yes | yes | yes | Physics, math, CS, statistics, EE, q-bio, q-fin, econ |
-| `biorxiv` | bioRxiv | yes | | yes | Life sciences |
-| `medrxiv` | medRxiv | yes | | | Medical / health sciences (medRxiv blocks PDF fetches) |
+| `biorxiv` | bioRxiv | yes | yes | yes | Life sciences |
+| `medrxiv` | medRxiv | yes | yes | | Medical / health sciences (medRxiv blocks PDF fetches) |
 | `pubmed` | PubMed | yes | yes | | Biomedical & life sciences (metadata only) |
 | `pmc` | PubMed Central | yes | yes | yes | Biomedical & life sciences (full text) |
 | `europepmc` | Europe PMC | yes | yes | yes | Life sciences superset of PMC; adds preprints, patents, guidelines |
@@ -106,11 +106,11 @@ equally to anything the `download` column can fetch.
 | `openalex` | OpenAlex | yes | yes | | Open metadata index, 200M+ works |
 | `dblp` | DBLP | yes | | | Computer science |
 | `core` | CORE | yes | yes | yes | Open access aggregator (needs `CORE_API_KEY`) |
-| `openaire` | OpenAIRE | yes | | | EU open science |
+| `openaire` | OpenAIRE | yes | yes | | EU open science |
 | `doaj` | DOAJ | yes | yes | | Open access journals, all subjects (links go to publisher pages, not PDFs) |
 | `unpaywall` | Unpaywall | | yes | | OA link resolver (requires `UNPAYWALL_EMAIL`) |
-| `zenodo` | Zenodo | yes | | yes | All disciplines (datasets, software, papers) |
-| `hal` | HAL | yes | | yes | Multi-disciplinary, French national archive |
+| `zenodo` | Zenodo | yes | yes | yes | All disciplines (datasets, software, papers) |
+| `hal` | HAL | yes | yes | yes | Multi-disciplinary, French national archive |
 
 Sources differ in which search filters they can honour, and in their per-request
 result caps. `fastpaper sources --capabilities` prints the full matrix along

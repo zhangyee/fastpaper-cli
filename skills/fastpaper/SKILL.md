@@ -20,8 +20,8 @@ Pick sources based on the user's research domain:
 - `pubmed` — NLM index, 35M+ citations, biomedical and life sciences abstracts. search, get
 - `pmc` — NLM full-text archive of peer-reviewed biomedical and life sciences literature. search, get, download
 - `europepmc` — Life sciences superset of PMC by EMBL-EBI; adds patents, preprints, clinical guidelines. search, get, download
-- `biorxiv` — Life sciences preprints by CSHL. search, download
-- `medrxiv` — Medical/health science preprints by CSHL. search
+- `biorxiv` — Life sciences preprints by CSHL. search, get, download
+- `medrxiv` — Medical/health science preprints by CSHL. search, get
 **Cross-discipline / Broad coverage**
 - `semantic` — Allen AI, AI-powered semantic search + citation graph, all disciplines. search, get, download
 - `crossref` — DOI registry, metadata queries across all disciplines. search, get
@@ -30,12 +30,12 @@ Pick sources based on the user's research domain:
 - `xueshu` — Baidu Xueshu (百度学术), strong Chinese-language coverage (experimental, unofficial API; may require captcha and stop working). search
 **Open access aggregators**
 - `core` — Largest global OA aggregator, full text from institutional repos and journals. search, get, download
-- `openaire` — EU open science infrastructure, aggregates worldwide OA research. search
+- `openaire` — EU open science infrastructure, aggregates worldwide OA research. search, get
 - `doaj` — Directory of quality-reviewed OA journals, all subjects. search, get
 - `unpaywall` — OA link resolver by DOI, finds legal free versions (needs UNPAYWALL_EMAIL). get
 **Open repositories**
-- `zenodo` — CERN/OpenAIRE general-purpose repository (datasets, software, papers), all disciplines. search, download
-- `hal` — French national multi-disciplinary open archive by CNRS (some embargo periods). search, download
+- `zenodo` — CERN/OpenAIRE general-purpose repository (datasets, software, papers), all disciplines. search, get, download
+- `hal` — French national multi-disciplinary open archive by CNRS (some embargo periods). search, get, download
 ## When you have a paper ID or DOI
 
 Auto-detect source and fetch directly:

@@ -3,7 +3,8 @@
 - **API 类型**: REST JSON
 - **基础 URL**: `https://zenodo.org/api`
 - **认证**: 无需
-- **能力**: search + download
+- **能力**: search + get + download
+- `get`:`GET /api/records/{id}`;Zenodo DOI 也可(记录 id 是它的最后一段)
 - **实现**: `src/sources/zenodo.rs`(以代码为准)
 
 ## 搜索

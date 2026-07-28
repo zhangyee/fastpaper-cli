@@ -4,7 +4,8 @@
 - **基础 URL**: `https://api.openaire.eu`,搜索端点 `/graph/v3/research-products`
 - **已从 legacy 的 `/search/researchProducts` 迁移。**两者响应结构完全不同:legacy 把内容嵌在 `response.results.result[].metadata["oaf:entity"]["oaf:result"]` 下,v3 是扁平的 `{header, results[]}`。
 - **认证**: 无需
-- **能力**: search
+- **能力**: search + get
+- `get`:`GET /graph/v3/research-products?id={id}`
 - **实现**: `src/sources/openaire.rs`(以代码为准)
 
 ## 搜索

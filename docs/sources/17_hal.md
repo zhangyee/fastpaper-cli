@@ -3,7 +3,8 @@
 - **API 类型**: REST JSON(Solr 接口)
 - **搜索 URL**: `https://api.archives-ouvertes.fr/search/`
 - **认证**: 无需
-- **能力**: search + download
+- **能力**: search + get + download
+- `get`:`q=halId_s:"{id}"`;DOI 用 `doiId_s:"{doi}"`(HAL 没有 by-id 路径)
 - **实现**: `src/sources/hal.rs`(以代码为准)
 
 ## 搜索

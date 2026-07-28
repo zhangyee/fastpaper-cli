@@ -94,8 +94,8 @@ wait
 | 数据源 | 全称 | search | get | download | 覆盖领域 |
 |--------|------|:------:|:---:|:--------:|----------|
 | `arxiv` | arXiv | yes | yes | yes | 物理、数学、计算机、统计、电子工程、量化生物/金融、经济学 |
-| `biorxiv` | bioRxiv | yes | | yes | 生命科学 |
-| `medrxiv` | medRxiv | yes | | | 医学 / 健康科学（medRxiv 拦截 PDF 抓取）|
+| `biorxiv` | bioRxiv | yes | yes | yes | 生命科学 |
+| `medrxiv` | medRxiv | yes | yes | | 医学 / 健康科学（medRxiv 拦截 PDF 抓取）|
 | `pubmed` | PubMed | yes | yes | | 生物医学与生命科学（仅元数据） |
 | `pmc` | PubMed Central | yes | yes | yes | 生物医学与生命科学（全文） |
 | `europepmc` | Europe PMC | yes | yes | yes | PMC 的生命科学超集，另含预印本、专利、临床指南 |
@@ -106,11 +106,11 @@ wait
 | `openalex` | OpenAlex | yes | yes | | 开放元数据索引，2 亿+ 作品 |
 | `dblp` | DBLP | yes | | | 计算机科学 |
 | `core` | CORE | yes | yes | yes | 开放获取聚合器（需 `CORE_API_KEY`）|
-| `openaire` | OpenAIRE | yes | | | 欧盟开放科学 |
+| `openaire` | OpenAIRE | yes | yes | | 欧盟开放科学 |
 | `doaj` | DOAJ | yes | yes | | 开放获取期刊，全学科（全文链接指向出版商页面而非 PDF）|
 | `unpaywall` | Unpaywall | | yes | | OA 链接解析（需设置 `UNPAYWALL_EMAIL`） |
-| `zenodo` | Zenodo | yes | | yes | 全学科（数据集、软件、论文） |
-| `hal` | HAL | yes | | yes | 多学科，法国国家开放存档 |
+| `zenodo` | Zenodo | yes | yes | yes | 全学科（数据集、软件、论文） |
+| `hal` | HAL | yes | yes | yes | 多学科，法国国家开放存档 |
 
 各源支持的检索过滤参数、以及单次请求的结果上限并不相同。
 `fastpaper sources --capabilities` 会打印完整矩阵和每个源的注意事项。
