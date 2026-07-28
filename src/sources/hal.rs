@@ -57,6 +57,31 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
     Ok(url)
 }
 
+/// Fetch a single document by HAL id or DOI.
+///
+/// HAL has no by-id path; a field-scoped Solr query is the documented way.
+pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, String> {
+    let field = if identifier.starts_with("10.") {
+        "doiId_s"
+    } else {
+        "halId_s"
+    };
+    let url = format!(
+        "{}/search/?q={}:%22{}%22&rows=1&wt=json&fl={}",
+        base_url,
+        field,
+        super::encode_query(identifier),
+        FIELDS
+    );
+    let body = ureq::get(&url)
+        .call()
+        .map_err(|e| format!("HTTP error: {}", e))?
+        .into_body()
+        .read_to_string()
+        .map_err(|e| format!("Failed to read response: {}", e))?;
+    Ok(parse_search_response(&body)?.into_iter().next())
+}
+
 /// Search HAL API.
 pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let url = build_search_url(base_url, q)?;
@@ -370,5 +395,38 @@ mod query_tests {
         let mut q = SearchQuery::simple("crispr", 10);
         q.sort = Some(SortField::Citations);
         assert!(build_search_url("https://api.archives-ouvertes.fr", &q).is_err());
+    }
+}
+
+#[cfg(test)]
+mod get_tests {
+    use super::*;
+
+    const FIXTURE: &str = include_str!("../../tests/fixtures/hal_search.json");
+
+    #[test]
+    fn get_by_id_queries_hal_id_for_a_hal_identifier() {
+        let mut server = mockito::Server::new();
+        let m = server.mock("GET", mockito::Matcher::Regex("halId_s".to_string()))
+            .with_status(200).with_body(FIXTURE).create();
+        let _ = get_by_id(&server.url(), "hal-00000001");
+        m.assert();
+    }
+
+    // HAL has no by-id path, so a DOI has to target the DOI field instead.
+    #[test]
+    fn get_by_id_queries_doi_id_for_a_doi() {
+        let mut server = mockito::Server::new();
+        let m = server.mock("GET", mockito::Matcher::Regex("doiId_s".to_string()))
+            .with_status(200).with_body(FIXTURE).create();
+        let _ = get_by_id(&server.url(), "10.1038/nature12373");
+        m.assert();
+    }
+
+    #[test]
+    fn get_by_id_returns_the_first_document() {
+        let mut server = mockito::Server::new();
+        server.mock("GET", mockito::Matcher::Any).with_status(200).with_body(FIXTURE).create();
+        assert!(get_by_id(&server.url(), "hal-00000001").unwrap().is_some());
     }
 }

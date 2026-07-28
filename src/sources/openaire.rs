@@ -73,6 +73,22 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
     Ok(url)
 }
 
+/// Fetch a single research product by its OpenAIRE id.
+pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, String> {
+    let url = format!(
+        "{}/graph/v3/research-products?id={}",
+        base_url,
+        super::encode_query(identifier)
+    );
+    let body = ureq::get(&url)
+        .call()
+        .map_err(|e| format!("HTTP error: {}", e))?
+        .into_body()
+        .read_to_string()
+        .map_err(|e| format!("Failed to read response: {}", e))?;
+    Ok(parse_search_response(&body)?.into_iter().next())
+}
+
 /// Search the OpenAIRE Graph API.
 pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let url = build_search_url(base_url, q)?;
@@ -365,5 +381,28 @@ mod query_tests {
         let mut q = SearchQuery::simple("crispr", 10);
         q.offset = 20;
         assert!(url(&q).contains("page=3"), "got: {}", url(&q));
+    }
+}
+
+#[cfg(test)]
+mod get_tests {
+    use super::*;
+
+    const FIXTURE: &str = include_str!("../../tests/fixtures/openaire_graph_v3.json");
+
+    #[test]
+    fn get_by_id_uses_the_id_parameter() {
+        let mut server = mockito::Server::new();
+        let m = server.mock("GET", mockito::Matcher::Regex("id=openaire".to_string()))
+            .with_status(200).with_body(FIXTURE).create();
+        let _ = get_by_id(&server.url(), "openaire____::abc");
+        m.assert();
+    }
+
+    #[test]
+    fn get_by_id_returns_the_first_result() {
+        let mut server = mockito::Server::new();
+        server.mock("GET", mockito::Matcher::Any).with_status(200).with_body(FIXTURE).create();
+        assert!(get_by_id(&server.url(), "openaire____::abc").unwrap().is_some());
     }
 }

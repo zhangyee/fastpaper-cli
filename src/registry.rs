@@ -184,7 +184,7 @@ static BIORXIV: SourceEntry = SourceEntry {
             // Every preprint here is freely readable.
             open_access: true,
         }),
-        get: false,
+        get: true,
         download: true,
         max_limit: None,
         notes: "no keyword search API: browses a date window and matches the \
@@ -195,7 +195,7 @@ static BIORXIV: SourceEntry = SourceEntry {
     pdf_env_var: Some("FASTPAPER_BIORXIV_DL_URL"),
     pdf_default_base: Some("https://www.biorxiv.org"),
     search: Some(sources::biorxiv::search),
-    get: None,
+    get: Some(sources::biorxiv::get_by_id),
     pdf: Some(download::pdf_bytes_biorxiv),
 };
 
@@ -212,7 +212,7 @@ static MEDRXIV: SourceEntry = SourceEntry {
             // Every preprint here is freely readable.
             open_access: true,
         }),
-        get: false,
+        get: true,
         download: false,
         max_limit: None,
         notes: "no keyword search API: browses a date window and matches the \
@@ -224,7 +224,7 @@ static MEDRXIV: SourceEntry = SourceEntry {
     pdf_env_var: Some("FASTPAPER_MEDRXIV_DL_URL"),
     pdf_default_base: Some("https://www.medrxiv.org"),
     search: Some(sources::medrxiv::search),
-    get: None,
+    get: Some(sources::medrxiv::get_by_id),
     pdf: None,
 };
 
@@ -499,7 +499,7 @@ static OPENAIRE: SourceEntry = SourceEntry {
             field: true,
             open_access: true,
         }),
-        get: false,
+        get: true,
         download: false,
         max_limit: None,
         notes: "--field takes an OpenAIRE field-of-science value; an unrecognised \
@@ -510,7 +510,7 @@ static OPENAIRE: SourceEntry = SourceEntry {
     pdf_env_var: None,
     pdf_default_base: None,
     search: Some(sources::openaire::search),
-    get: None,
+    get: Some(sources::openaire::get_by_id),
     pdf: None,
 };
 
@@ -579,7 +579,7 @@ static ZENODO: SourceEntry = SourceEntry {
             field: false,
             open_access: true,
         }),
-        get: false,
+        get: true,
         download: true,
         max_limit: Some(25),
         notes: "anonymous callers get 25 results per request; --sort citations \
@@ -590,7 +590,7 @@ static ZENODO: SourceEntry = SourceEntry {
     pdf_env_var: None,
     pdf_default_base: None,
     search: Some(sources::zenodo::search),
-    get: None,
+    get: Some(sources::zenodo::get_by_id),
     pdf: Some(download::pdf_bytes_zenodo),
 };
 
@@ -608,7 +608,7 @@ static HAL: SourceEntry = SourceEntry {
             field: true,
             open_access: true,
         }),
-        get: false,
+        get: true,
         download: true,
         max_limit: Some(10000),
         notes: "year granularity only, use --year rather than --after/--before; \
@@ -619,7 +619,7 @@ static HAL: SourceEntry = SourceEntry {
     pdf_env_var: None,
     pdf_default_base: None,
     search: Some(sources::hal::search),
-    get: None,
+    get: Some(sources::hal::get_by_id),
     pdf: Some(download::pdf_bytes_hal),
 };
 

@@ -30,6 +30,17 @@ pub fn resolve_window(q: &super::SearchQuery, now_secs: u64) -> Result<(String, 
     Ok((start, end))
 }
 
+/// Fetch a single preprint by DOI.
+///
+/// `/details/{server}/{doi}` is the one by-identifier endpoint this API has,
+/// and it answers with the same `{collection: [...]}` shape as the interval
+/// browse, so the parser is reused.
+pub fn get_by_id(base_url: &str, doi: &str) -> Result<Option<Paper>, String> {
+    let url = format!("{}/details/medrxiv/{}", base_url, doi);
+    let body = http_get(&url)?;
+    Ok(parse_search_response(&body)?.into_iter().next())
+}
+
 /// Search medRxiv. The API only browses by date range, so the keyword is
 /// matched locally over the records in the window.
 pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
@@ -218,5 +229,32 @@ mod tests {
         for p in &papers {
             assert_eq!(p.venue.as_deref(), Some("medRxiv preprint"));
         }
+    }
+}
+
+#[cfg(test)]
+mod get_tests {
+    use super::*;
+
+    const FIXTURE: &str = include_str!("../../tests/fixtures/medrxiv_search.json");
+
+    // The one by-identifier endpoint this API has; same envelope as browsing.
+    #[test]
+    fn get_by_id_hits_the_details_endpoint() {
+        let mut server = mockito::Server::new();
+        let m = server
+            .mock("GET", mockito::Matcher::Regex("/details/medrxiv/10".to_string()))
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let _ = get_by_id(&server.url(), "10.1101/2020.01.30.927871");
+        m.assert();
+    }
+
+    #[test]
+    fn get_by_id_returns_the_first_preprint() {
+        let mut server = mockito::Server::new();
+        server.mock("GET", mockito::Matcher::Any).with_status(200).with_body(FIXTURE).create();
+        assert!(get_by_id(&server.url(), "10.1101/x").unwrap().is_some());
     }
 }

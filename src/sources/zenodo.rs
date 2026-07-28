@@ -78,6 +78,31 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
     Ok(url)
 }
 
+/// Fetch a single record by Zenodo record id.
+///
+/// `/api/records/{id}` answers with a bare record rather than the
+/// `{hits:{hits:[...]}}` envelope search uses. A Zenodo DOI is accepted too --
+/// the record id is its last segment.
+pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, String> {
+    let record_id = identifier
+        .rsplit_once("zenodo.")
+        .map(|(_, n)| n)
+        .unwrap_or(identifier);
+    let url = format!("{}/api/records/{}", base_url, super::encode_query(record_id));
+    match ureq::get(&url).call() {
+        Ok(resp) => {
+            let body = resp
+                .into_body()
+                .read_to_string()
+                .map_err(|e| format!("Failed to read response: {}", e))?;
+            let wrapped = format!(r#"{{"hits":{{"hits":[{}]}}}}"#, body);
+            Ok(parse_search_response(&wrapped)?.into_iter().next())
+        }
+        Err(ureq::Error::StatusCode(404)) => Ok(None),
+        Err(e) => Err(format!("HTTP error: {}", e)),
+    }
+}
+
 /// Search Zenodo API.
 pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let url = build_search_url(base_url, q)?;
@@ -410,5 +435,42 @@ mod query_tests {
         let err = build_search_url("https://zenodo.org", &SearchQuery::simple("x", 50))
             .unwrap_err();
         assert!(err.contains("25"), "got: {}", err);
+    }
+}
+
+#[cfg(test)]
+mod get_tests {
+    use super::*;
+
+    // /api/records/{id} answers with a bare record, not the hits envelope.
+    const RECORD: &str = r#"{"id":1234567,"doi":"10.5281/zenodo.1234567",
+"metadata":{"title":"A Zenodo record","creators":[{"name":"Doe, Jane"}],
+"publication_date":"2018-04-28","access_right":"open"},"links":{"html":"https://zenodo.org/record/1234567"}}"#;
+
+    #[test]
+    fn get_by_id_parses_a_bare_record() {
+        let mut server = mockito::Server::new();
+        server.mock("GET", mockito::Matcher::Regex("/api/records/1234567".to_string()))
+            .with_status(200).with_body(RECORD).create();
+        let p = get_by_id(&server.url(), "1234567").unwrap().unwrap();
+        assert_eq!(p.title, "A Zenodo record");
+        assert_eq!(p.source, "zenodo");
+    }
+
+    // A Zenodo DOI carries the record id as its last segment.
+    #[test]
+    fn get_by_id_accepts_a_zenodo_doi() {
+        let mut server = mockito::Server::new();
+        let m = server.mock("GET", mockito::Matcher::Regex("/api/records/1234567$".to_string()))
+            .with_status(200).with_body(RECORD).create();
+        let _ = get_by_id(&server.url(), "10.5281/zenodo.1234567");
+        m.assert();
+    }
+
+    #[test]
+    fn get_by_id_returns_none_on_404() {
+        let mut server = mockito::Server::new();
+        server.mock("GET", mockito::Matcher::Any).with_status(404).create();
+        assert!(get_by_id(&server.url(), "1").unwrap().is_none());
     }
 }
