@@ -86,6 +86,111 @@ fn build_search_url(
 ///
 /// Single-record lookups are the cheapest call OpenAlex offers, so this stays
 /// usable without a key.
+/// Walk a citation edge.
+///
+/// Incoming is one query; outgoing needs two, because a work carries the ids
+/// of what it cites but not their records.
+pub fn cite(
+    base_url: &str,
+    identifier: &str,
+    direction: super::Direction,
+    limit: u32,
+) -> Result<Vec<Paper>, String> {
+    let work = fetch_work(base_url, identifier)?;
+    let work_id = work["id"]
+        .as_str()
+        .and_then(|s| s.rsplit('/').next())
+        .ok_or_else(|| format!("openalex has no work for '{identifier}'"))?
+        .to_string();
+
+    let url = match direction {
+        super::Direction::Incoming => build_cites_url(base_url, &work_id, limit),
+        super::Direction::Outgoing => {
+            let ids = referenced_ids(&work);
+            if ids.is_empty() {
+                return Ok(Vec::new());
+            }
+            let ids: Vec<String> = ids.into_iter().take(limit as usize).collect();
+            build_batch_url(base_url, &ids, limit)
+        }
+    };
+    parse_search_response(&http_get(&url)?)
+}
+
+fn fetch_work(base_url: &str, identifier: &str) -> Result<serde_json::Value, String> {
+    let path = if identifier.starts_with("10.") {
+        format!("doi:{}", identifier)
+    } else {
+        identifier.to_string()
+    };
+    let body = http_get(&with_credentials(format!(
+        "{}/works/{}?select=id,referenced_works",
+        base_url, path
+    )))
+    .map_err(|e| match e.as_str() {
+        // A raw status code tells the caller nothing about what went wrong.
+        "HTTP 404" => format!("openalex has no record for '{identifier}'"),
+        _ => e,
+    })?;
+    serde_json::from_str(&body).map_err(|e| format!("JSON parse error: {e}"))
+}
+
+fn http_get(url: &str) -> Result<String, String> {
+    match ureq::get(url).call() {
+        Ok(resp) => resp
+            .into_body()
+            .read_to_string()
+            .map_err(|e| format!("read body: {e}")),
+        Err(ureq::Error::StatusCode(404)) => Err("HTTP 404".to_string()),
+        Err(e) => Err(format!("HTTP error: {e}")),
+    }
+}
+
+/// Works citing `work_id` — OpenAlex indexes this directly, so one query.
+fn build_cites_url(base_url: &str, work_id: &str, limit: u32) -> String {
+    with_credentials(format!(
+        "{}/works?filter=cites:{}&per_page={}",
+        base_url, work_id, limit
+    ))
+}
+
+/// Fetch a batch of works by id. `referenced_works` gives bare ids, not
+/// records, so the outgoing direction needs this second hop; the pipe is
+/// OpenAlex's OR separator, which keeps it to one request.
+fn build_batch_url(base_url: &str, ids: &[String], limit: u32) -> String {
+    with_credentials(format!(
+        "{}/works?filter=openalex_id:{}&per_page={}",
+        base_url,
+        ids.join("|"),
+        limit
+    ))
+}
+
+/// Append the credentials the rest of this module already sends: the API key
+/// when set, and the contact address that joins OpenAlex's polite pool.
+fn with_credentials(mut url: String) -> String {
+    if let Ok(key) = std::env::var("OPENALEX_API_KEY") {
+        url.push_str(&format!("&api_key={}", key));
+    }
+    if let Some(email) = super::contact_email() {
+        url.push_str(&format!("&mailto={}", email));
+    }
+    url
+}
+
+/// The short ids out of a work's `referenced_works`, which are full URLs.
+fn referenced_ids(work: &serde_json::Value) -> Vec<String> {
+    work["referenced_works"]
+        .as_array()
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str())
+                .map(|s| s.rsplit('/').next().unwrap_or(s).to_string())
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, String> {
     let path = if identifier.starts_with("10.") {
         format!("doi:{}", identifier)
@@ -554,5 +659,40 @@ mod query_tests {
         let q = SearchQuery::simple("attention", 10);
         let u = build_search_url("https://api.openalex.org", &q, Some("k123"), None).unwrap();
         assert!(u.contains("api_key=k123"), "got: {}", u);
+    }
+}
+
+#[cfg(test)]
+mod edge_tests {
+    use super::*;
+
+    // Incoming edges are one query: OpenAlex indexes "who cites W" directly.
+    #[test]
+    fn incoming_edges_filter_on_cites() {
+        let u = build_cites_url("https://api.openalex.org", "W2159974629", 20);
+        assert!(u.contains("filter=cites:W2159974629"), "got: {u}");
+        assert!(u.contains("per_page=20"), "got: {u}");
+    }
+
+    // Outgoing edges are two steps: the work lists referenced_works as bare
+    // ids, which have to be fetched back in one batched query.
+    #[test]
+    fn outgoing_edges_batch_the_referenced_ids() {
+        let u = build_batch_url("https://api.openalex.org", &["W1".into(), "W2".into()], 20);
+        assert!(u.contains("filter=openalex_id:W1|W2"), "got: {u}");
+    }
+
+    #[test]
+    fn referenced_ids_are_stripped_of_their_url_prefix() {
+        let work = serde_json::json!({
+            "referenced_works": ["https://openalex.org/W1557405337", "https://openalex.org/W1963514592"]
+        });
+        assert_eq!(referenced_ids(&work), vec!["W1557405337", "W1963514592"]);
+    }
+
+    // A work citing nothing must not produce a filter matching everything.
+    #[test]
+    fn a_work_with_no_references_yields_no_ids() {
+        assert!(referenced_ids(&serde_json::json!({})).is_empty());
     }
 }

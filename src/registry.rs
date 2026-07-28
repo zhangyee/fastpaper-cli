@@ -10,7 +10,7 @@
 use clap::ValueEnum;
 
 use crate::download;
-use crate::sources::{self, Capabilities, Paper, SearchCaps, SearchQuery};
+use crate::sources::{self, Capabilities, Direction, Paper, SearchCaps, SearchQuery};
 
 #[derive(ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Source {
@@ -68,6 +68,7 @@ pub struct SourceEntry {
     pub search: Option<fn(&str, &SearchQuery) -> Result<Vec<Paper>, String>>,
     pub get: Option<fn(&str, &str) -> Result<Option<Paper>, String>>,
     pub pdf: Option<fn(&str, &str) -> Result<Vec<u8>, String>>,
+    pub cite: Option<fn(&str, &str, Direction, u32) -> Result<Vec<Paper>, String>>,
 }
 
 impl Source {
@@ -160,6 +161,7 @@ static ARXIV: SourceEntry = SourceEntry {
         }),
         get: true,
         download: true,
+        cite: false,
         max_limit: Some(2000),
         notes: "--sort citations is unavailable: arXiv publishes no citation counts",
     },
@@ -170,6 +172,7 @@ static ARXIV: SourceEntry = SourceEntry {
     search: Some(sources::arxiv::search),
     get: Some(sources::arxiv::get_by_id),
     pdf: Some(download::pdf_bytes_arxiv),
+    cite: None,
 };
 
 static BIORXIV: SourceEntry = SourceEntry {
@@ -188,6 +191,7 @@ static BIORXIV: SourceEntry = SourceEntry {
         }),
         get: true,
         download: true,
+        cite: false,
         max_limit: None,
         notes: "no keyword search API: browses a date window and matches the \
                 keyword locally, so --after/--before/--year decide what is searched",
@@ -199,6 +203,7 @@ static BIORXIV: SourceEntry = SourceEntry {
     search: Some(sources::biorxiv::search),
     get: Some(sources::biorxiv::get_by_id),
     pdf: Some(download::pdf_bytes_biorxiv),
+    cite: None,
 };
 
 static MEDRXIV: SourceEntry = SourceEntry {
@@ -217,6 +222,7 @@ static MEDRXIV: SourceEntry = SourceEntry {
         }),
         get: true,
         download: false,
+        cite: false,
         max_limit: None,
         notes: "no keyword search API: browses a date window and matches the \
                 keyword locally, so --after/--before/--year decide what is \
@@ -229,6 +235,7 @@ static MEDRXIV: SourceEntry = SourceEntry {
     search: Some(sources::medrxiv::search),
     get: Some(sources::medrxiv::get_by_id),
     pdf: None,
+    cite: None,
 };
 
 static PUBMED: SourceEntry = SourceEntry {
@@ -248,6 +255,7 @@ static PUBMED: SourceEntry = SourceEntry {
         }),
         get: true,
         download: false,
+        cite: false,
         max_limit: Some(10000),
         notes: "metadata only, for full text try pmc; --sort citations unavailable",
     },
@@ -258,6 +266,7 @@ static PUBMED: SourceEntry = SourceEntry {
     search: Some(sources::pubmed::search),
     get: Some(sources::pubmed::get_by_pmid),
     pdf: None,
+    cite: None,
 };
 
 static PMC: SourceEntry = SourceEntry {
@@ -275,6 +284,7 @@ static PMC: SourceEntry = SourceEntry {
         }),
         get: true,
         download: true,
+        cite: false,
         max_limit: Some(10000),
         notes: "--sort citations unavailable; PDFs come from the OA subset only",
     },
@@ -288,6 +298,7 @@ static PMC: SourceEntry = SourceEntry {
     search: Some(sources::pmc::search),
     get: Some(sources::pmc::get_by_pmc_id),
     pdf: Some(download::pdf_bytes_pmc),
+    cite: None,
 };
 
 static EUROPEPMC: SourceEntry = SourceEntry {
@@ -305,6 +316,7 @@ static EUROPEPMC: SourceEntry = SourceEntry {
         }),
         get: true,
         download: true,
+        cite: false,
         max_limit: Some(1000),
         notes: "orders newest/most-cited first only, --order asc unavailable; \
                 --offset must be a multiple of -n; PDFs come from the open \
@@ -317,6 +329,7 @@ static EUROPEPMC: SourceEntry = SourceEntry {
     search: Some(sources::europepmc::search),
     get: Some(sources::europepmc::get_by_id),
     pdf: Some(download::pdf_bytes_europepmc),
+    cite: None,
 };
 
 static SCHOLAR: SourceEntry = SourceEntry {
@@ -328,6 +341,7 @@ static SCHOLAR: SourceEntry = SourceEntry {
         }),
         get: false,
         download: false,
+        cite: false,
         max_limit: None,
         notes: "HTML scraping, no official API; brittle and rate-limited",
     },
@@ -338,6 +352,7 @@ static SCHOLAR: SourceEntry = SourceEntry {
     search: Some(sources::scholar::search),
     get: None,
     pdf: None,
+    cite: None,
 };
 
 static XUESHU: SourceEntry = SourceEntry {
@@ -350,6 +365,7 @@ static XUESHU: SourceEntry = SourceEntry {
         }),
         get: false,
         download: false,
+        cite: false,
         max_limit: None,
         notes: "unofficial endpoint; subject to bot detection; --patents filters \
                 locally, so it pages further to fill -n",
@@ -361,6 +377,7 @@ static XUESHU: SourceEntry = SourceEntry {
     search: Some(sources::xueshu::search),
     get: None,
     pdf: None,
+    cite: None,
 };
 
 static SEMANTIC: SourceEntry = SourceEntry {
@@ -379,6 +396,7 @@ static SEMANTIC: SourceEntry = SourceEntry {
         }),
         get: true,
         download: true,
+        cite: true,
         max_limit: Some(100),
         notes: "--sort switches to the bulk endpoint, which pages by token, so it \
                 cannot be combined with --offset; set SEMANTIC_SCHOLAR_API_KEY to \
@@ -391,6 +409,7 @@ static SEMANTIC: SourceEntry = SourceEntry {
     search: Some(sources::semantic::search),
     get: Some(sources::semantic::get_by_id),
     pdf: Some(download::pdf_bytes_semantic),
+    cite: Some(sources::semantic::cite),
 };
 
 static CROSSREF: SourceEntry = SourceEntry {
@@ -410,6 +429,7 @@ static CROSSREF: SourceEntry = SourceEntry {
         }),
         get: true,
         download: false,
+        cite: false,
         max_limit: Some(1000),
         notes: "metadata only, no PDF links; --offset caps at 10000",
     },
@@ -420,6 +440,7 @@ static CROSSREF: SourceEntry = SourceEntry {
     search: Some(sources::crossref::search),
     get: Some(sources::crossref::get_by_doi),
     pdf: None,
+    cite: None,
 };
 
 static OPENALEX: SourceEntry = SourceEntry {
@@ -437,6 +458,7 @@ static OPENALEX: SourceEntry = SourceEntry {
         }),
         get: true,
         download: false,
+        cite: true,
         max_limit: Some(100),
         notes: "usage-metered since 2026-02, set OPENALEX_API_KEY for the larger free tier; \
                 --field takes a concept ID (e.g. C154945302), not a name; \
@@ -449,6 +471,7 @@ static OPENALEX: SourceEntry = SourceEntry {
     search: Some(sources::openalex::search),
     get: Some(sources::openalex::get_by_id),
     pdf: None,
+    cite: Some(sources::openalex::cite),
 };
 
 static DBLP: SourceEntry = SourceEntry {
@@ -460,6 +483,7 @@ static DBLP: SourceEntry = SourceEntry {
         }),
         get: false,
         download: false,
+        cite: false,
         max_limit: Some(1000),
         notes: "computer science only, metadata only; the API takes a query and \
                 paging, nothing else",
@@ -472,6 +496,7 @@ static DBLP: SourceEntry = SourceEntry {
     search: Some(sources::dblp::search),
     get: None,
     pdf: None,
+    cite: None,
 };
 
 static CORE: SourceEntry = SourceEntry {
@@ -485,6 +510,7 @@ static CORE: SourceEntry = SourceEntry {
         }),
         get: true,
         download: true,
+        cite: false,
         max_limit: Some(100),
         notes: "CORE_API_KEY is effectively required -- anonymous requests are \
                 throttled to 429; --author matches authors.name",
@@ -496,6 +522,7 @@ static CORE: SourceEntry = SourceEntry {
     search: Some(sources::core::search),
     get: Some(sources::core::get_by_id),
     pdf: Some(download::pdf_bytes_core),
+    cite: None,
 };
 
 static OPENAIRE: SourceEntry = SourceEntry {
@@ -513,6 +540,7 @@ static OPENAIRE: SourceEntry = SourceEntry {
         }),
         get: true,
         download: false,
+        cite: false,
         max_limit: None,
         notes: "--field takes an OpenAIRE field-of-science value; an unrecognised \
                 one is answered with the allowed list",
@@ -524,6 +552,7 @@ static OPENAIRE: SourceEntry = SourceEntry {
     search: Some(sources::openaire::search),
     get: Some(sources::openaire::get_by_id),
     pdf: None,
+    cite: None,
 };
 
 static DOAJ: SourceEntry = SourceEntry {
@@ -547,6 +576,7 @@ static DOAJ: SourceEntry = SourceEntry {
         }),
         get: true,
         download: false,
+        cite: false,
         max_limit: Some(100),
         notes: "year granularity only, use --year rather than --after/--before; \
                 no PDFs -- its fulltext links point at publisher landing pages, \
@@ -559,6 +589,7 @@ static DOAJ: SourceEntry = SourceEntry {
     search: Some(sources::doaj::search),
     get: Some(sources::doaj::get_by_id),
     pdf: None,
+    cite: None,
 };
 
 static UNPAYWALL: SourceEntry = SourceEntry {
@@ -568,6 +599,7 @@ static UNPAYWALL: SourceEntry = SourceEntry {
         search: None,
         get: true,
         download: false,
+        cite: false,
         max_limit: None,
         notes: "DOI lookup only; requires a real address in FASTPAPER_EMAIL",
     },
@@ -578,6 +610,7 @@ static UNPAYWALL: SourceEntry = SourceEntry {
     search: None,
     get: Some(g_unpaywall),
     pdf: None,
+    cite: None,
 };
 
 static ZENODO: SourceEntry = SourceEntry {
@@ -595,6 +628,7 @@ static ZENODO: SourceEntry = SourceEntry {
         }),
         get: true,
         download: true,
+        cite: false,
         max_limit: Some(25),
         notes: "anonymous callers get 25 results per request; --sort citations \
                 unavailable; --offset must be a multiple of -n",
@@ -606,6 +640,7 @@ static ZENODO: SourceEntry = SourceEntry {
     search: Some(sources::zenodo::search),
     get: Some(sources::zenodo::get_by_id),
     pdf: Some(download::pdf_bytes_zenodo),
+    cite: None,
 };
 
 static HAL: SourceEntry = SourceEntry {
@@ -625,6 +660,7 @@ static HAL: SourceEntry = SourceEntry {
         }),
         get: true,
         download: true,
+        cite: false,
         max_limit: Some(10000),
         notes: "year granularity only, use --year rather than --after/--before; \
                 --field takes a HAL domain code such as sdv or info",
@@ -636,6 +672,7 @@ static HAL: SourceEntry = SourceEntry {
     search: Some(sources::hal::search),
     get: Some(sources::hal::get_by_id),
     pdf: Some(download::pdf_bytes_hal),
+    cite: None,
 };
 
 #[cfg(test)]

@@ -11,16 +11,17 @@ pub fn run(args: &SourcesArgs) -> CommandResult {
 /// cannot drift from what the commands actually do.
 fn render(detailed: bool) -> String {
     let mut out = String::new();
-    out.push_str("Source      search  get  download\n");
-    out.push_str("─────────────────────────────────\n");
+    out.push_str("Source      search  get  download  cite\n");
+    out.push_str("───────────────────────────────────────\n");
     for source in registry::ALL {
         let caps = source.caps();
         out.push_str(&format!(
-            "{:<11} {:^6}  {:^3}  {:^8}\n",
+            "{:<11} {:^6}  {:^3}  {:^8}  {:^4}\n",
             source.name(),
             mark(caps.search.is_some()),
             mark(caps.get),
             mark(caps.download),
+            mark(caps.cite),
         ));
     }
 

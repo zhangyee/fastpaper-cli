@@ -1,0 +1,176 @@
+{
+  "offset": 0,
+  "citingPaperInfo": {
+    "openAccessPdf": {
+      "url": "https://arxiv.org/pdf/1304.1068",
+      "status": "GREEN",
+      "license": null,
+      "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/1304.1068, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+    },
+    "title": "Nanometer scale thermometry in a living cell",
+    "authors": [
+      {
+        "authorId": "4301543",
+        "name": "G. Kucsko"
+      },
+      {
+        "authorId": "47762783",
+        "name": "P. Maurer"
+      },
+      {
+        "authorId": "4138853",
+        "name": "N. Yao"
+      },
+      {
+        "authorId": "2068210745",
+        "name": "Michael Kubo"
+      },
+      {
+        "authorId": "2250179130",
+        "name": "H. Noh"
+      },
+      {
+        "authorId": "47472726",
+        "name": "P. Lo"
+      },
+      {
+        "authorId": "9236657",
+        "name": "Hongkun Park"
+      },
+      {
+        "authorId": "145572474",
+        "name": "M. Lukin"
+      }
+    ]
+  },
+  "next": 3,
+  "data": [
+    {
+      "citedPaper": {
+        "paperId": "3353c30596771f83cc0beb0ef3a6fba5380aacda",
+        "externalIds": {
+          "MAG": "2963941855",
+          "DOI": "10.1103/PHYSREVA.87.032118",
+          "CorpusId": 59400931
+        },
+        "url": "https://www.semanticscholar.org/paper/3353c30596771f83cc0beb0ef3a6fba5380aacda",
+        "title": "Timekeeping with electron spin states in diamond",
+        "venue": "",
+        "year": 2013,
+        "citationCount": 67,
+        "openAccessPdf": {
+          "url": "https://dash.harvard.edu/bitstream/1/30782186/1/Timekeeping%20with%20electron.pdf",
+          "status": "GREEN",
+          "license": "CCBY",
+          "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1103/PHYSREVA.87.032118?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1103/PHYSREVA.87.032118, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+        },
+        "fieldsOfStudy": [
+          "Physics"
+        ],
+        "publicationDate": "2013-03-28",
+        "authors": [
+          {
+            "authorId": "25310863",
+            "name": "J. Hodges"
+          },
+          {
+            "authorId": "3399114",
+            "name": "D. Englund"
+          }
+        ],
+        "abstract": "Frequency standards based on atomic states, such as Rb or Cs vapors, or single-trapped ions, are the most precise measures of time. Here we propose and analyze a precision oscillator approach based upon spins in a solid-state system, in particular, the nitrogen-vacancy defect in single-crystal diamond. We show that this system can have stability approaching portable atomic standards and is readily incorporable as a chip-scale device. Using a pulsed spin-echo technique, we anticipate an Allan deviation of ${\\ensuremath{\\sigma}}_{y}={10}^{\\ensuremath{-}7}{\\ensuremath{\\tau}}^{\\ensuremath{-}1/2}$ limited by thermally-induced strain variations; in the absence of such thermal fluctuations, the system is limited by spin dephasing and harbors an Allan deviation nearing $\\ensuremath{\\sim}{10}^{\\ensuremath{-}12}{\\ensuremath{\\tau}}^{\\ensuremath{-}1/2}$. Potential improvements based upon advanced diamond material processing, temperature stabilization, and nanophotonic engineering are discussed."
+      }
+    },
+    {
+      "citedPaper": {
+        "paperId": "f552d036ae408ab2acac3960f3ffee3ecb18ea0d",
+        "externalIds": {
+          "MAG": "2093130510",
+          "DOI": "10.1007/s10549-012-2393-x",
+          "CorpusId": 28722234,
+          "PubMed": "23288346"
+        },
+        "url": "https://www.semanticscholar.org/paper/f552d036ae408ab2acac3960f3ffee3ecb18ea0d",
+        "title": "A systematic review of elastography, electrical impedance scanning, and digital infrared thermography for breast cancer screening and diagnosis",
+        "venue": "Breast Cancer Research and Treatment",
+        "year": 2013,
+        "citationCount": 98,
+        "openAccessPdf": {
+          "url": "",
+          "status": "CLOSED",
+          "license": null,
+          "disclaimer": "Notice: The following paper fields have been elided by the publisher: {'abstract'}. Paper or abstract available at https://api.unpaywall.org/v2/10.1007/s10549-012-2393-x?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1007/s10549-012-2393-x, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+        },
+        "fieldsOfStudy": [
+          "Medicine"
+        ],
+        "publicationDate": "2013-01-04",
+        "authors": [
+          {
+            "authorId": "10782980",
+            "name": "T. Vreugdenburg"
+          },
+          {
+            "authorId": "2873810",
+            "name": "C. Willis"
+          },
+          {
+            "authorId": "3630682",
+            "name": "L. Mundy"
+          },
+          {
+            "authorId": "1809841",
+            "name": "J. Hiller"
+          }
+        ],
+        "abstract": null
+      }
+    },
+    {
+      "citedPaper": {
+        "paperId": "62c51750a438a1b66e5de13ad51d1c8c8669dde6",
+        "externalIds": {
+          "MAG": "2100898236",
+          "DOI": "10.1038/nature11804",
+          "CorpusId": 4430792,
+          "PubMed": "23254931"
+        },
+        "url": "https://www.semanticscholar.org/paper/62c51750a438a1b66e5de13ad51d1c8c8669dde6",
+        "title": "Scaling of embryonic patterning based on phase-gradient encoding",
+        "venue": "Nature",
+        "year": 2012,
+        "citationCount": 193,
+        "openAccessPdf": {
+          "url": "",
+          "status": "CLOSED",
+          "license": null,
+          "disclaimer": "Notice: The following paper fields have been elided by the publisher: {'abstract'}. Paper or abstract available at https://api.unpaywall.org/v2/10.1038/nature11804?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1038/nature11804, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+        },
+        "fieldsOfStudy": [
+          "Biology",
+          "Medicine"
+        ],
+        "publicationDate": "2012-12-19",
+        "authors": [
+          {
+            "authorId": "2201546997",
+            "name": "Volker M. Lauschke"
+          },
+          {
+            "authorId": "6076774",
+            "name": "C. Tsiairis"
+          },
+          {
+            "authorId": "145423900",
+            "name": "P. François"
+          },
+          {
+            "authorId": "5401958",
+            "name": "A. Aulehla"
+          }
+        ],
+        "abstract": null
+      }
+    }
+  ]
+}

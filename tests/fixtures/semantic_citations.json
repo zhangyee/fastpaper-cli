@@ -1,0 +1,176 @@
+{
+  "offset": 0,
+  "next": 3,
+  "data": [
+    {
+      "citingPaper": {
+        "paperId": "36e25775ea6b318f95205ba6fd2c61786a1c812c",
+        "externalIds": {
+          "ArXiv": "2607.22410",
+          "CorpusId": 290583776
+        },
+        "url": "https://www.semanticscholar.org/paper/36e25775ea6b318f95205ba6fd2c61786a1c812c",
+        "title": "A Kalman Filter Based Approach to NV Diamond Data Fusion For Improved Temperature Sensing",
+        "venue": "",
+        "year": 2026,
+        "citationCount": 0,
+        "openAccessPdf": {
+          "url": "",
+          "status": null,
+          "license": null,
+          "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2607.22410, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+        },
+        "fieldsOfStudy": [
+          "Physics"
+        ],
+        "publicationDate": "2026-07-24",
+        "authors": [
+          {
+            "authorId": "2321409558",
+            "name": "Shraddha Rajpal"
+          },
+          {
+            "authorId": "2430979600",
+            "name": "Qiaochu Guo"
+          },
+          {
+            "authorId": "2389413397",
+            "name": "B. McCullian"
+          },
+          {
+            "authorId": "14016183",
+            "name": "Tyrus Berry"
+          },
+          {
+            "authorId": "2388923239",
+            "name": "Zeeshan Ahmed"
+          }
+        ],
+        "abstract": "Nitrogen-vacancy (NV) centers in diamond have been demonstrated to enable highly sensitive temperature measurements using multiple modalities. Standalone optically detected magnetic resonance (ODMR) provides robust temperature estimates, albeit with high latency, whereas all-optical measurements provide millisecond resolution but suffer from poorer long-term accuracy. In this work, we demonstrate a hot-start Kalman filtering approach that fuses the two modalities, leading to a 57% improvement in accuracy. The fused estimate achieves higher long-term accuracy with lower latency, demonstrating a viable route toward implementing self-correcting, high-precision NV-diamond temperature sensing schemes."
+      }
+    },
+    {
+      "citingPaper": {
+        "paperId": "bf20675b74a85c0409a9ac1d56fc00b15fcac5a4",
+        "externalIds": {
+          "ArXiv": "2607.22154",
+          "CorpusId": 290583390
+        },
+        "url": "https://www.semanticscholar.org/paper/bf20675b74a85c0409a9ac1d56fc00b15fcac5a4",
+        "title": "Molecular chiral discrimination through symmetry-breaking spin dynamics",
+        "venue": "",
+        "year": 2026,
+        "citationCount": 0,
+        "openAccessPdf": {
+          "url": "",
+          "status": null,
+          "license": null,
+          "disclaimer": "Notice: Paper or abstract available at https://arxiv.org/abs/2607.22154, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+        },
+        "fieldsOfStudy": [
+          "Physics"
+        ],
+        "publicationDate": "2026-07-24",
+        "authors": [
+          {
+            "authorId": "2057038573",
+            "name": "Tianyu Xie"
+          },
+          {
+            "authorId": "21137076",
+            "name": "Yucheng Hao"
+          },
+          {
+            "authorId": "2145329252",
+            "name": "Mingzhe Liu"
+          },
+          {
+            "authorId": "50468949",
+            "name": "Mengqi Wang"
+          },
+          {
+            "authorId": "2202884987",
+            "name": "Shaoyi Xu"
+          },
+          {
+            "authorId": null,
+            "name": "Zhiyuan Zhao"
+          },
+          {
+            "authorId": "2261288612",
+            "name": "Chang-Kui Duan"
+          },
+          {
+            "authorId": null,
+            "name": "Ya Wang"
+          },
+          {
+            "authorId": "6038545",
+            "name": "F. Shi"
+          },
+          {
+            "authorId": null,
+            "name": "Jiangfeng Du"
+          }
+        ],
+        "abstract": "Molecular chirality plays a crucial role in physics, chemistry, life sciences and pharmacology. Nowadays, the chiral discrimination and control at the single-molecule level is urgently needed to reveal the origin of the chirality-relevant phenomena by recovering the information disturbed by the ensemble averaging. The method of magnetic resonance (MR), as one of powerful tools for structure analysis, is blind to the molecular chirality in the absence of a chiral reagent. Here we propose and experimentally demonstrate a direct MR-based method for determining the chirality at the single-molecule level through constructing the symmetry-breaking dynamics of nearby nuclear spins. In principle, the mirror asymmetry of two enantiomers in real space is manifested by breaking the joint symmetry of the mirror reflection and time reversal in spin space under spin dynamics. Experimentally, two enantiomers are indistinguishable from the dynamics of strongly-coupled but unpolarized nuclear spins, but diverge evidently in the dynamical results that break the field-inversion symmetry after spins are polarized. Our method and results will benefit the study of chirality-induced properties in the fields of chemistry and biology."
+      }
+    },
+    {
+      "citingPaper": {
+        "paperId": "8ce8c0c7587e4f125cb0250cdbf0a51f46d0904b",
+        "externalIds": {
+          "DOI": "10.1039/d6nr00839a",
+          "CorpusId": 290511858,
+          "PubMed": "42496000"
+        },
+        "url": "https://www.semanticscholar.org/paper/8ce8c0c7587e4f125cb0250cdbf0a51f46d0904b",
+        "title": "All-optical fluorescence lifetime nanodiamond thermometry for intracellular photothermal hyperthermia.",
+        "venue": "Nanoscale",
+        "year": 2026,
+        "citationCount": 0,
+        "openAccessPdf": {
+          "url": "https://doi.org/10.1039/d6nr00839a",
+          "status": "HYBRID",
+          "license": "CCBY",
+          "disclaimer": "Notice: Paper or abstract available at https://api.unpaywall.org/v2/10.1039/d6nr00839a?email=<INSERT_YOUR_EMAIL> or https://doi.org/10.1039/d6nr00839a, which is subject to the license by the author or copyright owner provided with this content. Please go to the source to verify the license and copyright information for your use."
+        },
+        "fieldsOfStudy": [
+          "Medicine"
+        ],
+        "publicationDate": "2026-07-24",
+        "authors": [
+          {
+            "authorId": "2128223514",
+            "name": "F. Camarneiro"
+          },
+          {
+            "authorId": "2137009948",
+            "name": "Ânia Micaelo"
+          },
+          {
+            "authorId": "2158772103",
+            "name": "Beatriz N L Costa"
+          },
+          {
+            "authorId": "2452985876",
+            "name": "Luís Mano da Costa"
+          },
+          {
+            "authorId": "23139279",
+            "name": "I. Ghaeli"
+          },
+          {
+            "authorId": "13910680",
+            "name": "J. L. Paris"
+          },
+          {
+            "authorId": "2237878145",
+            "name": "Jana B. Nieder"
+          }
+        ],
+        "abstract": "Nanodiamond-based thermometry provides a photostable and biocompatible platform for nanoscale temperature sensing in biological environments. Most nanodiamond thermometry approaches rely on continuous-wave optically detected magnetic resonance, which requires microwave delivery and specialized instrumentation. Here, we demonstrate an all-optical alternative based on the temperature dependence of the fluorescence lifetime of nitrogen-vacancy centers in 100 nm nanodiamonds. To evaluate the performance of fluorescence lifetime-based nanodiamond thermometry under biologically relevant conditions, we investigate intracellular temperature dynamics during near-infrared (808 nm) optical hyperthermia. Custom-fabricated gold nanorods encapsulated in mesoporous silica and functionalized with Rhodamine B serve as localized plasmonic heaters and reference thermometers. Fluorescence Lifetime Imaging Microscopy (FLIM) enables simultaneous, spatially resolved comparison between heater-coupled RhB fluorophores and freely distributed nanodiamond probes within the same cellular environment. Nanodiamonds measured intracellular temperature increases up to +24 °C, in close agreement with the +27 °C rise reported by RhB-based sensors. Real-time FLIM measurements further demonstrate the ability of nanodiamonds to track dynamic temperature evolution during prolonged irradiation. While absolute temperature values differ due to spatial separation between heater and probe, both sensors exhibit consistent relative trends. These results establish fluorescence lifetime-based nanodiamond thermometry as a practical, microwave-free approach for monitoring intracellular thermal processes, providing a complementary strategy for nanoscale temperature sensing during photothermal therapy."
+      }
+    }
+  ]
+}

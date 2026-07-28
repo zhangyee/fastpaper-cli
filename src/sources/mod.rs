@@ -207,6 +207,8 @@ pub struct Capabilities {
     pub search: Option<SearchCaps>,
     pub get: bool,
     pub download: bool,
+    /// Can walk citation edges in both directions.
+    pub cite: bool,
     /// Hard per-request result cap imposed by the source, if any.
     pub max_limit: Option<u32>,
     /// Caveat shown by `fastpaper sources --capabilities`; empty when none.
@@ -245,6 +247,18 @@ pub fn contact_email() -> Option<String> {
         .ok()
         .map(|s| s.trim().to_string())
         .filter(|s| !s.is_empty())
+}
+
+/// Which way along a citation edge to walk.
+///
+/// Naming is deliberately about direction rather than the words "citations"
+/// and "references", which flip meaning depending on who is speaking.
+#[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Direction {
+    /// Papers that cite this one — what the field did next.
+    Incoming,
+    /// Papers this one cites — what it was built on.
+    Outgoing,
 }
 
 /// A paper returned from any source.

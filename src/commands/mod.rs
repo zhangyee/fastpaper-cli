@@ -1,6 +1,7 @@
 //! One module per command. Each owns its argument validation, source calls and
 //! rendering; `main.rs` only dispatches and maps errors to exit codes.
 
+pub mod cite;
 pub mod download;
 pub mod get;
 pub mod read;

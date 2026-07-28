@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
 use crate::registry::{self, Source};
-use crate::sources::{SearchQuery, SortField, SortOrder};
+use crate::sources::{Direction, SearchQuery, SortField, SortOrder};
 
 /// Fast academic paper search, download & read
 #[derive(Parser)]
@@ -43,6 +43,9 @@ pub enum Commands {
 
     /// Download a paper's PDF (default: ./papers)
     Download(DownloadArgs),
+
+    /// Walk citation edges: what cites a paper, or what it cites
+    Cite(CiteArgs),
 
     /// Extract text from a local PDF file
     Read(ReadArgs),
@@ -146,6 +149,37 @@ pub struct GetArgs {
 }
 
 impl GetArgs {
+    pub fn resolve(&self) -> Result<(Option<Source>, &str), String> {
+        resolve_source_and_id(&self.first, self.second.as_deref())
+    }
+}
+
+// ── cite ────────────────────────────────────────
+
+#[derive(clap::Args)]
+pub struct CiteArgs {
+    /// Source name, or the identifier itself when no source is given
+    #[arg(value_name = "SOURCE_OR_ID")]
+    pub first: String,
+
+    /// Identifier when a source is given
+    #[arg(value_name = "ID")]
+    pub second: Option<String>,
+
+    /// Which way to walk: papers citing this one, or the ones it cites
+    #[arg(long, default_value = "incoming")]
+    pub direction: Direction,
+
+    /// Max edges to return
+    #[arg(short = 'n', long, default_value = "20")]
+    pub limit: u32,
+
+    /// Write results to a file instead of stdout
+    #[arg(short, long)]
+    pub output: Option<PathBuf>,
+}
+
+impl CiteArgs {
     pub fn resolve(&self) -> Result<(Option<Source>, &str), String> {
         resolve_source_and_id(&self.first, self.second.as_deref())
     }

@@ -328,6 +328,64 @@ fn get_by_id_with_cfg_for_test(
     }
 }
 
+/// Walk a citation edge. Both directions are one request.
+pub fn cite(
+    base_url: &str,
+    id: &str,
+    direction: super::Direction,
+    limit: u32,
+) -> Result<Vec<Paper>, String> {
+    let endpoint = match direction {
+        super::Direction::Incoming => "citations",
+        super::Direction::Outgoing => "references",
+    };
+    let url = format!(
+        "{}/graph/v1/paper/{}/{}?limit={}&fields={}",
+        base_url, id, endpoint, limit, FIELDS
+    );
+    let key = std::env::var("SEMANTIC_SCHOLAR_API_KEY").ok();
+    let cfg = if key.is_some() {
+        BackoffConfig::DEFAULT_AUTH
+    } else {
+        BackoffConfig::DEFAULT_ANON
+    };
+    match http_get_with_retry_cfg(&url, key, &cfg) {
+        FetchOutcome::Ok(body) => parse_edge_response(&body, direction),
+        FetchOutcome::RateLimited => Err(
+            "semantic rate limited. Set SEMANTIC_SCHOLAR_API_KEY, or use: fastpaper cite openalex <id>"
+                .to_string(),
+        ),
+        FetchOutcome::Err(e) => Err(e),
+    }
+}
+
+/// Parse a `/citations` or `/references` response.
+///
+/// Both wrap each paper one level deeper than `/paper/search` does — under
+/// `citingPaper` coming in, `citedPaper` going out — but the paper object
+/// itself is identical, so the mapping is shared.
+pub fn parse_edge_response(
+    json: &str,
+    direction: super::Direction,
+) -> Result<Vec<Paper>, String> {
+    let root: serde_json::Value =
+        serde_json::from_str(json).map_err(|e| format!("JSON parse error: {}", e))?;
+    let data = root["data"].as_array().ok_or("missing 'data' array")?;
+
+    let key = match direction {
+        super::Direction::Incoming => "citingPaper",
+        super::Direction::Outgoing => "citedPaper",
+    };
+
+    Ok(data
+        .iter()
+        .map(|edge| &edge[key])
+        .filter(|p| !p.is_null())
+        .map(paper_from)
+        .filter(|p| !p.title.is_empty())
+        .collect())
+}
+
 /// Parse Semantic Scholar JSON search response into a list of Papers.
 pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
     let root: serde_json::Value =
@@ -335,61 +393,62 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
 
     let data = root["data"].as_array().ok_or("missing 'data' array")?;
 
-    let mut papers = Vec::new();
-    for item in data {
-        let authors: Vec<String> = item["authors"]
-            .as_array()
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|a| a["name"].as_str().map(|s| s.to_string()))
-                    .collect()
-            })
-            .unwrap_or_default();
+    Ok(data.iter().map(paper_from).collect())
+}
 
-        let doi = item["externalIds"]["DOI"].as_str().map(|s| s.to_string());
+/// Map one Semantic Scholar paper object onto `Paper`. Shared by search,
+/// single-paper lookup and both citation-edge endpoints.
+fn paper_from(item: &serde_json::Value) -> Paper {
+    let authors: Vec<String> = item["authors"]
+        .as_array()
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|a| a["name"].as_str().map(|s| s.to_string()))
+                .collect()
+        })
+        .unwrap_or_default();
 
-        let pdf_url = item["openAccessPdf"]["url"]
-            .as_str()
-            .filter(|s| !s.is_empty())
-            .map(|s| {
-                if s.contains("arxiv.org/abs/") {
-                    s.replace("/abs/", "/pdf/")
-                } else {
-                    s.to_string()
-                }
-            });
+    let doi = item["externalIds"]["DOI"].as_str().map(|s| s.to_string());
 
-        let fields: Vec<String> = item["fieldsOfStudy"]
-            .as_array()
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                    .collect()
-            })
-            .unwrap_or_default();
-
-        let citations = item["citationCount"].as_u64().map(|n| n as u32);
-
-        papers.push(Paper {
-            id: item["paperId"].as_str().unwrap_or("").to_string(),
-            title: item["title"].as_str().unwrap_or("").to_string(),
-            authors,
-            abstract_text: item["abstract"].as_str().map(|s| s.to_string()),
-            year: item["year"].as_u64().map(|y| y as u16),
-            doi,
-            url: item["url"].as_str().map(|s| s.to_string()),
-            pdf_url,
-            venue: item["venue"].as_str().map(|s| s.to_string()),
-            citations,
-            fields,
-            open_access: Some(
-                item["openAccessPdf"].is_object() && !item["openAccessPdf"].is_null(),
-            ),
-            source: "semantic".to_string(),
+    let pdf_url = item["openAccessPdf"]["url"]
+        .as_str()
+        .filter(|s| !s.is_empty())
+        .map(|s| {
+            if s.contains("arxiv.org/abs/") {
+                s.replace("/abs/", "/pdf/")
+            } else {
+                s.to_string()
+            }
         });
-    }
 
-    Ok(papers)
+    let fields: Vec<String> = item["fieldsOfStudy"]
+        .as_array()
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let citations = item["citationCount"].as_u64().map(|n| n as u32);
+
+    Paper {
+        id: item["paperId"].as_str().unwrap_or("").to_string(),
+        title: item["title"].as_str().unwrap_or("").to_string(),
+        authors,
+        abstract_text: item["abstract"].as_str().map(|s| s.to_string()),
+        year: item["year"].as_u64().map(|y| y as u16),
+        doi,
+        url: item["url"].as_str().map(|s| s.to_string()),
+        pdf_url,
+        venue: item["venue"].as_str().map(|s| s.to_string()),
+        citations,
+        fields,
+        open_access: Some(
+            item["openAccessPdf"].is_object() && !item["openAccessPdf"].is_null(),
+        ),
+        source: "semantic".to_string(),
+    }
 }
 
 #[cfg(test)]
@@ -917,5 +976,46 @@ mod query_tests {
         q.author = Some("Vaswani".into());
         let err = build_search_url("https://api.semanticscholar.org", &q).unwrap_err();
         assert!(err.contains("--author"), "got: {}", err);
+    }
+}
+
+#[cfg(test)]
+mod edge_tests {
+    use super::*;
+    use crate::sources::Direction;
+
+    const REFS: &str = include_str!("../../tests/fixtures/semantic_references.json");
+    const CITES: &str = include_str!("../../tests/fixtures/semantic_citations.json");
+
+    // The edge endpoints wrap each paper one level deeper than /paper/search:
+    // `data[].citedPaper` going out, `data[].citingPaper` coming in.
+    #[test]
+    fn outgoing_edges_unwrap_cited_papers() {
+        let papers = parse_edge_response(REFS, Direction::Outgoing).unwrap();
+        assert_eq!(papers.len(), 3);
+        assert!(papers.iter().all(|p| !p.title.is_empty()));
+        assert!(papers.iter().all(|p| p.source == "semantic"));
+    }
+
+    #[test]
+    fn incoming_edges_unwrap_citing_papers() {
+        let papers = parse_edge_response(CITES, Direction::Incoming).unwrap();
+        assert_eq!(papers.len(), 3);
+        assert!(papers.iter().all(|p| !p.title.is_empty()));
+    }
+
+    // Reading the wrong side yields nothing rather than silently mixing
+    // directions, which would invert every edge in a citation graph.
+    #[test]
+    fn reading_the_wrong_side_yields_no_papers() {
+        assert!(parse_edge_response(REFS, Direction::Incoming).unwrap().is_empty());
+    }
+
+    #[test]
+    fn edge_papers_carry_the_same_fields_as_search_results() {
+        let p = &parse_edge_response(CITES, Direction::Incoming).unwrap()[0];
+        assert!(p.year.is_some(), "year missing");
+        assert!(p.citations.is_some(), "citationCount missing");
+        assert!(!p.authors.is_empty(), "authors missing");
     }
 }
