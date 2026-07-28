@@ -105,7 +105,7 @@ equally to anything the `download` column can fetch.
 | `crossref` | CrossRef | yes | yes | | DOI metadata, all disciplines |
 | `openalex` | OpenAlex | yes | yes | | Open metadata index, 200M+ works |
 | `dblp` | DBLP | yes | | | Computer science |
-| `core` | CORE | yes | | yes | Open access aggregator |
+| `core` | CORE | yes | yes | yes | Open access aggregator (needs `CORE_API_KEY`) |
 | `openaire` | OpenAIRE | yes | | | EU open science |
 | `doaj` | DOAJ | yes | yes | | Open access journals, all subjects (links go to publisher pages, not PDFs) |
 | `unpaywall` | Unpaywall | | yes | | OA link resolver (requires `UNPAYWALL_EMAIL`) |

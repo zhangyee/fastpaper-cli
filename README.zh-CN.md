@@ -105,7 +105,7 @@ wait
 | `crossref` | CrossRef | yes | yes | | DOI 元数据，全学科 |
 | `openalex` | OpenAlex | yes | yes | | 开放元数据索引，2 亿+ 作品 |
 | `dblp` | DBLP | yes | | | 计算机科学 |
-| `core` | CORE | yes | | yes | 开放获取聚合器 |
+| `core` | CORE | yes | yes | yes | 开放获取聚合器（需 `CORE_API_KEY`）|
 | `openaire` | OpenAIRE | yes | | | 欧盟开放科学 |
 | `doaj` | DOAJ | yes | yes | | 开放获取期刊，全学科（全文链接指向出版商页面而非 PDF）|
 | `unpaywall` | Unpaywall | | yes | | OA 链接解析（需设置 `UNPAYWALL_EMAIL`） |

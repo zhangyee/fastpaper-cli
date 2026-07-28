@@ -29,7 +29,7 @@ Pick sources based on the user's research domain:
 - `scholar` — Google Scholar, broadest coverage (experimental, rate-limited). search
 - `xueshu` — Baidu Xueshu (百度学术), strong Chinese-language coverage (experimental, unofficial API; may require captcha and stop working). search
 **Open access aggregators**
-- `core` — Largest global OA aggregator, full text from institutional repos and journals. search, download
+- `core` — Largest global OA aggregator, full text from institutional repos and journals. search, get, download
 - `openaire` — EU open science infrastructure, aggregates worldwide OA research. search
 - `doaj` — Directory of quality-reviewed OA journals, all subjects. search, get
 - `unpaywall` — OA link resolver by DOI, finds legal free versions (needs UNPAYWALL_EMAIL). get
@@ -91,6 +91,7 @@ fastpaper download <source> <id>         # or name it explicitly
 Saves to `./papers/<id>.pdf` by default (`-d` to change it).
 
 Download-capable sources: arxiv, biorxiv, pmc, europepmc, semantic, core, zenodo, hal.
+CORE needs CORE_API_KEY -- anonymous requests are throttled to 429.
 
 A download that would have produced HTML rather than a file now fails instead of
 writing it out, so a reported success is a real PDF.

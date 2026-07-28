@@ -3,7 +3,13 @@
 - **API 类型**: REST JSON(v3)
 - **基础 URL**: `https://api.core.ac.uk`,搜索端点 `/v3/search/works`
 - **认证**: 可选 `CORE_API_KEY`,header `Authorization: Bearer {key}`(提升 rate limit 和结果质量)
-- **能力**: search + download
+- **能力**: search + get + download
+- **`CORE_API_KEY` 事实上必需**:匿名请求一律 429
+- 检索路径要带尾斜杠:`/v3/search/works` 会 301 到 `/v3/search/works/`
+- `--author` 用 `authors.name:"名字"`(**必须带引号**);写成 `authors:"名字"` 不是收窄而是**放大**结果集(同一查询 60460 → 874397),写成不带引号的 `authors.name:名字` 则命中 0
+- `-n` 上限 **100**:200 就会 504
+- `get`:`GET /v3/works/{identifier}`,返回裸 work 对象而非 `{results:[...]}` 信封
+- `download`:`/v3/works/{id}/download` 会 302 到 `core.ac.uk` 上的文件,**API key 不能跟着跨主机**(带过去会被 400 拒)。实现改为两步:先带鉴权取记录,再单独取它的 `downloadUrl`(不带任何凭证)。`/v3/outputs/{id}/download` 已 404
 - **实现**: `src/sources/core.rs`(以代码为准)
 
 ## 搜索
