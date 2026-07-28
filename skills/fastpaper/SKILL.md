@@ -88,7 +88,7 @@ another hit, or fall through Workflow 3.
 | `hal` | ✓ | **cross-discipline** French national archive | `--field` takes a domain code: `math` `phys` `chim` `sdv` `shs` `spi` `info` `sde`; many records are metadata-only, so filter on `pdf_url` before downloading |
 | `zenodo` | ✓ | **cross-discipline** CERN general-purpose repository — papers, datasets, software | `-n` capped at 25; like hal, many records are metadata-only |
 | `unpaywall` | — | **DOI → a downloadable URL.** No search | the URL must be fetched separately; see Workflow 3 |
-| `scholar` | — | broadest reach of anything here; scouting and last-resort landing pages | HTML scraping, captcha-prone; `doi` and `pdf_url` always `null` (parser gap, see Workflow 3) |
+| `scholar` | — | broadest reach of anything here; scouting, and a PDF link when nothing else has one | HTML scraping, captcha-prone; `doi` is always `null`, and only some hits carry a `pdf_url` |
 | `xueshu` | — | **Chinese literature** — journals, theses, patents | unofficial API, bot detection; keep it serial |
 
 ### Content types worth routing on
@@ -222,7 +222,8 @@ Go down a step only when the one above fails.
 | 3 | **`fastpaper get unpaywall <DOI>`** → take `.pdf_url` → fetch it yourself |
 | 4 | `fastpaper get openalex <id>` → `.pdf_url` → fetch it yourself |
 | 5 | `fastpaper search xueshu "<title>"` → `.pdf_url` → fetch it yourself |
-| 6 | Out of automatic options. `fastpaper search scholar "<title>"` often still finds a landing page in its `url`; report that plus which steps you tried. **Never claim a download that did not happen.** |
+| 6 | `fastpaper search scholar "<title>"` → `.pdf_url` when the hit has one, otherwise its `url` is at least the publisher's page |
+| 7 | Report the landing page and which steps you tried. **Never claim a download that did not happen.** |
 
 Steps 3–5 return a URL, not a file — `fastpaper` cannot download an arbitrary
 URL, so fetch it yourself. Keep the server's own filename (`-OJ`) rather than
@@ -240,12 +241,11 @@ can miss even on a perfectly good file, which would look like a failed download.
 `fastpaper download` already refuses to write HTML, so its own successes need no
 check.
 
-`scholar` cannot serve step 3–5: its `pdf_url` and `doi` are always `null`. Note
-this is a gap in *this* scraper, not in Google Scholar — the results page does
-carry direct PDF links (in a `div.gs_ggs` block beside each hit) and the parser
-simply does not read them. What scholar does return is `url`, the publisher
-landing page, which is worth having at step 6 when everything else came up
-empty. `[CITATION]` stubs have no link at all and are dropped.
+`scholar` sits last because it is the least dependable, not the least useful:
+it reports whichever free PDF Google found, which is often one the DOI-based
+steps above missed, but it is captcha-prone and gives no `doi`. Only some hits
+have a `pdf_url` — the rest carry `url`, the publisher's page. `[CITATION]`
+stubs have no link at all and are dropped.
 
 ## What this tool cannot do
 

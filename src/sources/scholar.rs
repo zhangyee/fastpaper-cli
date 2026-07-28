@@ -61,13 +61,32 @@ pub fn parse_search_response(html: &str) -> Result<Vec<Paper>, String> {
     }
 
     let document = Html::parse_document(html);
+    // Iterate the row, not `gs_ri`: a row holds the bibliographic column
+    // (`gs_ri`) *and*, when Scholar found free full text, a link block
+    // (`gs_ggs`) beside it. Walking `gs_ri` alone cannot see the link.
+    let row_sel = Selector::parse("div.gs_r").unwrap();
     let result_sel = Selector::parse("div.gs_ri").unwrap();
     let title_sel = Selector::parse("h3.gs_rt a").unwrap();
     let meta_sel = Selector::parse("div.gs_a").unwrap();
     let abstract_sel = Selector::parse("div.gs_rs").unwrap();
+    let fulltext_sel = Selector::parse("div.gs_ggs a").unwrap();
 
     let mut papers = Vec::new();
-    for result in document.select(&result_sel) {
+    for row in document.select(&row_sel) {
+        // The page ends with a `gs_r` block for the "create alert" control,
+        // which has no bibliographic column; skipping those keeps it out.
+        let Some(result) = row.select(&result_sel).next() else {
+            continue;
+        };
+
+        // Scholar labels the link `[PDF]` for a file and `[HTML]` for a
+        // publisher landing page. Only the first is downloadable.
+        let pdf_url = row
+            .select(&fulltext_sel)
+            .find(|a| a.text().collect::<String>().contains("[PDF]"))
+            .and_then(|a| a.value().attr("href"))
+            .map(|s| s.to_string());
+
         // Title and URL
         let (title, url) = if let Some(link) = result.select(&title_sel).next() {
             let title = link.text().collect::<String>().trim().to_string();
@@ -147,7 +166,7 @@ pub fn parse_search_response(html: &str) -> Result<Vec<Paper>, String> {
             year,
             doi: None,
             url,
-            pdf_url: None,
+            pdf_url,
             venue,
             citations: None,
             fields: vec![],
@@ -187,6 +206,60 @@ mod tests {
             assert!(!p.title.is_empty(), "empty title survived: {:?}", p);
             assert!(p.url.is_some(), "linkless result survived: {}", p.title);
         }
+    }
+
+    // Scholar puts the free full-text link in a block beside the main column,
+    // labelled [PDF] for a file or [HTML] for a publisher landing page. Only
+    // the former is something `download` could ever use.
+    #[test]
+    fn a_pdf_link_becomes_the_pdf_url() {
+        let p = by_title("Attention mechanism in neural networks: where");
+        assert_eq!(
+            p.pdf_url.as_deref(),
+            Some("https://arxiv.org/pdf/2204.13154")
+        );
+    }
+
+    #[test]
+    fn an_html_link_is_not_a_pdf_url() {
+        let p = by_title("Attention mechanisms and their");
+        assert_eq!(p.pdf_url, None, "an [HTML] landing page is not a file");
+    }
+
+    #[test]
+    fn a_hit_with_no_link_block_has_no_pdf_url() {
+        let p = by_title("A review on the attention mechanism");
+        assert_eq!(p.pdf_url, None);
+    }
+
+    // The link belongs to its own row; iterating the wrong container would
+    // hand every hit the first link on the page.
+    #[test]
+    fn each_pdf_url_belongs_to_its_own_row() {
+        let papers = parse_search_response(FIXTURE).unwrap();
+        let urls: Vec<_> = papers.iter().filter_map(|p| p.pdf_url.as_deref()).collect();
+        let mut uniq = urls.clone();
+        uniq.sort_unstable();
+        uniq.dedup();
+        assert_eq!(
+            urls.len(),
+            uniq.len(),
+            "a link was copied across rows: {urls:?}"
+        );
+        assert!(
+            urls.len() >= 5,
+            "expected several PDF links, got {}",
+            urls.len()
+        );
+        assert!(urls.iter().all(|u| u.starts_with("http")), "got: {urls:?}");
+    }
+
+    fn by_title(needle: &str) -> Paper {
+        parse_search_response(FIXTURE)
+            .unwrap()
+            .into_iter()
+            .find(|p| p.title.contains(needle))
+            .unwrap_or_else(|| panic!("fixture has no hit titled {needle}"))
     }
 
     #[test]
