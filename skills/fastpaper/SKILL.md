@@ -64,25 +64,32 @@ and `CORE_API_KEY` make those two usable in parallel rather than serial.
 Run `fastpaper sources --capabilities` when you need the live matrix. For
 picking one:
 
-| Source | Use it for | Watch out |
-|---|---|---|
-| `arxiv` | CS, AI, math, physics, stats, q-bio, q-fin, econ preprints | query syntax is rewritten — see below |
-| `pubmed` | biomedicine, 35M+ records | abstracts only, no PDFs |
-| `pmc` | biomedical **full text** | PDFs from the OA subset only |
-| `europepmc` | **widest biomedical** — 45M+ abstracts, 9M+ full text, plus EPO patents, NICE guidelines, Agricola, preprints, Chinese Biological Abstracts | richest query syntax of any source here |
-| `biorxiv` / `medrxiv` | life-science / medical preprints | **no keyword search API** — they browse a date window and match locally, so `--after`/`--before` decide what is even searched; medrxiv PDFs are 403 |
-| `semantic` | **cross-discipline**; the best citation data | unusable without `SEMANTIC_SCHOLAR_API_KEY` |
-| `openalex` | **cross-discipline**, 200M+ works | `--field` takes a concept ID (`C154945302`), not a name |
-| `crossref` | **cross-discipline** DOI registry | best title→DOI lookup here; no PDFs, no OA status |
-| `dblp` | computer science bibliography | CS only, metadata only, no abstracts |
-| `core` | **cross-discipline** OA aggregate, 400M+ from repositories and journals | `citations` is often 0 — do not rank on it |
-| `openaire` | **cross-discipline** EU open science graph | `get` wants an OpenAIRE id, not a DOI |
-| `doaj` | **cross-discipline** peer-reviewed OA journals | year granularity only, no sorting |
-| `hal` | **cross-discipline** French national archive | `--field` takes a domain code: `math` `phys` `chim` `sdv` `shs` `spi` `info` `sde` |
-| `zenodo` | CERN repository — papers, datasets, software | `-n` capped at 25 |
-| `unpaywall` | **DOI → a downloadable URL.** No search | the URL must be fetched separately; see Workflow 3 |
-| `scholar` | broadest coverage of anything; use only to scout | HTML scraping, captcha-prone, never returns `doi` or `pdf_url` |
-| `xueshu` | **Chinese literature** — journals, theses, patents | unofficial API, bot detection; keep it serial |
+`PDF` = can hand you the file itself; the rest give metadata only and need
+their DOI passed on to a source that can (see Workflow 3). Even on a `✓`
+source an individual record may hold no file — `pdf_url` is `null` and a
+download fails with "No PDF URL found". That is normal, not a fault: pick
+another hit, or fall through Workflow 3.
+
+| Source | PDF | Use it for | Watch out |
+|---|:--:|---|---|
+| `arxiv` | ✓ | CS, AI, math, physics, stats, q-bio, q-fin, econ preprints | query syntax is rewritten — see below |
+| `pubmed` | — | biomedicine, 35M+ records | abstracts only, no PDFs |
+| `pmc` | ✓ | biomedical **full text** | PDFs from the OA subset only |
+| `europepmc` | ✓ | **widest biomedical** — 45M+ abstracts, 9M+ full text, plus EPO patents, NICE guidelines, Agricola, preprints, Chinese Biological Abstracts | richest query syntax of any source here |
+| `biorxiv` | ✓ | life-science preprints | **no keyword search API** — browses a date window and matches locally, so `--after`/`--before` decide what is even searched |
+| `medrxiv` | — | medical / health preprints | same date-window search as biorxiv; its PDFs are blocked (403), so route the DOI elsewhere |
+| `semantic` | ✓ | **cross-discipline**; the best citation data | unusable without `SEMANTIC_SCHOLAR_API_KEY` |
+| `openalex` | — | **cross-discipline**, 200M+ works | `--field` takes a concept ID (`C154945302`), not a name |
+| `crossref` | — | **cross-discipline** DOI registry | best title→DOI lookup here; no PDFs, no OA status |
+| `dblp` | — | computer science bibliography | CS only, metadata only, no abstracts |
+| `core` | ✓ | **cross-discipline** OA aggregate, 400M+ from repositories and journals | `citations` is often 0 — do not rank on it |
+| `openaire` | — | **cross-discipline** EU open science graph | `get` wants an OpenAIRE id, not a DOI |
+| `doaj` | — | **cross-discipline** peer-reviewed OA journals | year granularity only, no sorting |
+| `hal` | ✓ | **cross-discipline** French national archive | `--field` takes a domain code: `math` `phys` `chim` `sdv` `shs` `spi` `info` `sde`; many records are metadata-only, so filter on `pdf_url` before downloading |
+| `zenodo` | ✓ | **cross-discipline** CERN general-purpose repository — papers, datasets, software | `-n` capped at 25; like hal, many records are metadata-only |
+| `unpaywall` | — | **DOI → a downloadable URL.** No search | the URL must be fetched separately; see Workflow 3 |
+| `scholar` | — | broadest coverage of anything; use only to scout | HTML scraping, captcha-prone, never returns `doi` or `pdf_url` |
+| `xueshu` | — | **Chinese literature** — journals, theses, patents | unofficial API, bot detection; keep it serial |
 
 ### Content types worth routing on
 
