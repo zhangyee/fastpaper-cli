@@ -88,7 +88,7 @@ another hit, or fall through Workflow 3.
 | `hal` | ✓ | **cross-discipline** French national archive | `--field` takes a domain code: `math` `phys` `chim` `sdv` `shs` `spi` `info` `sde`; many records are metadata-only, so filter on `pdf_url` before downloading |
 | `zenodo` | ✓ | **cross-discipline** CERN general-purpose repository — papers, datasets, software | `-n` capped at 25; like hal, many records are metadata-only |
 | `unpaywall` | — | **DOI → a downloadable URL.** No search | the URL must be fetched separately; see Workflow 3 |
-| `scholar` | — | broadest coverage of anything; use only to scout | HTML scraping, captcha-prone, never returns `doi` or `pdf_url` |
+| `scholar` | — | broadest reach of anything here; scouting and last-resort landing pages | HTML scraping, captcha-prone; `doi` and `pdf_url` always `null` (parser gap, see Workflow 3) |
 | `xueshu` | — | **Chinese literature** — journals, theses, patents | unofficial API, bot detection; keep it serial |
 
 ### Content types worth routing on
@@ -172,10 +172,12 @@ How many sources returned the same paper is a useful importance signal.
 3. Merge and dedupe by title.
 4. Report the total, each source's contribution, and the papers several sources agree on.
 
-When the terminology is uncertain or the field is unfamiliar, **scout first**:
-one `WebSearch`, or `xueshu` for Chinese, to learn the real terms of art, key
-authors and main venues — then search properly with those terms. Do not stop at
-the scout: it gives no citation counts, often no DOI, and cannot sort or filter.
+When the terminology is uncertain or the field is unfamiliar, **scout first** to
+learn the real terms of art, key authors and main venues, then search properly
+with those terms. Any of `WebSearch`, `scholar` (broadest reach, but captcha-prone
+— expect it to fail sometimes) or `xueshu` (Chinese) will do. Do not stop at the
+scout: none of them report citation counts, they often have no DOI, and they
+cannot sort or filter.
 
 ## Workflow 2 — tracking a field
 
@@ -220,19 +222,30 @@ Go down a step only when the one above fails.
 | 3 | **`fastpaper get unpaywall <DOI>`** → take `.pdf_url` → fetch it yourself |
 | 4 | `fastpaper get openalex <id>` → `.pdf_url` → fetch it yourself |
 | 5 | `fastpaper search xueshu "<title>"` → `.pdf_url` → fetch it yourself |
-| 6 | Report the landing page and which steps you tried. **Never claim a download that did not happen.** |
+| 6 | Out of automatic options. `fastpaper search scholar "<title>"` often still finds a landing page in its `url`; report that plus which steps you tried. **Never claim a download that did not happen.** |
 
 Steps 3–5 return a URL, not a file — `fastpaper` cannot download an arbitrary
-URL, so fetch it with `curl` and confirm you got a PDF:
+URL, so fetch it yourself. Keep the server's own filename (`-OJ`) rather than
+inventing one; rename only if it collides with a file already there:
 
 ```bash
-curl -sL "<pdf_url>" -o papers/out.pdf && head -c 4 papers/out.pdf   # prints %PDF
+curl -sLOJ "<pdf_url>"                  # e.g. https://arxiv.org/pdf/1304.1068 -> 1304.1068v1.pdf
+fastpaper read <file> --max-length 200
 ```
 
-`fastpaper download` already refuses to write HTML, so its successes are real PDFs.
+That `read` doubles as the check: on anything that is not really a PDF it fails
+with `Failed to open PDF`, and you were going to read the paper anyway. Leave
+`--section` off for this — section detection depends on the paper's layout and
+can miss even on a perfectly good file, which would look like a failed download.
+`fastpaper download` already refuses to write HTML, so its own successes need no
+check.
 
-`scholar` is not in this chain: its parser never emits `pdf_url` or `doi`, and
-`[CITATION]` stubs have no link at all. Scout with it, do not fetch from it.
+`scholar` cannot serve step 3–5: its `pdf_url` and `doi` are always `null`. Note
+this is a gap in *this* scraper, not in Google Scholar — the results page does
+carry direct PDF links (in a `div.gs_ggs` block beside each hit) and the parser
+simply does not read them. What scholar does return is `url`, the publisher
+landing page, which is worth having at step 6 when everything else came up
+empty. `[CITATION]` stubs have no link at all and are dropped.
 
 ## What this tool cannot do
 
