@@ -156,6 +156,7 @@ static ARXIV: SourceEntry = SourceEntry {
             // Every arXiv paper is freely readable, so the filter is
             // trivially satisfied rather than unsupported.
             open_access: true,
+            patents: false,
         }),
         get: true,
         download: true,
@@ -183,6 +184,7 @@ static BIORXIV: SourceEntry = SourceEntry {
             field: false,
             // Every preprint here is freely readable.
             open_access: true,
+            patents: false,
         }),
         get: true,
         download: true,
@@ -211,6 +213,7 @@ static MEDRXIV: SourceEntry = SourceEntry {
             field: false,
             // Every preprint here is freely readable.
             open_access: true,
+            patents: false,
         }),
         get: true,
         download: false,
@@ -241,6 +244,7 @@ static PUBMED: SourceEntry = SourceEntry {
             // as a field of study and would mislead under this flag.
             field: false,
             open_access: false,
+            patents: false,
         }),
         get: true,
         download: false,
@@ -267,6 +271,7 @@ static PMC: SourceEntry = SourceEntry {
             author: true,
             field: false,
             open_access: true,
+            patents: false,
         }),
         get: true,
         download: true,
@@ -296,6 +301,7 @@ static EUROPEPMC: SourceEntry = SourceEntry {
             author: true,
             field: false,
             open_access: true,
+            patents: true,
         }),
         get: true,
         download: true,
@@ -339,12 +345,14 @@ static XUESHU: SourceEntry = SourceEntry {
     caps: Capabilities {
         search: Some(SearchCaps {
             offset: true,
+            patents: true,
             ..SearchCaps::BASIC
         }),
         get: false,
         download: false,
         max_limit: None,
-        notes: "unofficial endpoint; subject to bot detection",
+        notes: "unofficial endpoint; subject to bot detection; --patents filters \
+                locally, so it pages further to fill -n",
     },
     env_var: "FASTPAPER_XUESHU_URL",
     default_base: "https://xueshu.baidu.com",
@@ -367,6 +375,7 @@ static SEMANTIC: SourceEntry = SourceEntry {
             author: false,
             field: true,
             open_access: true,
+            patents: false,
         }),
         get: true,
         download: true,
@@ -397,6 +406,7 @@ static CROSSREF: SourceEntry = SourceEntry {
             // subject area nor open access status.
             field: false,
             open_access: false,
+            patents: false,
         }),
         get: true,
         download: false,
@@ -423,6 +433,7 @@ static OPENALEX: SourceEntry = SourceEntry {
             author: true,
             field: true,
             open_access: true,
+            patents: false,
         }),
         get: true,
         download: false,
@@ -498,6 +509,7 @@ static OPENAIRE: SourceEntry = SourceEntry {
             author: true,
             field: true,
             open_access: true,
+            patents: false,
         }),
         get: true,
         download: false,
@@ -531,6 +543,7 @@ static DOAJ: SourceEntry = SourceEntry {
             // Everything in the Directory of Open Access Journals is open
             // access, so the filter is trivially satisfied.
             open_access: true,
+            patents: false,
         }),
         get: true,
         download: false,
@@ -578,6 +591,7 @@ static ZENODO: SourceEntry = SourceEntry {
             author: true,
             field: false,
             open_access: true,
+            patents: false,
         }),
         get: true,
         download: true,
@@ -607,6 +621,7 @@ static HAL: SourceEntry = SourceEntry {
             author: true,
             field: true,
             open_access: true,
+            patents: false,
         }),
         get: true,
         download: true,
@@ -687,6 +702,27 @@ mod tests {
                 e.name,
                 e.caps.get,
                 e.get.is_some()
+            );
+        }
+    }
+
+    // --patents means "patents only". Just two sources can honour that:
+    // europepmc filters natively with SRC:PAT, xueshu filters locally on its
+    // type code. Google Scholar can only *widen* to include patents, never
+    // narrow to them, so it must not claim the flag.
+    #[test]
+    fn only_europepmc_and_xueshu_take_patents() {
+        for s in ALL {
+            let declared = s
+                .caps()
+                .search
+                .is_some_and(|caps| caps.supports("--patents"));
+            let expected = matches!(s, Source::Europepmc | Source::Xueshu);
+            assert_eq!(
+                declared, expected,
+                "{} declares --patents support = {}",
+                s.name(),
+                declared
             );
         }
     }

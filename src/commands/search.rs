@@ -83,11 +83,19 @@ fn check_filters(query: &SearchQuery, caps: &SearchCaps, name: &str) -> CommandR
         format!("Supported here: {}", supported.join(", "))
     };
 
+    // --patents means "patents only", which only two sources can honour.
+    let patents_hint = if unsupported.contains(&"--patents") {
+        "\n--patents (patents only) works on europepmc and xueshu."
+    } else {
+        ""
+    };
+
     Err(failed(format!(
-        "{} does not support {}.\n{}",
+        "{} does not support {}.\n{}{}",
         name,
         unsupported.join(", "),
-        available
+        available,
+        patents_hint
     )))
 }
 
@@ -162,6 +170,29 @@ mod tests {
         for flag in ["--year", "--author", "--open-access"] {
             assert!(err.message().contains(flag), "missing {}: {}", flag, err.message());
         }
+    }
+
+    // "Patents only" is a narrowing just two sources can do, so listing this
+    // source's own filters is not enough — the rejection has to name them.
+    #[test]
+    fn patents_rejection_names_the_sources_that_have_it() {
+        let mut q = SearchQuery::simple("battery cathode", 10);
+        q.patents = true;
+        let err = check_filters(&q, &caps_year_only(), "arxiv").unwrap_err();
+        assert!(err.message().contains("--patents"), "got: {}", err.message());
+        assert!(err.message().contains("europepmc"), "got: {}", err.message());
+        assert!(err.message().contains("xueshu"), "got: {}", err.message());
+    }
+
+    #[test]
+    fn patents_passes_a_source_that_declares_it() {
+        let mut q = SearchQuery::simple("battery cathode", 10);
+        q.patents = true;
+        let caps = SearchCaps {
+            patents: true,
+            ..SearchCaps::BASIC
+        };
+        assert!(check_filters(&q, &caps, "scholar").is_ok());
     }
 
     #[test]

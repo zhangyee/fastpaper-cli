@@ -45,7 +45,7 @@ paperList[]: paperId, title, abstract, publishYear, publishTime, cited, doi,
 | `authors` | `authors[].showName`,为空回退 `name`,全空则过滤 |
 | `abstract` | `abstract`(空串转 None) |
 | `year` | `publishYear`(0 视为无) |
-| `doi` | `doi`(空串转 None) |
+| `doi` | `doi`,**但只收形如 DOI 的值**。百度把这个字段当通用外部标识符用,里面混有专利号(`CN103232069 A`)和裸仓储 URL(`http://ir.lib.ncu.edu.tw/handle/…`);不符合 DOI 形状的一律丢弃,否则会毒害下游的 crossref / unpaywall 解析 |
 | `url` | `https://xueshu.baidu.com/usercenter/paper/show?paperid={paperId}&site=xueshu_se` |
 | `pdf_url` | `saveList[]` 中首个含 `.pdf` 的 http 链接;无则 None(saveList 混有第三方落地页) |
 | `venue` | `publishInfo.journalName`,为空回退 `publisher` |
@@ -85,4 +85,5 @@ curl --compressed -A 'fastpaper-cli/0.1' -H 'Acs-Token: parisInstance is not rea
 | CLI 参数 | 映射 |
 |---|---|
 | `-n` / `--offset` | 本地切片(接口按 `pn` 每页 10 条串行翻页) |
+| `--patents` | **本地过滤**`type == 5`(专利);不带该参数则反过来排除 type=5。接口的 `filter` 参数实测被忽略(2026-07-28 试过 `type:5`/`type=5`/`paper_type:5`/`5`,返回结果完全一致),所以只能在解析时分流。代价:排除专利后要多翻页才能凑够 `-n` |
 | 其余全部 | 不支持。非官方接口,不做超出必要的依赖 |

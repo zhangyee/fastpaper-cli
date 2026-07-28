@@ -58,7 +58,7 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
     let mut pn = 0u32;
     while (papers.len() as u32) < max_results {
         let body = fetch_page(base_url, query, pn)?;
-        let page = parse_search_response(&body)?;
+        let page = parse_search_response(&body, q.patents)?;
         if page.is_empty() {
             break;
         }
@@ -101,8 +101,31 @@ fn pick_pdf_url(save_list: &serde_json::Value) -> Option<String> {
     })
 }
 
+// Baidu overloads its `doi` field as a general external identifier: alongside
+// real DOIs it returns patent numbers ("CN103232069 A") and bare repository
+// URLs. Passing those on as a DOI breaks every consumer that resolves one
+// against Crossref or Unpaywall, so anything not shaped like a DOI is dropped.
+fn doi_of(raw: Option<&str>) -> Option<String> {
+    raw.map(str::trim)
+        .filter(|s| !s.is_empty())
+        .filter(|s| crate::identifier::detect_id_type(s) == crate::identifier::IdType::Doi)
+        .map(|s| s.to_string())
+}
+
+// Baidu's numeric document type. 5 is a patent — verified 2026-07-28: those
+// records carry the assignee in `publisher` with no journal, while type 1
+// carries a journal. Types 0 and 4 also occur and are not identified here;
+// they are treated as "not a patent", which is all this needs to decide.
+const TYPE_PATENT: i64 = 5;
+
 /// Parse Baidu Xueshu JSON search response into a list of Papers.
-pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
+///
+/// `patents_only` splits the mixed result set: Baidu returns patents alongside
+/// papers and exposes no server-side filter for it (its `filter` parameter is
+/// accepted and ignored), so the split happens here, where the type code is
+/// still visible. The two modes partition the response — every record lands in
+/// exactly one of them.
+pub fn parse_search_response(json: &str, patents_only: bool) -> Result<Vec<Paper>, String> {
     let root: serde_json::Value =
         serde_json::from_str(json).map_err(|e| format!("JSON parse error: {}", e))?;
 
@@ -126,6 +149,10 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
 
     let mut papers = Vec::new();
     for item in &list {
+        let is_patent = item["type"].as_i64() == Some(TYPE_PATENT);
+        if is_patent != patents_only {
+            continue;
+        }
         let id = item["paperId"].as_str().unwrap_or("").to_string();
         let title = strip_html(item["title"].as_str().unwrap_or(""));
         if id.is_empty() || title.is_empty() {
@@ -152,10 +179,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
         let abstract_text =
             Some(strip_html(item["abstract"].as_str().unwrap_or(""))).filter(|s| !s.is_empty());
 
-        let doi = item["doi"]
-            .as_str()
-            .filter(|s| !s.is_empty())
-            .map(|s| s.to_string());
+        let doi = doi_of(item["doi"].as_str());
 
         let venue = ["journalName", "publisher"]
             .iter()
@@ -195,21 +219,82 @@ mod tests {
 
     const FIXTURE: &str = include_str!("../../tests/fixtures/xueshu_search.json");
 
+    // Baidu mixes patents (type 5) into ordinary results whether or not you
+    // want them, and offers no server-side filter for it — a `filter` query
+    // parameter exists but is ignored (verified 2026-07-28), so the split has
+    // to happen locally, at the only point where the type code is still visible.
+    #[test]
+    fn patents_only_keeps_nothing_else() {
+        let papers = parse_search_response(FIXTURE, true).unwrap();
+        assert!(!papers.is_empty(), "fixture has a patent record");
+        assert!(papers.iter().all(|p| p.title.contains("一种锂离子电池")));
+    }
+
+    #[test]
+    fn patents_are_excluded_by_default() {
+        let papers = parse_search_response(FIXTURE, false).unwrap();
+        assert!(!papers.is_empty());
+        assert!(
+            papers.iter().all(|p| !p.title.contains("一种锂离子电池")),
+            "the type-5 record must not survive"
+        );
+    }
+
+    // The two modes must partition the result set: nothing lost, nothing double
+    // counted.
+    #[test]
+    fn the_two_modes_partition_the_records() {
+        let all = FIXTURE.matches("\"paperId\"").count();
+        let patents = parse_search_response(FIXTURE, true).unwrap().len();
+        let rest = parse_search_response(FIXTURE, false).unwrap().len();
+        assert_eq!(patents + rest, all);
+    }
+
+    fn by_title_in(title: &str, patents_only: bool) -> Paper {
+        parse_search_response(FIXTURE, patents_only)
+            .unwrap()
+            .into_iter()
+            .find(|p| p.title.contains(title))
+            .unwrap_or_else(|| panic!("fixture has no record titled {title}"))
+    }
+
+    fn by_title(title: &str) -> Paper {
+        by_title_in(title, false)
+    }
+
+    // Baidu overloads its `doi` field as a general external identifier: it
+    // holds real DOIs, but also patent numbers and bare repository URLs.
+    // Passing those on as a DOI breaks anything that resolves one.
+    #[test]
+    fn a_patent_number_does_not_become_a_doi() {
+        assert_eq!(by_title_in("一种锂离子电池正极材料", true).doi, None);
+    }
+
+    #[test]
+    fn a_bare_url_does_not_become_a_doi() {
+        assert_eq!(by_title("A thesis deposited").doi, None);
+    }
+
+    #[test]
+    fn a_real_doi_still_comes_through() {
+        let papers = parse_search_response(FIXTURE, false).unwrap();
+        assert!(
+            papers
+                .iter()
+                .any(|p| p.doi.as_deref() == Some("10.1109/ICPR.1988.28419")),
+            "real DOIs must survive"
+        );
+    }
+
     #[test]
     fn parse_returns_ok() {
-        let result = parse_search_response(FIXTURE);
+        let result = parse_search_response(FIXTURE, false);
         assert!(result.is_ok(), "expected Ok, got {:?}", result.err());
     }
 
     #[test]
-    fn parse_returns_ten_papers() {
-        let papers = parse_search_response(FIXTURE).unwrap();
-        assert_eq!(papers.len(), 10);
-    }
-
-    #[test]
     fn parse_paper_ids_not_empty() {
-        let papers = parse_search_response(FIXTURE).unwrap();
+        let papers = parse_search_response(FIXTURE, false).unwrap();
         for p in &papers {
             assert!(!p.id.is_empty());
         }
@@ -218,7 +303,7 @@ mod tests {
 
     #[test]
     fn parse_source_is_xueshu() {
-        let papers = parse_search_response(FIXTURE).unwrap();
+        let papers = parse_search_response(FIXTURE, false).unwrap();
         for p in &papers {
             assert_eq!(p.source, "xueshu");
         }
@@ -226,7 +311,7 @@ mod tests {
 
     #[test]
     fn parse_strips_em_tags_from_title() {
-        let papers = parse_search_response(FIXTURE).unwrap();
+        let papers = parse_search_response(FIXTURE, false).unwrap();
         assert_eq!(papers[2].title, "Scale Attention Mechanism");
         assert_eq!(papers[8].title, "ATTENTION MECHANISM");
         for p in &papers {
@@ -236,7 +321,7 @@ mod tests {
 
     #[test]
     fn parse_authors_use_show_name() {
-        let papers = parse_search_response(FIXTURE).unwrap();
+        let papers = parse_search_response(FIXTURE, false).unwrap();
         assert_eq!(papers[0].authors, vec!["A Bernardino", "J Santos-Victor"]);
     }
 
@@ -249,21 +334,21 @@ mod tests {
                         {"name":"李四","showName":"","affiliate":""},
                         {"name":"","showName":"","affiliate":""}]}
         ]}}}"#;
-        let papers = parse_search_response(body).unwrap();
+        let papers = parse_search_response(body, false).unwrap();
         assert_eq!(papers[0].title, "ChatModeler:基于大语言模型的方法");
         assert_eq!(papers[0].authors, vec!["张三(教授)", "李四"]);
     }
 
     #[test]
     fn parse_empty_doi_becomes_none() {
-        let papers = parse_search_response(FIXTURE).unwrap();
+        let papers = parse_search_response(FIXTURE, false).unwrap();
         assert_eq!(papers[0].doi, None);
         assert_eq!(papers[1].doi.as_deref(), Some("10.1007/978-1-4615-0111-4"));
     }
 
     #[test]
     fn parse_year_and_citations() {
-        let papers = parse_search_response(FIXTURE).unwrap();
+        let papers = parse_search_response(FIXTURE, false).unwrap();
         assert_eq!(papers[0].year, Some(2002));
         assert_eq!(papers[0].citations, Some(15));
     }
@@ -271,7 +356,7 @@ mod tests {
     #[test]
     fn parse_empty_venue_becomes_none() {
         // 第 1 篇 journalName 和 publisher 都是空串
-        let papers = parse_search_response(FIXTURE).unwrap();
+        let papers = parse_search_response(FIXTURE, false).unwrap();
         assert_eq!(papers[0].venue, None);
     }
 
@@ -281,14 +366,14 @@ mod tests {
             {"paperId":"a1","title":"T1","publishInfo":{"publisher":"P","journalName":"J","journalId":""}},
             {"paperId":"a2","title":"T2","publishInfo":{"publisher":"P","journalName":"","journalId":""}}
         ]}}}"#;
-        let papers = parse_search_response(body).unwrap();
+        let papers = parse_search_response(body, false).unwrap();
         assert_eq!(papers[0].venue.as_deref(), Some("J"));
         assert_eq!(papers[1].venue.as_deref(), Some("P"));
     }
 
     #[test]
     fn parse_url_points_to_xueshu_paper_page() {
-        let papers = parse_search_response(FIXTURE).unwrap();
+        let papers = parse_search_response(FIXTURE, false).unwrap();
         assert_eq!(
             papers[0].url.as_deref(),
             Some(
@@ -299,7 +384,7 @@ mod tests {
 
     #[test]
     fn parse_pdf_url_picks_first_pdf_in_save_list() {
-        let papers = parse_search_response(FIXTURE).unwrap();
+        let papers = parse_search_response(FIXTURE, false).unwrap();
         let pdf = papers[0].pdf_url.as_deref().unwrap();
         assert!(
             pdf.contains("productFlyer-CN_978-0-306-47427-9.pdf"),
@@ -313,14 +398,14 @@ mod tests {
             {"paperId":"a1","title":"T1","saveList":[{"url":"http://example.com/doc/detail?id=1","anchor":"x","type":0,"size":""}]},
             {"paperId":"a2","title":"T2"}
         ]}}}"#;
-        let papers = parse_search_response(body).unwrap();
+        let papers = parse_search_response(body, false).unwrap();
         assert_eq!(papers[0].pdf_url, None);
         assert_eq!(papers[1].pdf_url, None);
     }
 
     #[test]
     fn parse_abstract_stripped_and_nonempty() {
-        let papers = parse_search_response(FIXTURE).unwrap();
+        let papers = parse_search_response(FIXTURE, false).unwrap();
         let a = papers[0].abstract_text.as_deref().unwrap();
         assert!(a.contains("Visual Attention"));
         for p in &papers {
@@ -337,7 +422,7 @@ mod tests {
             {"paperId":"only-id","title":"Only Title","abstract":null,"publishYear":null,
              "cited":null,"doi":null,"authors":null,"publishInfo":null,"saveList":null}
         ]}}}"#;
-        let papers = parse_search_response(body).unwrap();
+        let papers = parse_search_response(body, false).unwrap();
         assert_eq!(papers.len(), 1);
         let p = &papers[0];
         assert_eq!(p.abstract_text, None);
@@ -353,7 +438,7 @@ mod tests {
 
     #[test]
     fn parse_captcha_code_returns_clear_err() {
-        let err = parse_search_response(CAPTCHA_BODY).unwrap_err();
+        let err = parse_search_response(CAPTCHA_BODY, false).unwrap_err();
         assert!(err.contains("captcha"), "got: {err}");
         assert!(err.contains("7350001"), "got: {err}");
     }
@@ -361,7 +446,7 @@ mod tests {
     #[test]
     fn parse_other_error_code_returns_err_with_msg() {
         let body = r#"{"status":{"code":42,"msg":"boom","sLogid":"log-1"}}"#;
-        let err = parse_search_response(body).unwrap_err();
+        let err = parse_search_response(body, false).unwrap_err();
         assert!(err.contains("42"), "got: {err}");
         assert!(err.contains("boom"), "got: {err}");
         assert!(err.contains("log-1"), "got: {err}");
@@ -370,18 +455,18 @@ mod tests {
     #[test]
     fn parse_empty_paper_list_returns_empty_vec() {
         let body = r#"{"status":{"code":0,"msg":"Success","sLogid":"x"},"data":{"paper":{"dispnum":0,"paperList":[]}}}"#;
-        assert!(parse_search_response(body).unwrap().is_empty());
+        assert!(parse_search_response(body, false).unwrap().is_empty());
     }
 
     #[test]
     fn parse_code_zero_missing_data_returns_empty_vec() {
         let body = r#"{"status":{"code":0,"msg":"Success"}}"#;
-        assert!(parse_search_response(body).unwrap().is_empty());
+        assert!(parse_search_response(body, false).unwrap().is_empty());
     }
 
     #[test]
     fn parse_garbage_returns_parse_err() {
-        let err = parse_search_response("<html>not json</html>").unwrap_err();
+        let err = parse_search_response("<html>not json</html>", false).unwrap_err();
         assert!(err.contains("JSON parse error"), "got: {err}");
     }
 

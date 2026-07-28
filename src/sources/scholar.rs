@@ -10,7 +10,6 @@ const USER_AGENTS: &[&str] = &[
 
 /// Search Google Scholar (experimental, rate-limited).
 pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
-    let (query, max_results) = (q.query.as_str(), q.limit);
     let ua_index = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
@@ -18,11 +17,7 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
         % USER_AGENTS.len();
     let ua = USER_AGENTS[ua_index];
 
-    let encoded = super::encode_query(query);
-    let url = format!(
-        "{}/scholar?q={}&start={}&hl=en&as_sdt=0,5&num={}",
-        base_url, encoded, q.offset, max_results
-    );
+    let url = build_search_url(base_url, q);
 
     match ureq::get(&url).header("User-Agent", ua).call() {
         Ok(resp) => {
@@ -40,6 +35,22 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
         }
         Err(e) => Err(format!("HTTP error: {}", e)),
     }
+}
+
+/// Build the /scholar URL for a search.
+///
+/// `as_sdt=0,5` excludes patents. Google's switch only widens (7 mixes patents
+/// in among the papers); it has no "patents only" setting, so it cannot back a
+/// `--patents` flag that means what it says. For patents, use europepmc or
+/// xueshu.
+fn build_search_url(base_url: &str, q: &super::SearchQuery) -> String {
+    format!(
+        "{}/scholar?q={}&start={}&hl=en&as_sdt=0,5&num={}",
+        base_url,
+        super::encode_query(&q.query),
+        q.offset,
+        q.limit
+    )
 }
 
 /// Parse Google Scholar HTML search results into a list of Papers.
@@ -158,6 +169,30 @@ mod tests {
     use super::*;
 
     const FIXTURE: &str = include_str!("../../tests/fixtures/scholar_search.html");
+
+    fn url() -> String {
+        let q = crate::sources::SearchQuery::simple("battery cathode", 10);
+        build_search_url("https://scholar.google.com", &q)
+    }
+
+    #[test]
+    fn patents_are_excluded() {
+        assert!(url().contains("as_sdt=0,5"), "got: {}", url());
+    }
+
+    // `[CITATION]` results carry no <a> under h3.gs_rt — Scholar knows the work
+    // only from other papers' reference lists. Emitting them with an empty URL
+    // would put unfetchable entries into the download workflow, so they are
+    // dropped. Characterisation test: guards behaviour that already holds.
+    #[test]
+    fn citation_stubs_are_dropped_rather_than_half_filled() {
+        let papers = parse_search_response(FIXTURE).unwrap();
+        assert!(papers.len() < FIXTURE.matches("gs_ri").count());
+        for p in &papers {
+            assert!(!p.title.is_empty(), "empty title survived: {:?}", p);
+            assert!(p.url.is_some(), "linkless result survived: {}", p.title);
+        }
+    }
 
     #[test]
     fn parse_returns_ok() {

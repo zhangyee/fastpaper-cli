@@ -47,4 +47,5 @@
 | `--after` / `--before` | `query` 内 `FIRST_PDATE:[{from} TO {to}]` |
 | `--open-access` | `query` 内 `OPEN_ACCESS:y` |
 | `--sort` | `query` 末尾追加 `sort_date:y` / `sort_cited:y`。**只能降序**,`--order asc` 直接报错 |
+| `--patents` | `query` 内追加 `SRC:PAT`,收窄到 EPO 专利子集(原生过滤,无翻页代价) |
 | `--field` | 不支持 |

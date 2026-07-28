@@ -104,6 +104,10 @@ pub struct SearchArgs {
     #[arg(long)]
     pub open_access: bool,
 
+    /// Return patents only (europepmc, xueshu)
+    #[arg(long)]
+    pub patents: bool,
+
     /// Write results to a file instead of stdout
     #[arg(short, long)]
     pub output: Option<PathBuf>,
@@ -123,6 +127,7 @@ impl SearchArgs {
             author: self.author.clone(),
             field: self.field.clone(),
             open_access: self.open_access,
+            patents: self.patents,
         }
     }
 }

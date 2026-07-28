@@ -69,6 +69,10 @@ pub struct SearchQuery {
     pub author: Option<String>,
     pub field: Option<String>,
     pub open_access: bool,
+    /// Return patents only. Sources that can honour it filter to the patent
+    /// subset; without it they exclude patents. Results are never mixed, so a
+    /// caller always knows which it asked for.
+    pub patents: bool,
 }
 
 impl SearchQuery {
@@ -86,6 +90,7 @@ impl SearchQuery {
             author: None,
             field: None,
             open_access: false,
+            patents: false,
         }
     }
 
@@ -116,6 +121,9 @@ impl SearchQuery {
         if self.open_access {
             used.push("--open-access");
         }
+        if self.patents {
+            used.push("--patents");
+        }
         used
     }
 }
@@ -130,6 +138,7 @@ pub struct SearchCaps {
     pub author: bool,
     pub field: bool,
     pub open_access: bool,
+    pub patents: bool,
 }
 
 impl SearchCaps {
@@ -142,6 +151,7 @@ impl SearchCaps {
         author: false,
         field: false,
         open_access: false,
+        patents: false,
     };
 
     /// Whether this source supports the named CLI flag.
@@ -154,6 +164,7 @@ impl SearchCaps {
             "--author" => self.author,
             "--field" => self.field,
             "--open-access" => self.open_access,
+            "--patents" => self.patents,
             _ => false,
         }
     }
@@ -181,6 +192,9 @@ impl SearchCaps {
         }
         if self.open_access {
             flags.push("--open-access");
+        }
+        if self.patents {
+            flags.push("--patents");
         }
         flags
     }
@@ -250,4 +264,35 @@ pub struct Paper {
     pub fields: Vec<String>,
     pub open_access: Option<bool>,
     pub source: String,
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_simple_query_asks_for_no_patents() {
+        assert!(!SearchQuery::simple("attention", 10).patents);
+    }
+
+    #[test]
+    fn setting_patents_shows_up_as_an_active_filter() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.patents = true;
+        assert!(q.active_filters().contains(&"--patents"));
+    }
+
+    #[test]
+    fn patents_is_not_a_basic_capability() {
+        assert!(!SearchCaps::BASIC.supports("--patents"));
+    }
+
+    #[test]
+    fn a_source_declaring_patents_supports_the_flag() {
+        let caps = SearchCaps {
+            patents: true,
+            ..SearchCaps::BASIC
+        };
+        assert!(caps.supports("--patents"));
+        assert!(caps.supported_flags().contains(&"--patents"));
+    }
 }

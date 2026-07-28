@@ -23,6 +23,12 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
 
     let mut terms = vec![super::encode_query(&q.query)];
 
+    // Europe PMC keeps EPO patents in their own subset, so --patents is a
+    // native narrowing rather than a local filter.
+    if q.patents {
+        terms.push("SRC:PAT".to_string());
+    }
+
     if let Some(ref author) = q.author {
         terms.push(format!("AUTH:%22{}%22", super::encode_query(author)));
     }
@@ -205,6 +211,24 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn patent_url(patents: bool) -> String {
+        let mut q = crate::sources::SearchQuery::simple("CRISPR", 10);
+        q.patents = patents;
+        build_search_url("https://www.ebi.ac.uk", &q).unwrap()
+    }
+
+    // Europe PMC keeps EPO patents in their own subset, so --patents narrows
+    // natively — no local filtering and no extra page fetches.
+    #[test]
+    fn patents_narrows_to_the_patent_subset() {
+        assert!(patent_url(true).contains("SRC:PAT"), "got: {}", patent_url(true));
+    }
+
+    #[test]
+    fn without_the_flag_the_subset_is_not_constrained() {
+        assert!(!patent_url(false).contains("SRC"), "got: {}", patent_url(false));
+    }
 
     const FIXTURE: &str = include_str!("../../tests/fixtures/europepmc_search.json");
 

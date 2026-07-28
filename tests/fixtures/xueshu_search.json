@@ -1955,6 +1955,60 @@
               "size": ""
             }
           ]
+        },
+        {
+          "paperId": "aaaa1111bbbb2222cccc3333dddd4444",
+          "title": "一种锂离子电池正极材料的制备方法",
+          "type": 5,
+          "doi": "CN103232069 A",
+          "abstract": "本发明公开了一种锂离子电池正极材料的制备方法。",
+          "keyword": "",
+          "langType": 0,
+          "publishTime": "",
+          "publishYear": 2013,
+          "cited": 0,
+          "standardStatus": 0,
+          "authors": [
+            {
+              "name": "姜玲燕",
+              "showName": "姜玲燕",
+              "affiliate": ""
+            }
+          ],
+          "publishInfo": {
+            "publisher": "中国科学院大连化学物理研究所",
+            "journalName": "",
+            "journalId": ""
+          },
+          "sourceList": [],
+          "saveList": []
+        },
+        {
+          "paperId": "eeee5555ffff6666aaaa7777bbbb8888",
+          "title": "A thesis deposited in an institutional repository",
+          "type": 1,
+          "doi": "http://ir.lib.ncu.edu.tw/handle/987654321/10540",
+          "abstract": "",
+          "keyword": "",
+          "langType": 1,
+          "publishTime": "",
+          "publishYear": 2011,
+          "cited": 3,
+          "standardStatus": 0,
+          "authors": [
+            {
+              "name": "A Author",
+              "showName": "A Author",
+              "affiliate": ""
+            }
+          ],
+          "publishInfo": {
+            "publisher": "",
+            "journalName": "",
+            "journalId": ""
+          },
+          "sourceList": [],
+          "saveList": []
         }
       ],
       "searchResult": 1
