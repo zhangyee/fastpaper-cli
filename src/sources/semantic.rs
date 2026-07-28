@@ -238,6 +238,12 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
 /// Search Semantic Scholar API and return parsed papers.
 pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let url = build_search_url(base_url, q)?;
+    // The bulk endpoint takes no limit; it returns a full page plus a token.
+    let truncate_to = if q.sort.is_some() && q.sort != Some(super::SortField::Relevance) {
+        Some(q.limit as usize)
+    } else {
+        None
+    };
     let api_key = std::env::var("SEMANTIC_SCHOLAR_API_KEY").ok();
     let cfg = if api_key.is_some() {
         BackoffConfig::DEFAULT_AUTH
@@ -245,7 +251,13 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
         BackoffConfig::DEFAULT_ANON
     };
     match http_get_with_retry_cfg(&url, api_key, &cfg) {
-        FetchOutcome::Ok(body) => parse_search_response(&body),
+        FetchOutcome::Ok(body) => {
+            let mut papers = parse_search_response(&body)?;
+            if let Some(n) = truncate_to {
+                papers.truncate(n);
+            }
+            Ok(papers)
+        }
         FetchOutcome::RateLimited => Err(format!(
             "rate limited after {} retries",
             cfg.max_retries
@@ -835,6 +847,30 @@ mod query_tests {
         let u = url(&q);
         assert!(u.contains("openAccessPdf"), "got: {}", u);
         assert!(!u.contains("openAccessPdf=true"), "flag takes no value: {}", u);
+    }
+
+    // The bulk endpoint has no limit parameter -- it answers with up to a
+    // thousand records and a continuation token -- so -n has to be applied
+    // after the fact or `--sort citations -n 3` prints the whole page.
+    #[test]
+    fn bulk_results_are_truncated_to_the_limit() {
+        let body = format!(
+            r#"{{"total":50,"data":[{}]}}"#,
+            (0..50)
+                .map(|i| format!(r#"{{"paperId":"p{}","title":"T{}"}}"#, i, i))
+                .collect::<Vec<_>>()
+                .join(",")
+        );
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(body)
+            .create();
+        let mut q = SearchQuery::simple("x", 3);
+        q.sort = Some(SortField::Citations);
+        let papers = search(&server.url(), &q).unwrap();
+        assert_eq!(papers.len(), 3, "should honour -n on the bulk endpoint");
     }
 
     // Only the bulk endpoint sorts; relevance ranking is the default elsewhere.
