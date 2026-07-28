@@ -72,24 +72,24 @@ another hit, or fall through Workflow 3.
 
 | Source | PDF | Use it for | Watch out |
 |---|:--:|---|---|
-| `arxiv` | ✓ | **CS, AI, math, physics, stats, q-bio, q-fin, econ** preprints, every one of them free to read | query syntax is rewritten — see below. `pdf_url` on all of them, but no citation counts at all, and a DOI on only about half |
+| `arxiv` | ✓ | **CS, AI, math, physics, stats, q-bio, q-fin, econ** preprints, every one of them free to read | query syntax is rewritten — see below. `pdf_url` on every hit, but no citation counts at all, and a DOI on only about half |
 | `pubmed` | — | **biomedicine**, 35M+ records — the reference index for clinical and life-science work | abstracts only, no PDFs and no journal name; move to `pmc` or `europepmc` for either. No citation counts |
 | `pmc` | ✓ | **biomedical full text** (NLM) — the OA subset of what pubmed indexes | PDFs come from the OA subset only, so a pubmed hit may have no pmc record. No citation counts |
 | `europepmc` | ✓ | **widest biomedical** — 45M+ abstracts, 9M+ full text, plus EPO patents, NICE guidelines, Agricola, preprints and Chinese Biological Abstracts | richest query syntax here, and the only source that can threshold on citations (`CITED:>N`). Relevance-ranked hits are mostly uncited, so sort or threshold explicitly when you want impact |
 | `biorxiv` | ✓ | **life-science preprints** (CSHL), full text on all of them | **no keyword search API** — browses a date window and matches locally, so `--after`/`--before` decide what is even searched. No citation counts |
 | `medrxiv` | — | **medical / health preprints** (CSHL) | same date-window search as biorxiv, and its PDFs are blocked (403) — take the DOI elsewhere. No citation counts |
-| `semantic` | ✓ | **cross-discipline**, and the one source with citation counts on essentially every hit — the basis for any ranking by impact | unusable without `SEMANTIC_SCHOLAR_API_KEY`. A DOI on about 60% of hits and a PDF on half |
-| `openalex` | — | **cross-discipline**, 200M+ works, citation counts on essentially every hit | `--field` takes a concept ID (`C154945302`), not a name. Rarely carries a PDF link (2 in 10) — good for finding and ranking, not for fetching |
-| `crossref` | — | **cross-discipline** DOI registry — the best title→DOI lookup here, and citation counts on most hits | registered metadata only: no PDFs, no OA status, and an abstract on barely 2 in 10. Use it to resolve, then go elsewhere for content |
+| `semantic` | ✓ | **cross-discipline**, and the one source with citation counts on nearly every hit — the basis for any ranking by impact | unusable without `SEMANTIC_SCHOLAR_API_KEY`. Carries a DOI on most hits and a PDF on about half |
+| `openalex` | — | **cross-discipline**, 200M+ works, citation counts on nearly every hit | `--field` takes a concept ID (`C154945302`), not a name. Rarely carries a PDF link — good for finding and ranking, not for fetching |
+| `crossref` | — | **cross-discipline** DOI registry — the best title→DOI lookup here, and citation counts on most hits | registered metadata only: no PDFs, no OA status, and an abstract on few hits. Use it to resolve, then go elsewhere for content |
 | `dblp` | — | **computer science** bibliography — conference and journal records, curated and clean | no abstracts at all and no citation counts; metadata only. The API takes a query and paging, nothing else |
-| `core` | ✓ | **cross-discipline** OA aggregate, 400M+ from repositories and journals — a PDF on nearly every hit | a DOI on only about 2 in 10, no journal name, and `citations` is present but 0 on most records — never rank on it. `CORE_API_KEY` makes it usable in parallel |
+| `core` | ✓ | **cross-discipline** OA aggregate, 400M+ from repositories and journals — a PDF on nearly every hit | a DOI on few hits, no journal name, and `citations` present but 0 on most records — never rank on it. `CORE_API_KEY` makes it usable in parallel |
 | `openaire` | — | **cross-discipline** EU open science graph, with citation counts on most hits | no PDF links at all — resolve the DOI elsewhere. `get` wants an OpenAIRE id, not a DOI |
-| `doaj` | — | **cross-discipline** peer-reviewed OA journals — complete metadata, journal name and abstract on every hit | **its `pdf_url` is a publisher landing page, not a file** (returns HTML), which is why `download` is unavailable here. Year granularity only, no sorting, no citation counts |
-| `hal` | ✓ | **cross-discipline** French national archive, abstracts on everything and full text on most | `--field` takes a domain code: `math` `phys` `chim` `sdv` `shs` `spi` `info` `sde`. No journal name, no citation counts, and a third of records are metadata-only — filter on `pdf_url` before downloading |
-| `zenodo` | ✓ | **cross-discipline** CERN general-purpose repository — papers, datasets and software, DOI on everything | `-n` capped at 25. No journal name, no citation counts, and some records are metadata-only |
+| `doaj` | — | **cross-discipline** peer-reviewed OA journals — complete metadata, with a journal name and abstract on nearly every hit | **its `pdf_url` is a publisher landing page, not a file** (returns HTML), which is why `download` is unavailable here. Year granularity only, no sorting, no citation counts |
+| `hal` | ✓ | **cross-discipline** French national archive, with an abstract on nearly every hit and full text on most | `--field` takes a domain code: `math` `phys` `chim` `sdv` `shs` `spi` `info` `sde`. No journal name, no citation counts, and some records are metadata-only — filter on `pdf_url` before downloading |
+| `zenodo` | ✓ | **cross-discipline** CERN general-purpose repository — papers, datasets and software, with a DOI on nearly every hit | `-n` capped at 25. No journal name, no citation counts, and some records are metadata-only |
 | `unpaywall` | — | **DOI → a downloadable URL.** No search, no discipline — a resolver you reach for in Workflow 3 | needs `UNPAYWALL_EMAIL`; one DOI per call, and the URL must be fetched separately |
 | `scholar` | — | broadest reach of anything here; scouting, and a PDF link when nothing else has one | HTML scraping, captcha-prone; `doi` is always `null`, and only some hits carry a `pdf_url` |
-| `xueshu` | — | **Chinese literature** — journals, master's/PhD theses, conference papers, patents, standards; 700M+ records over 500+ subjects. Indexes English work too, but other sources serve that better | unofficial endpoint with bot detection, so keep it serial and low-frequency; search only, no `get`. `citations` is nearly always 0 — never rank on it. `pdf_url` is rare (1 in 30 sampled), `doi` present about half the time and validated, so a patent number or bare URL never masquerades as one |
+| `xueshu` | — | **Chinese literature** — journals, master's/PhD theses, conference papers, patents, standards; 700M+ records over 500+ subjects. Indexes English work too, but other sources serve that better | unofficial endpoint with bot detection, so keep it serial and low-frequency; search only, no `get`. `citations` is nearly always 0 — never rank on it. `pdf_url` is rare and `doi` present on about half, though validated, so a patent number or bare URL never masquerades as one |
 
 ### Content types worth routing on
 
@@ -182,7 +182,7 @@ cannot sort or filter.
 ## Workflow 2 — tracking a field
 
 Rank on citations from `semantic` or `openalex` — both populate the field on
-essentially every hit. `crossref` and `openaire` carry it on most, and
+nearly every hit. `crossref` and `openaire` carry it on most, and
 `europepmc` only if you sort or threshold with `CITED:>N`, since its
 relevance-ranked hits are mostly uncited.
 
@@ -227,8 +227,8 @@ Go down a step only when the one above fails.
 | 2 | Name a source: `fastpaper download europepmc\|core\|zenodo\|hal\|biorxiv\|arxiv\|pmc <id>` |
 | 3 | **`fastpaper get unpaywall <DOI>`** → take `.pdf_url` → fetch it yourself |
 | 4 | `fastpaper get openalex <id>` → `.pdf_url` → fetch it yourself |
-| 5 | `fastpaper search scholar "<title>"` → `.pdf_url` when the hit has one; roughly a third do, and they are often copies the DOI-based steps above missed |
-| 6 | Chinese paper → `fastpaper search xueshu "<title>"` → `.pdf_url`. Rarely present (about 1 in 30), so treat it as a long shot |
+| 5 | `fastpaper search scholar "<title>"` → `.pdf_url` when the hit has one; many do, and they are often copies the DOI-based steps above missed |
+| 6 | Chinese paper → `fastpaper search xueshu "<title>"` → `.pdf_url`. Rarely present, so treat it as a long shot |
 | 7 | Report the landing page — `url` from step 5 or 6 — and which steps you tried. **Never claim a download that did not happen.** |
 
 Steps 3–5 return a URL, not a file — `fastpaper` cannot download an arbitrary
