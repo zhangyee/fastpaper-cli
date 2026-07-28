@@ -144,30 +144,24 @@ relevance matching, no field syntax. Filter them with the CLI flags.
 
 ## Searching several sources at once
 
-Fan out, but not uniformly — the limits differ enormously. Use whatever
-parallelism your runtime offers (parallel tool calls in one response, or shell
-backgrounding in one command):
+One `fastpaper search` per source, issued as concurrent calls — each is an
+independent process, so a source that fails or is rate-limited loses only
+itself. Keep them as separate calls rather than bundling them into one shell
+command: you then see which source failed, instead of hunting for it inside a
+single blob of output.
+
+Fan out, but not uniformly — the limits differ enormously:
 
 | Tier | Sources | Rule |
 |---|---|---|
-| **A — parallel** | `arxiv` `europepmc` `crossref` `openalex` `dblp` `doaj` `zenodo` `hal` `openaire` | up to 4 at once |
+| **A — fan out freely** | `arxiv` `europepmc` `crossref` `openalex` `dblp` `doaj` `zenodo` `hal` `openaire` | up to 4 at once |
 | **A with a key** | `semantic`, `core` | without one they belong in tier C |
 | **B — one slot between them** | `pubmed` + `pmc` | they share one NCBI budget of 3 req/s |
-| **C — serial, run last** | `xueshu`, `scholar` | bot detection / captchas |
-
-```bash
-mkdir -p out
-for s in arxiv europepmc crossref openalex; do
-  fastpaper search $s "<query>" -n 20 --format json -o out/$s.json 2>out/$s.err &
-done
-wait
-```
-
-A source that fails loses only itself — check `out/*.err` and carry on.
+| **C — one at a time, last** | `xueshu`, `scholar` | bot detection / captchas |
 
 **When merging results, dedupe on the normalised title, not the DOI**: arxiv
 records mostly have no DOI, so DOI-first grouping splits one paper into two.
-Counting how many sources returned the same paper is a useful importance signal.
+How many sources returned the same paper is a useful importance signal.
 
 ## Workflow 1 — finding papers
 
