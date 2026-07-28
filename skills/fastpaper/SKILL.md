@@ -89,7 +89,7 @@ another hit, or fall through Workflow 3.
 | `zenodo` | ✓ | **cross-discipline** CERN general-purpose repository — papers, datasets, software | `-n` capped at 25; like hal, many records are metadata-only |
 | `unpaywall` | — | **DOI → a downloadable URL.** No search | the URL must be fetched separately; see Workflow 3 |
 | `scholar` | — | broadest reach of anything here; scouting, and a PDF link when nothing else has one | HTML scraping, captcha-prone; `doi` is always `null`, and only some hits carry a `pdf_url` |
-| `xueshu` | — | **Chinese literature** — journals, theses, patents | unofficial API, bot detection; keep it serial |
+| `xueshu` | — | **Chinese literature** — journals, master's/PhD theses, conference papers, patents, standards; 700M+ records over 500+ subjects. Indexes English work too, but other sources serve that better | unofficial endpoint with bot detection, so keep it serial and low-frequency; search only, no `get`. `citations` is nearly always 0 — never rank on it. `pdf_url` is rare (1 in 30 sampled), `doi` present about half the time and validated, so a patent number or bare URL never masquerades as one |
 
 ### Content types worth routing on
 
@@ -184,7 +184,9 @@ cannot sort or filter.
 Sources reporting `citations`: `semantic` (richest, needs the key), `europepmc`,
 `openalex`, `crossref`, `openaire`. **Never quote a citation count from**
 `arxiv` `pubmed` `pmc` `dblp` `doaj` `zenodo` `hal` `biorxiv` `medrxiv`
-`scholar` — they have none.
+`scholar` — they have none — nor from `core` or `xueshu`, which return the
+field but leave it 0 on most records, so ranking on it silently buries the
+well-cited work.
 
 Run the same query three ways:
 
@@ -221,9 +223,9 @@ Go down a step only when the one above fails.
 | 2 | Name a source: `fastpaper download europepmc\|core\|zenodo\|hal\|biorxiv\|arxiv\|pmc <id>` |
 | 3 | **`fastpaper get unpaywall <DOI>`** → take `.pdf_url` → fetch it yourself |
 | 4 | `fastpaper get openalex <id>` → `.pdf_url` → fetch it yourself |
-| 5 | `fastpaper search xueshu "<title>"` → `.pdf_url` → fetch it yourself |
-| 6 | `fastpaper search scholar "<title>"` → `.pdf_url` when the hit has one, otherwise its `url` is at least the publisher's page |
-| 7 | Report the landing page and which steps you tried. **Never claim a download that did not happen.** |
+| 5 | `fastpaper search scholar "<title>"` → `.pdf_url` when the hit has one; roughly a third do, and they are often copies the DOI-based steps above missed |
+| 6 | Chinese paper → `fastpaper search xueshu "<title>"` → `.pdf_url`. Rarely present (about 1 in 30), so treat it as a long shot |
+| 7 | Report the landing page — `url` from step 5 or 6 — and which steps you tried. **Never claim a download that did not happen.** |
 
 Steps 3–5 return a URL, not a file — `fastpaper` cannot download an arbitrary
 URL, so fetch it yourself. Keep the server's own filename (`-OJ`) rather than
