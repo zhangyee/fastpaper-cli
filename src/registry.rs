@@ -472,18 +472,18 @@ static CORE: SourceEntry = SourceEntry {
             author: true,
             ..SearchCaps::BASIC
         }),
-        get: false,
+        get: true,
         download: true,
-        max_limit: None,
-        notes: "set CORE_API_KEY to avoid throttling; filter mapping follows the \
-                published v3 docs and is not verified against the live API",
+        max_limit: Some(100),
+        notes: "CORE_API_KEY is effectively required -- anonymous requests are \
+                throttled to 429; --author matches authors.name",
     },
     env_var: "FASTPAPER_CORE_URL",
     default_base: "https://api.core.ac.uk",
     pdf_env_var: None,
     pdf_default_base: None,
     search: Some(sources::core::search),
-    get: None,
+    get: Some(sources::core::get_by_id),
     pdf: Some(download::pdf_bytes_core),
 };
 

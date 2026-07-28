@@ -92,12 +92,23 @@ pub fn pdf_bytes_semantic(base_url: &str, identifier: &str) -> Result<Vec<u8>, S
     fetch_pdf(&pdf_url)
 }
 
-/// Fetch CORE PDF bytes via the record's downloadUrl.
+/// Fetch CORE PDF bytes from its dedicated download endpoint.
+///
+/// Resolved in two explicit steps rather than by following a redirect.
+///
+/// `GET /v3/works/{id}/download` answers 302 to a file on `core.ac.uk`, a
+/// different host. Letting the client chase that is fragile: the API key must
+/// not travel to the redirect target -- sending it there is refused with a 400
+/// -- and whether a given client strips it is a detail we would be depending
+/// on. So the record is fetched first, authenticated, and its `downloadUrl` is
+/// then fetched on its own with no credentials attached.
 pub fn pdf_bytes_core(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
-    resolve_and_fetch(
-        &core_meta_url(base_url, identifier),
-        sources::core::parse_search_response,
-    )
+    let paper = sources::core::get_by_id(base_url, identifier)?
+        .ok_or_else(|| format!("Not found in CORE: {}", identifier))?;
+    let pdf_url = paper
+        .pdf_url
+        .ok_or_else(|| format!("CORE has no downloadable file for {}", identifier))?;
+    fetch_pdf(&pdf_url)
 }
 
 /// Fetch DOAJ PDF bytes via the record's fulltext link.
@@ -126,14 +137,6 @@ pub fn pdf_bytes_hal(base_url: &str, identifier: &str) -> Result<Vec<u8>, String
 
 // The identifier reaches these straight from the command line, so it has to be
 // encoded: a multi-word one used to produce an invalid URI rather than a query.
-
-fn core_meta_url(base_url: &str, identifier: &str) -> String {
-    format!(
-        "{}/v3/search/works?q={}&limit=1",
-        base_url,
-        sources::encode_query(identifier)
-    )
-}
 
 /// DOAJ puts the query in a path segment, where `+` stays a literal plus.
 fn doaj_meta_url(base_url: &str, identifier: &str) -> String {
@@ -487,12 +490,6 @@ mod meta_url_tests {
         let u = zenodo_meta_url("https://zenodo.org", "machine learning");
         assert!(!u.contains(' '), "raw space in URL: {}", u);
         assert!(u.contains("machine+learning"), "got: {}", u);
-    }
-
-    #[test]
-    fn core_meta_url_encodes_spaces() {
-        let u = core_meta_url("https://api.core.ac.uk", "machine learning");
-        assert!(!u.contains(' '), "raw space in URL: {}", u);
     }
 
     #[test]

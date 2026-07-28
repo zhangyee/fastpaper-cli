@@ -3,21 +3,32 @@ use super::Paper;
 /// Search CORE API.
 /// Build the /v3/search/works URL.
 ///
-/// CORE takes field-scoped terms inside `q` (`authors:`, `yearPublished:`) and
-/// pages with limit/offset.
+/// CORE takes field-scoped terms inside `q` and pages with limit/offset.
 ///
-/// Unverified against the live API: api.core.ac.uk was unreachable from the
-/// development machine, so this follows the published v3 documentation only.
+/// The author field is `authors.name`, and the value must be quoted: bare
+/// `authors.name:Doudna` matches nothing, and the shorter `authors:"Doudna"`
+/// silently *widens* the result set (60460 -> 874397 for the same query)
+/// instead of narrowing it.
+///
+/// The trailing slash matters too -- `/v3/search/works` answers 301 to
+/// `/v3/search/works/`.
 fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, String> {
+    if q.limit > MAX_LIMIT {
+        return Err(format!(
+            "core returns at most {} results per request (asked for {}); \
+             larger limits time out server-side",
+            MAX_LIMIT, q.limit
+        ));
+    }
     let mut terms = vec![super::encode_query(&q.query)];
     if let Some(ref author) = q.author {
-        terms.push(format!("authors:%22{}%22", super::encode_query(author)));
+        terms.push(format!("authors.name:%22{}%22", super::encode_query(author)));
     }
     if let Some(year) = q.year {
         terms.push(format!("yearPublished:{}", year));
     }
     Ok(format!(
-        "{}/v3/search/works?q={}&limit={}&offset={}",
+        "{}/v3/search/works/?q={}&limit={}&offset={}",
         base_url,
         terms.join("+AND+"),
         q.limit,
@@ -25,13 +36,13 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
     ))
 }
 
+/// Beyond this CORE answers 504; 100 is the largest verified working value.
+const MAX_LIMIT: u32 = 100;
+
 /// Fetch a single work by CORE id, DOI or other supported identifier.
 ///
 /// `GET /v3/works/{identifier}` returns one work object rather than the
 /// `{results: [...]}` envelope the search endpoint uses.
-///
-/// Unverified against the live API: every CORE endpoint answers 429 without an
-/// API key, so this follows the published v3 contract only.
 pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, String> {
     let url = format!("{}/v3/works/{}", base_url, super::encode_query(identifier));
     let api_key = std::env::var("CORE_API_KEY").ok();
@@ -383,5 +394,59 @@ mod get_tests {
             .with_status(404)
             .create();
         assert!(get_by_id(&server.url(), "nope").unwrap().is_none());
+    }
+}
+
+#[cfg(test)]
+mod url_tests {
+    use super::*;
+    use crate::sources::SearchQuery;
+
+    fn url(q: &SearchQuery) -> String {
+        build_search_url("https://api.core.ac.uk", q).unwrap()
+    }
+
+    // /v3/search/works answers 301 to the trailing-slash form.
+    #[test]
+    fn search_path_carries_the_trailing_slash() {
+        assert!(url(&SearchQuery::simple("crispr", 10)).contains("/v3/search/works/?"));
+    }
+
+    // `authors:"X"` widens the result set instead of narrowing it; the field is
+    // authors.name, and the value has to be quoted or it matches nothing.
+    #[test]
+    fn author_uses_the_quoted_authors_name_field() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.author = Some("Doudna".into());
+        let u = url(&q);
+        assert!(u.contains("authors.name:%22Doudna%22"), "got: {}", u);
+        assert!(!u.contains("authors:%22"), "wrong field widens results: {}", u);
+    }
+
+    #[test]
+    fn year_uses_year_published() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.year = Some(2020);
+        assert!(url(&q).contains("yearPublished:2020"), "got: {}", url(&q));
+    }
+
+    #[test]
+    fn offset_is_passed_through() {
+        let mut q = SearchQuery::simple("crispr", 10);
+        q.offset = 30;
+        assert!(url(&q).contains("offset=30"));
+    }
+
+    // 200 already times out server-side with a 504.
+    #[test]
+    fn limit_above_the_cap_is_rejected() {
+        let err = build_search_url("https://api.core.ac.uk", &SearchQuery::simple("x", 200))
+            .unwrap_err();
+        assert!(err.contains("100"), "got: {}", err);
+    }
+
+    #[test]
+    fn limit_at_the_cap_is_allowed() {
+        assert!(build_search_url("https://api.core.ac.uk", &SearchQuery::simple("x", 100)).is_ok());
     }
 }
