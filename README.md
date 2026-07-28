@@ -91,26 +91,26 @@ wait
 `read` is not listed here: it works on a PDF already on disk, so it applies
 equally to anything the `download` column can fetch.
 
-| Source | Full name | search | get | download | Domain |
-|--------|-----------|:------:|:---:|:--------:|--------|
-| `arxiv` | arXiv | yes | yes | yes | Physics, math, CS, statistics, EE, q-bio, q-fin, econ |
-| `biorxiv` | bioRxiv | yes | yes | yes | Life sciences |
-| `medrxiv` | medRxiv | yes | yes | | Medical / health sciences (medRxiv blocks PDF fetches) |
-| `pubmed` | PubMed | yes | yes | | Biomedical & life sciences (metadata only) |
-| `pmc` | PubMed Central | yes | yes | yes | Biomedical & life sciences (full text) |
-| `europepmc` | Europe PMC | yes | yes | yes | Life sciences superset of PMC; adds preprints, patents, guidelines |
-| `scholar` | Google Scholar | yes | | | All disciplines (experimental, rate-limited) |
-| `xueshu` | Baidu Xueshu (百度学术) | yes | | | All disciplines, strong Chinese-language coverage (experimental, unofficial API) |
-| `semantic` | Semantic Scholar | yes | yes | yes | All disciplines, AI-powered citation graph |
-| `crossref` | CrossRef | yes | yes | | DOI metadata, all disciplines |
-| `openalex` | OpenAlex | yes | yes | | Open metadata index, 200M+ works |
-| `dblp` | DBLP | yes | | | Computer science |
-| `core` | CORE | yes | yes | yes | Open access aggregator (needs `CORE_API_KEY`) |
-| `openaire` | OpenAIRE | yes | yes | | EU open science |
-| `doaj` | DOAJ | yes | yes | | Open access journals, all subjects (links go to publisher pages, not PDFs) |
-| `unpaywall` | Unpaywall | | yes | | OA link resolver (requires `UNPAYWALL_EMAIL`) |
-| `zenodo` | Zenodo | yes | yes | yes | All disciplines (datasets, software, papers) |
-| `hal` | HAL | yes | yes | yes | Multi-disciplinary, French national archive |
+| Source | Full name | search | get | download | cite | Domain |
+|--------|-----------|:------:|:---:|:--------:|:----:|--------|
+| `arxiv` | arXiv | yes | yes | yes | | Physics, math, CS, statistics, EE, q-bio, q-fin, econ |
+| `biorxiv` | bioRxiv | yes | yes | yes | | Life sciences |
+| `medrxiv` | medRxiv | yes | yes | | | Medical / health sciences (medRxiv blocks PDF fetches) |
+| `pubmed` | PubMed | yes | yes | | | Biomedical & life sciences (metadata only) |
+| `pmc` | PubMed Central | yes | yes | yes | | Biomedical & life sciences (full text) |
+| `europepmc` | Europe PMC | yes | yes | yes | | Life sciences superset of PMC; adds preprints, patents, guidelines |
+| `scholar` | Google Scholar | yes | | | | All disciplines (experimental, rate-limited) |
+| `xueshu` | Baidu Xueshu (百度学术) | yes | | | | All disciplines, strong Chinese-language coverage (experimental, unofficial API) |
+| `semantic` | Semantic Scholar | yes | yes | yes | yes | All disciplines, AI-powered citation graph |
+| `crossref` | CrossRef | yes | yes | | | DOI metadata, all disciplines |
+| `openalex` | OpenAlex | yes | yes | | yes | Open metadata index, 200M+ works |
+| `dblp` | DBLP | yes | | | | Computer science |
+| `core` | CORE | yes | yes | yes | | Open access aggregator (needs `CORE_API_KEY`) |
+| `openaire` | OpenAIRE | yes | yes | | | EU open science |
+| `doaj` | DOAJ | yes | yes | | | Open access journals, all subjects (links go to publisher pages, not PDFs) |
+| `unpaywall` | Unpaywall | | yes | | | OA link resolver (requires `UNPAYWALL_EMAIL`) |
+| `zenodo` | Zenodo | yes | yes | yes | | All disciplines (datasets, software, papers) |
+| `hal` | HAL | yes | yes | yes | | Multi-disciplinary, French national archive |
 
 Sources differ in which search filters they can honour, and in their per-request
 result caps. `fastpaper sources --capabilities` prints the full matrix along
@@ -140,6 +140,7 @@ Options:
       --year <YEAR>      Papers in a specific year
       --field <FIELD>    Field of study / category (e.g. cs.CL)
       --open-access      Only open access papers
+      --patents          Patents only (europepmc, xueshu)
   -f, --format <FMT>     table, json, jsonl, csv, bibtex [default: table]
   -o, --output <PATH>    Write results to file
 ```
@@ -171,6 +172,24 @@ fastpaper download <SOURCE> <IDENTIFIER> [OPTIONS]
 Options:
   -d, --dir <PATH>       Download directory [default: ./papers]
       --overwrite        Overwrite an existing file
+```
+
+### `cite` -- Walk citation edges
+
+Same two forms as `get`. Returns the papers on the other end of a citation
+edge, in the usual result shape. Only `semantic` and `openalex` hold edges; a
+bare DOI routes to `openalex`, which needs no API key, while arXiv and `S2:`
+identifiers route to `semantic`.
+
+```
+fastpaper cite <IDENTIFIER> [OPTIONS]
+fastpaper cite <SOURCE> <IDENTIFIER> [OPTIONS]
+
+Options:
+      --direction <DIR>  incoming (papers citing this one) or outgoing
+                         (papers it cites) [default: incoming]
+  -n, --limit <N>        Max edges [default: 20]
+  -o, --output <PATH>    Write to a file instead of stdout
 ```
 
 ### `read` -- Read a local PDF

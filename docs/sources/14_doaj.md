@@ -24,7 +24,7 @@
 - `title` / `abstract` / `year`(字符串,需 parse)/ 作者 `author[].name`:均在 `item.bibjson` 下
 - `doi`:`bibjson.identifier[]` 中 `type=="doi"` 的 `id`
 - `venue`:`bibjson.journal.title`
-- `url` 与 `pdf_url`:`bibjson.link[]` 中 `type` 含 `fulltext` 的首个 `url`(实现两者取同一链接)
+- `url` 与 `pdf_url`:`bibjson.link[]` 中 `type` 含 `fulltext` 的首个 `url`(实现两者取同一链接)。**`pdf_url` 名不副实**:2026-07-28 抽 5 条实测,content-type 全部是 `text/html`——指向出版商落地页而非文件,这正是本源 `download=false` 的原因
 - `citations`:无;`open_access`:恒 `true`
 
 ## 下载

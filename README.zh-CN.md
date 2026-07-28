@@ -91,26 +91,26 @@ wait
 这里不列 `read`：它读的是已经落到磁盘上的 PDF，所以凡是 `download` 列能取到的，
 它都能读。
 
-| 数据源 | 全称 | search | get | download | 覆盖领域 |
-|--------|------|:------:|:---:|:--------:|----------|
-| `arxiv` | arXiv | yes | yes | yes | 物理、数学、计算机、统计、电子工程、量化生物/金融、经济学 |
-| `biorxiv` | bioRxiv | yes | yes | yes | 生命科学 |
-| `medrxiv` | medRxiv | yes | yes | | 医学 / 健康科学（medRxiv 拦截 PDF 抓取）|
-| `pubmed` | PubMed | yes | yes | | 生物医学与生命科学（仅元数据） |
-| `pmc` | PubMed Central | yes | yes | yes | 生物医学与生命科学（全文） |
-| `europepmc` | Europe PMC | yes | yes | yes | PMC 的生命科学超集，另含预印本、专利、临床指南 |
-| `scholar` | Google Scholar | yes | | | 全学科（实验性，有频率限制） |
-| `xueshu` | 百度学术 | yes | | | 全学科，中文文献覆盖强（实验性，非官方接口） |
-| `semantic` | Semantic Scholar | yes | yes | yes | 全学科，AI 驱动的引用图谱 |
-| `crossref` | CrossRef | yes | yes | | DOI 元数据，全学科 |
-| `openalex` | OpenAlex | yes | yes | | 开放元数据索引，2 亿+ 作品 |
-| `dblp` | DBLP | yes | | | 计算机科学 |
-| `core` | CORE | yes | yes | yes | 开放获取聚合器（需 `CORE_API_KEY`）|
-| `openaire` | OpenAIRE | yes | yes | | 欧盟开放科学 |
-| `doaj` | DOAJ | yes | yes | | 开放获取期刊，全学科（全文链接指向出版商页面而非 PDF）|
-| `unpaywall` | Unpaywall | | yes | | OA 链接解析（需设置 `UNPAYWALL_EMAIL`） |
-| `zenodo` | Zenodo | yes | yes | yes | 全学科（数据集、软件、论文） |
-| `hal` | HAL | yes | yes | yes | 多学科，法国国家开放存档 |
+| 数据源 | 全称 | search | get | download | cite | 覆盖领域 |
+|--------|------|:------:|:---:|:--------:|:----:|----------|
+| `arxiv` | arXiv | yes | yes | yes | | 物理、数学、计算机、统计、电子工程、量化生物/金融、经济学 |
+| `biorxiv` | bioRxiv | yes | yes | yes | | 生命科学 |
+| `medrxiv` | medRxiv | yes | yes | | | 医学 / 健康科学（medRxiv 拦截 PDF 抓取）|
+| `pubmed` | PubMed | yes | yes | | | 生物医学与生命科学（仅元数据） |
+| `pmc` | PubMed Central | yes | yes | yes | | 生物医学与生命科学（全文） |
+| `europepmc` | Europe PMC | yes | yes | yes | | PMC 的生命科学超集，另含预印本、专利、临床指南 |
+| `scholar` | Google Scholar | yes | | | | 全学科（实验性，有频率限制） |
+| `xueshu` | 百度学术 | yes | | | | 全学科，中文文献覆盖强（实验性，非官方接口） |
+| `semantic` | Semantic Scholar | yes | yes | yes | yes | 全学科，AI 驱动的引用图谱 |
+| `crossref` | CrossRef | yes | yes | | | DOI 元数据，全学科 |
+| `openalex` | OpenAlex | yes | yes | | yes | 开放元数据索引，2 亿+ 作品 |
+| `dblp` | DBLP | yes | | | | 计算机科学 |
+| `core` | CORE | yes | yes | yes | | 开放获取聚合器（需 `CORE_API_KEY`）|
+| `openaire` | OpenAIRE | yes | yes | | | 欧盟开放科学 |
+| `doaj` | DOAJ | yes | yes | | | 开放获取期刊，全学科（全文链接指向出版商页面而非 PDF）|
+| `unpaywall` | Unpaywall | | yes | | | OA 链接解析（需设置 `UNPAYWALL_EMAIL`） |
+| `zenodo` | Zenodo | yes | yes | yes | | 全学科（数据集、软件、论文） |
+| `hal` | HAL | yes | yes | yes | | 多学科，法国国家开放存档 |
 
 各源支持的检索过滤参数、以及单次请求的结果上限并不相同。
 `fastpaper sources --capabilities` 会打印完整矩阵和每个源的注意事项。
@@ -138,6 +138,7 @@ fastpaper search <SOURCE> <QUERY> [OPTIONS]
       --year <YEAR>      指定年份
       --field <FIELD>    学科领域 / 分类 (如 cs.CL)
       --open-access      仅开放获取论文
+      --patents          仅专利(europepmc、xueshu)
   -f, --format <FMT>     table, json, jsonl, csv, bibtex [默认: table]
   -o, --output <PATH>    输出到文件
 ```
@@ -167,6 +168,23 @@ fastpaper download <SOURCE> <IDENTIFIER> [OPTIONS]
 选项:
   -d, --dir <PATH>       下载目录 [默认: ./papers]
       --overwrite        覆盖已有文件
+```
+
+### `cite` -- 遍历引用关系
+
+与 `get` 相同的两种形式。返回引用边另一端的论文,结果结构与其他命令一致。
+只有 `semantic` 和 `openalex` 提供引用边;裸 DOI 路由到 `openalex`(无需 API
+key),arXiv 与 `S2:` 标识符路由到 `semantic`。
+
+```
+fastpaper cite <IDENTIFIER> [OPTIONS]
+fastpaper cite <SOURCE> <IDENTIFIER> [OPTIONS]
+
+Options:
+      --direction <DIR>  incoming(引用了这篇的论文)或 outgoing(这篇引用的
+                         论文)[默认: incoming]
+  -n, --limit <N>        最大边数 [默认: 20]
+  -o, --output <PATH>    写入文件而非标准输出
 ```
 
 ### `read` -- 阅读本地 PDF
