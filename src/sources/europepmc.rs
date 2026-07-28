@@ -197,7 +197,11 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
                         .and_then(|u| u["url"].as_str())
                 })
                 .map(|s| s.to_string()),
-            venue: item["journalTitle"].as_str().map(|s| s.to_string()),
+            // Nested under journalInfo; there is no top-level journalTitle.
+            venue: item["journalInfo"]["journal"]["title"]
+                .as_str()
+                .filter(|s| !s.is_empty())
+                .map(|s| s.to_string()),
             citations,
             fields: vec![],
             open_access: is_oa,
@@ -211,6 +215,20 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // Europe PMC nests the journal name under journalInfo; there is no
+    // top-level journalTitle, so reading one silently yields no venue at all.
+    #[test]
+    fn the_journal_name_becomes_the_venue() {
+        let papers = parse_search_response(FIXTURE).unwrap();
+        let with_venue = papers.iter().filter(|p| p.venue.is_some()).count();
+        assert!(
+            with_venue > 0,
+            "no record kept its journal name; got {:?}",
+            papers.iter().map(|p| &p.venue).collect::<Vec<_>>()
+        );
+        assert_eq!(papers[0].venue.as_deref(), Some("Scientific reports"));
+    }
 
     fn patent_url(patents: bool) -> String {
         let mut q = crate::sources::SearchQuery::simple("CRISPR", 10);

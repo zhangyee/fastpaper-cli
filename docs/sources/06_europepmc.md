@@ -24,7 +24,7 @@
 - `abstract_text`:`abstractText`
 - `year`:`pubYear`
 - `doi`:`doi`
-- `venue`:`journalTitle`
+- `venue`:`journalInfo.journal.title`(**不是顶层 `journalTitle`**——那个字段不存在,读它会让每条记录的 venue 都为空)
 - `citations`:`citedByCount`(Europe PMC **提供**引用数)
 - `open_access`:`isOpenAccess == "Y"`
 - `url`:`fullTextUrlList.fullTextUrl[0].url`(取首个)
