@@ -25,6 +25,27 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
     ))
 }
 
+/// Fetch a single work by CORE id, DOI or other supported identifier.
+///
+/// `GET /v3/works/{identifier}` returns one work object rather than the
+/// `{results: [...]}` envelope the search endpoint uses.
+///
+/// Unverified against the live API: every CORE endpoint answers 429 without an
+/// API key, so this follows the published v3 contract only.
+pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, String> {
+    let url = format!("{}/v3/works/{}", base_url, super::encode_query(identifier));
+    let api_key = std::env::var("CORE_API_KEY").ok();
+    match http_get_core(&url, api_key.as_deref()) {
+        Ok(body) => {
+            // parse_search_response expects the list envelope.
+            let wrapped = format!(r#"{{"results":[{}]}}"#, body);
+            Ok(parse_search_response(&wrapped)?.into_iter().next())
+        }
+        Err(e) if e.contains("404") => Ok(None),
+        Err(e) => Err(e),
+    }
+}
+
 pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let url = build_search_url(base_url, q)?;
     let api_key = std::env::var("CORE_API_KEY").ok();
@@ -315,5 +336,52 @@ mod tests {
         let result = search(&server.url(), &crate::sources::SearchQuery::simple("test", 3));
         unsafe { std::env::remove_var("CORE_API_KEY") };
         assert!(result.is_ok());
+    }
+}
+
+#[cfg(test)]
+mod get_tests {
+    use super::*;
+
+    // /v3/works/{id} answers with a bare work object, not the search envelope.
+    const WORK: &str = r#"{"id":12345678,"title":"A CORE work",
+"authors":[{"name":"Jane Doe"}],"yearPublished":2021,
+"doi":"10.1234/abcd","abstract":"Some abstract.",
+"downloadUrl":"https://core.ac.uk/download/12345678.pdf"}"#;
+
+    #[test]
+    fn get_by_id_parses_a_single_work() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("/v3/works/".to_string()))
+            .with_status(200)
+            .with_body(WORK)
+            .create();
+        let paper = get_by_id(&server.url(), "12345678").unwrap().unwrap();
+        assert_eq!(paper.title, "A CORE work");
+        assert_eq!(paper.year, Some(2021));
+        assert_eq!(paper.source, "core");
+    }
+
+    #[test]
+    fn get_by_id_encodes_a_doi_identifier() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock("GET", mockito::Matcher::Regex("/v3/works/10".to_string()))
+            .with_status(200)
+            .with_body(WORK)
+            .create();
+        let _ = get_by_id(&server.url(), "10.1234/abcd");
+        mock.assert();
+    }
+
+    #[test]
+    fn get_by_id_returns_none_on_404() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(404)
+            .create();
+        assert!(get_by_id(&server.url(), "nope").unwrap().is_none());
     }
 }
