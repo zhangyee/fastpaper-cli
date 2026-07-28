@@ -64,11 +64,14 @@ and `CORE_API_KEY` make those two usable in parallel rather than serial.
 Run `fastpaper sources --capabilities` when you need the live matrix. For
 picking one:
 
-`PDF` = can hand you the file itself; the rest give metadata only and need
-their DOI passed on to a source that can (see Workflow 3). Even on a `✓`
-source an individual record may hold no file — `pdf_url` is `null` and a
-download fails with "No PDF URL found". That is normal, not a fault: pick
-another hit, or fall through Workflow 3.
+`PDF` = `fastpaper download` works against this source. A `—` does not mean no
+full text is reachable: `scholar`, `openalex`, `doaj` and `xueshu` all return a
+`pdf_url` on some hits that you can fetch yourself, which is what Workflow 3
+does. It means the CLI will not fetch it for you.
+
+Even on a `✓` source an individual record may hold no file — `pdf_url` is
+`null` and the download fails with "No PDF URL found". That is normal rather
+than a fault: pick another hit, or fall through Workflow 3.
 
 | Source | PDF | Use it for | Watch out |
 |---|:--:|---|---|
@@ -84,7 +87,7 @@ another hit, or fall through Workflow 3.
 | `dblp` | — | **computer science** bibliography — conference and journal records, curated and clean | no abstracts at all and no citation counts; metadata only. The API takes a query and paging, nothing else |
 | `core` | ✓ | **cross-discipline** OA aggregate, 400M+ from repositories and journals — a PDF on nearly every hit | a DOI on few hits, no journal name, and `citations` present but 0 on most records — never rank on it. `CORE_API_KEY` makes it usable in parallel |
 | `openaire` | — | **cross-discipline** EU open science graph, with citation counts on most hits | no PDF links at all — resolve the DOI elsewhere. `get` wants an OpenAIRE id, not a DOI |
-| `doaj` | — | **cross-discipline** peer-reviewed OA journals — complete metadata, with a journal name and abstract on nearly every hit | **its `pdf_url` is a publisher landing page, not a file** (returns HTML), which is why `download` is unavailable here. Year granularity only, no sorting, no citation counts |
+| `doaj` | — | **cross-discipline** peer-reviewed OA journals — complete metadata, with a journal name and abstract on nearly every hit | **its `pdf_url` is a landing page, not a file** — fetching one returns HTML. Year granularity only, no sorting, no citation counts |
 | `hal` | ✓ | **cross-discipline** French national archive, with an abstract on nearly every hit and full text on most | `--field` takes a domain code: `math` `phys` `chim` `sdv` `shs` `spi` `info` `sde`. No journal name, no citation counts, and some records are metadata-only — filter on `pdf_url` before downloading |
 | `zenodo` | ✓ | **cross-discipline** CERN general-purpose repository — papers, datasets and software, with a DOI on nearly every hit | `-n` capped at 25. No journal name, no citation counts, and some records are metadata-only |
 | `unpaywall` | — | **DOI → a downloadable URL.** No search, no discipline — a resolver you reach for in Workflow 3 | needs `UNPAYWALL_EMAIL`; one DOI per call, and the URL must be fetched separately |
