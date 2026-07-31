@@ -106,10 +106,10 @@ Most content-type distinctions are not actionable. These are:
 | **Clinical guidelines** | `europepmc 'SRC:CTX'` (NICE) |
 
 `--patents` means patents only: with the flag you get patents, without it none,
-never a mix. `europepmc` narrows natively; `xueshu` filters locally and pages
-further to fill `-n`, so keep `-n` modest there. No other source takes the flag
-— Google Scholar's own switch can only *widen* results to mix patents in, never
-narrow to them, so the CLI leaves it off.
+never a mix. `europepmc` narrows natively; `xueshu` filters locally out of a
+single page, so `-n` above ~10 silently returns fewer. No other source takes the
+flag — Google Scholar's own switch can only *widen* results to mix patents in,
+never narrow to them, so the CLI leaves it off.
 
 ## Query syntax differs per source
 
