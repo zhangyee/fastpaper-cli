@@ -11,7 +11,6 @@ const CODE_CAPTCHA: i64 = 7350001;
 // Acs-Token 回退值:百度学术新版前端在反风险 SDK(paris)未初始化时发送的静态字符串,
 // 后端当前(2026-07 实测)接受它。来源:前端主包 Cnu8PP3d.js。若失效表现为 7350001。
 const ACS_TOKEN_FALLBACK: &str = "parisInstance is not ready";
-const PAGE_SIZE: u32 = 10;
 const TIMEOUT: Duration = Duration::from_secs(30);
 
 const USER_AGENT: &str = concat!(
@@ -20,11 +19,13 @@ const USER_AGENT: &str = concat!(
     " (+https://github.com/zhangyee/fastpaper-cli)"
 );
 
-fn fetch_page(base_url: &str, query: &str, pn: u32) -> Result<String, String> {
+// `pn` is the result offset Baidu pages with; this source only ever fetches the
+// first page, so it is fixed at 0.
+fn fetch_page(base_url: &str, query: &str) -> Result<String, String> {
     let encoded = super::encode_query(query);
     let url = format!(
-        "{}/search/api/search?wd={}&pn={}&skipStrategy=0",
-        base_url, encoded, pn
+        "{}/search/api/search?wd={}&pn=0&skipStrategy=0",
+        base_url, encoded
     );
     let agent: ureq::Agent = ureq::Agent::config_builder()
         .http_status_as_error(false)
@@ -51,23 +52,21 @@ fn fetch_page(base_url: &str, query: &str, pn: u32) -> Result<String, String> {
     }
 }
 
-/// Search Baidu Xueshu (experimental, undocumented JSON API). Serial pagination, 10 per page.
+/// Search Baidu Xueshu (experimental, undocumented JSON API).
+///
+/// Exactly one request per search, returning whatever that page yields even if
+/// it is less than `limit`. Baidu challenges each request independently, so
+/// paginating to fill a larger `limit` multiplies the chance the whole search
+/// fails and pushes up the risk score that governs later calls. `offset` is a
+/// local slice of that single page.
 pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
-    let (query, max_results) = (q.query.as_str(), q.offset + q.limit);
-    let mut papers: Vec<Paper> = Vec::new();
-    let mut pn = 0u32;
-    while (papers.len() as u32) < max_results {
-        let body = fetch_page(base_url, query, pn)?;
-        let page = parse_search_response(&body, q.patents)?;
-        if page.is_empty() {
-            break;
-        }
-        papers.extend(page);
-        pn += PAGE_SIZE;
-    }
-    papers.truncate(max_results as usize);
-    let papers: Vec<Paper> = papers.into_iter().skip(q.offset as usize).collect();
-    Ok(papers)
+    let body = fetch_page(base_url, q.query.as_str())?;
+    let papers = parse_search_response(&body, q.patents)?;
+    Ok(papers
+        .into_iter()
+        .skip(q.offset as usize)
+        .take(q.limit as usize)
+        .collect())
 }
 
 // 去除 <em> 等搜索高亮标签并解码常见 HTML 实体。title 和 abstract 都可能带高亮。
@@ -552,66 +551,91 @@ mod tests {
     }
 
     #[test]
-    fn search_stops_after_first_page_when_satisfied() {
+    fn search_truncates_a_page_to_the_requested_limit() {
         let mut server = mockito::Server::new();
-        let m1 = server
-            .mock("GET", mockito::Matcher::Regex("pn=0".to_string()))
+        let _m = server
+            .mock("GET", mockito::Matcher::Any)
             .with_status(200)
             .with_body(FIXTURE)
-            .expect(1)
-            .create();
-        let m2 = server
-            .mock("GET", mockito::Matcher::Regex("pn=10".to_string()))
-            .expect(0)
             .create();
         let papers = search(
             &server.url(),
             &crate::sources::SearchQuery::simple("test", 10),
         )
         .unwrap();
-        assert_eq!(papers.len(), 10);
-        m1.assert();
-        m2.assert();
+        assert_eq!(
+            papers.len(),
+            10,
+            "the page holds 11; only 10 were asked for"
+        );
     }
 
+    // Baidu challenges each request independently (~50% captcha rate measured
+    // 2026-07-31), so a two-page search succeeds about a quarter of the time and
+    // the extra request also drives up the risk score that governs later calls.
+    // One request per search trades completeness for a hit rate that does not
+    // decay: the caller gets whatever that page yields.
     #[test]
-    fn search_paginates_with_pn_10_for_second_page() {
+    fn search_sends_exactly_one_request_however_large_the_limit() {
         let mut server = mockito::Server::new();
-        let m1 = server
-            .mock("GET", mockito::Matcher::Regex("pn=0".to_string()))
+        let mock = server
+            .mock("GET", mockito::Matcher::Any)
             .with_status(200)
             .with_body(FIXTURE)
             .expect(1)
             .create();
-        let m2 = server
-            .mock("GET", mockito::Matcher::Regex("pn=10".to_string()))
+        let _ = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 30),
+        );
+        mock.assert();
+    }
+
+    #[test]
+    fn search_returns_what_one_page_yields_rather_than_paginating() {
+        let mut server = mockito::Server::new();
+        let _m = server
+            .mock("GET", mockito::Matcher::Any)
             .with_status(200)
             .with_body(FIXTURE)
-            .expect(1)
             .create();
         let papers = search(
             &server.url(),
-            &crate::sources::SearchQuery::simple("test", 15),
+            &crate::sources::SearchQuery::simple("test", 30),
         )
         .unwrap();
-        assert_eq!(papers.len(), 15, "should truncate 20 collected to 15");
-        m1.assert();
-        m2.assert();
+        assert_eq!(
+            papers.len(),
+            11,
+            "the fixture page holds 11 non-patent records; asking for 30 must not fetch more"
+        );
+    }
+
+    // `--offset` is still a local slice of the one page fetched, so an offset
+    // past its end has nothing left to return. Empty is the honest answer here;
+    // reaching further would cost exactly the extra request this cap exists to
+    // prevent.
+    #[test]
+    fn search_is_empty_when_offset_lands_past_the_single_page() {
+        let mut server = mockito::Server::new();
+        let _m = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .create();
+        let mut q = crate::sources::SearchQuery::simple("test", 5);
+        q.offset = 20;
+        assert!(search(&server.url(), &q).unwrap().is_empty());
     }
 
     #[test]
-    fn search_stops_on_empty_page() {
+    fn search_returns_no_papers_for_an_empty_page() {
         let empty = r#"{"status":{"code":0,"msg":"Success"},"data":{"paper":{"dispnum":0,"paperList":[]}}}"#;
         let mut server = mockito::Server::new();
-        let m1 = server
-            .mock("GET", mockito::Matcher::Regex("pn=0".to_string()))
+        let _m = server
+            .mock("GET", mockito::Matcher::Any)
             .with_status(200)
             .with_body(empty)
-            .expect(1)
-            .create();
-        let m2 = server
-            .mock("GET", mockito::Matcher::Regex("pn=10".to_string()))
-            .expect(0)
             .create();
         let papers = search(
             &server.url(),
@@ -619,8 +643,6 @@ mod tests {
         )
         .unwrap();
         assert!(papers.is_empty());
-        m1.assert();
-        m2.assert();
     }
 
     #[test]
