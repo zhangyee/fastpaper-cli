@@ -679,6 +679,70 @@ static HAL: SourceEntry = SourceEntry {
 mod tests {
     use super::*;
 
+    /// The SCREAMING_SNAKE tokens in `text`, which is what an env var looks
+    /// like. The underscore requirement keeps prose like HTTP and OA out.
+    fn env_var_tokens(text: &str) -> Vec<String> {
+        text.split(|c: char| !(c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_'))
+            .filter(|t| t.len() >= 4 && t.contains('_'))
+            .map(str::to_string)
+            .collect()
+    }
+
+    /// The env vars one source module reads.
+    ///
+    /// Reading the module is the only way to check this: the names live in the
+    /// source's own code, and a note is free text with no link back to them.
+    fn env_vars_read_by(source: &str) -> Vec<String> {
+        let path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src/sources")
+            .join(format!("{}.rs", source));
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("{} has no module at {}: {}", source, path.display(), e));
+
+        let mut names: Vec<String> = text
+            .split("env::var(\"")
+            .skip(1)
+            .filter_map(|rest| rest.split('"').next())
+            .map(str::to_string)
+            .collect();
+        // The one indirection: sources reach the polite-pool address through a
+        // shared helper rather than naming the variable themselves.
+        if text.contains("contact_email()") {
+            names.push("FASTPAPER_EMAIL".to_string());
+        }
+        names
+    }
+
+    #[test]
+    fn a_source_reads_the_variables_it_names_directly() {
+        assert!(env_vars_read_by("unpaywall").contains(&"UNPAYWALL_EMAIL".to_string()));
+        assert!(!env_vars_read_by("unpaywall").contains(&"FASTPAPER_EMAIL".to_string()));
+    }
+
+    #[test]
+    fn a_source_reads_the_polite_pool_address_through_the_helper() {
+        // crossref names no variable itself; it calls contact_email().
+        assert!(env_vars_read_by("crossref").contains(&"FASTPAPER_EMAIL".to_string()));
+    }
+
+    /// A note naming a variable its own source never reads sends the user off
+    /// to set something with no effect, which is what 0.3.0 did to unpaywall.
+    #[test]
+    fn notes_only_name_environment_variables_their_source_reads() {
+        for s in ALL {
+            let read = env_vars_read_by(s.name());
+            for name in env_var_tokens(s.entry().caps.notes) {
+                assert!(
+                    read.contains(&name),
+                    "{}'s note names {}, which {} never reads",
+                    s.name(),
+                    name,
+                    s.name()
+                );
+            }
+        }
+    }
+
     #[test]
     fn every_source_has_a_matching_entry() {
         for s in ALL {
