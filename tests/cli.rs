@@ -357,6 +357,46 @@ fn env_unpaywall_missing_email_exits_nonzero() {
         .stderr(contains("UNPAYWALL_EMAIL"));
 }
 
+/// The SCREAMING_SNAKE tokens in `text`, which is what an env var looks like.
+/// The underscore requirement keeps acronyms like DOI and PDF out.
+fn env_var_tokens(text: &str) -> Vec<String> {
+    let mut names: Vec<String> = text
+        .split(|c: char| !(c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_'))
+        .filter(|t| t.len() >= 4 && t.contains('_'))
+        .map(str::to_string)
+        .collect();
+    names.sort();
+    names.dedup();
+    names
+}
+
+/// Guards the drift that shipped in 0.3.0: the capability note named a variable
+/// the source never reads, so following it did not fix the error.
+#[test]
+fn capabilities_names_the_env_var_the_unpaywall_error_demands() {
+    let failure = cmd()
+        .args(["get", "unpaywall", "10.1038/nature12373"])
+        .env_remove("UNPAYWALL_EMAIL")
+        .output()
+        .unwrap();
+    let demanded = env_var_tokens(&String::from_utf8_lossy(&failure.stderr));
+    assert!(
+        !demanded.is_empty(),
+        "the error should name the variable it wants: {}",
+        String::from_utf8_lossy(&failure.stderr)
+    );
+
+    let listing = cmd().args(["sources", "--capabilities"]).output().unwrap();
+    let listing = String::from_utf8_lossy(&listing.stdout);
+    for var in demanded {
+        assert!(
+            listing.contains(&var),
+            "`get unpaywall` demands {}, but `sources --capabilities` never names it",
+            var
+        );
+    }
+}
+
 #[test]
 fn env_unpaywall_with_email_works() {
     let fixture = include_str!("fixtures/unpaywall_lookup.json");
