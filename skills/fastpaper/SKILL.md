@@ -46,8 +46,10 @@ DOI→`semantic`; a PMID or a URL is rejected outright. Naming the source —
 conclusion, references, full.
 
 **Search filters** — every one is validated per source. Asking for one a source
-cannot honour is a hard error that names what it *does* support, so a filter is
-never silently dropped:
+cannot honour is a hard error that names what it *does* support **and which
+sources do have the filter you asked for**, so a filter is never silently
+dropped and the retry is written out for you. That message is on stderr — never
+run these commands with `2>/dev/null`, or an exit code is all you get back:
 
 | Flag | Meaning |
 |---|---|
@@ -55,7 +57,7 @@ never silently dropped:
 | `--offset <N>` | skip N; several sources require a multiple of `-n` |
 | `--sort relevance\|date\|citations` + `--order asc\|desc` | ordering |
 | `--year <YYYY>` · `--after <YYYY-MM-DD>` · `--before <YYYY-MM-DD>` | dates |
-| `--author "<name>"` | author |
+| `--author "<name>"` | author — *not* on `semantic`, `dblp`, `scholar`, `xueshu`, `biorxiv`, `medrxiv`; put the name in the query there |
 | `--field <code>` | subject/category — takes a *source-specific code*, see below |
 | `--open-access` | OA only |
 | `--patents` | **patents only** (europepmc, xueshu) |

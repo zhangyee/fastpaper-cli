@@ -43,8 +43,10 @@ The main path, `fastpaper search <source> <query>`:
 
 Before step 3, `commands/search.rs` checks the request against the source's
 `Capabilities`: a blank query, a `-n` above the source's cap, or a filter the
-source cannot honour is refused with an error naming what *is* supported. A
-silently dropped filter would produce results that look right and are not.
+source cannot honour is refused with an error naming what *is* supported here,
+plus the sources that do honour the rejected filter — the usual mistake is the
+source, not the flag. A silently dropped filter would produce results that look
+right and are not.
 
 Other commands:
 

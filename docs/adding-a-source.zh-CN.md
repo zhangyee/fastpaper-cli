@@ -80,7 +80,7 @@ pub fn search(base_url: &str, q: &SearchQuery) -> Result<Vec<Paper>, String>
 
 - [ ] `README.md` — 源数量(两处:"N academic sources" 和 "N of M sources work with zero configuration")+ 表格行
 - [ ] `README.zh-CN.md` — 同样三处
-- [ ] `skills/fastpaper/SKILL.md` — frontmatter description 里的数量**和**正文里的数量,外加领域列表里的一条
+- [ ] `skills/fastpaper/SKILL.md` — frontmatter description 里的数量**和**正文里的数量,外加领域列表里的一条;没有 author 过滤的源还要写进 `--author` 那行的例外名单
 - [ ] `docs/sources/` — 放入你的调研笔记,并在其 README 索引加一行
 - [ ] Shell completions 由 enum 自动生成,无需改文件,但用户升级后需重新执行 `fastpaper completions <shell>`
 

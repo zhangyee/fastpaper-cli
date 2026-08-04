@@ -146,9 +146,10 @@ Options:
 ```
 
 Filters map onto each source's own API parameters. A source that cannot honour
-one **fails with an error naming the filters it does support**, rather than
-dropping it silently — a filter that vanishes yields results that look right and
-are not. The same goes for `-n` above a source's per-request cap. Run
+one **fails with an error naming the filters it does support, and the sources
+that do have the one you asked for**, rather than dropping it silently — a
+filter that vanishes yields results that look right and are not. The same goes
+for `-n` above a source's per-request cap. Run
 `fastpaper sources --capabilities` to see what each source accepts.
 
 ### `get` -- Fetch metadata by identifier
