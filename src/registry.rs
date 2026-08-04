@@ -601,7 +601,7 @@ static UNPAYWALL: SourceEntry = SourceEntry {
         download: false,
         cite: false,
         max_limit: None,
-        notes: "DOI lookup only; requires a real address in FASTPAPER_EMAIL",
+        notes: "DOI lookup only; requires a real address in UNPAYWALL_EMAIL",
     },
     env_var: "FASTPAPER_UNPAYWALL_URL",
     default_base: "https://api.unpaywall.org",

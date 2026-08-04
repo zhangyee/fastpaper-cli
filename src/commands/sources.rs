@@ -104,4 +104,14 @@ mod tests {
     fn plain_view_omits_the_notes_section() {
         assert!(!render(false).contains("Notes"));
     }
+
+    #[test]
+    fn unpaywall_note_names_the_env_var_it_actually_reads() {
+        let out = render(true);
+        assert!(
+            out.contains("UNPAYWALL_EMAIL"),
+            "the note must name the variable sources::unpaywall reads, got:\n{}",
+            out
+        );
+    }
 }
