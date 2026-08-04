@@ -64,6 +64,29 @@ fn download_pubmed_rejects_with_hint() {
         .stderr(contains("pmc"));
 }
 
+// Reported from a downstream agent: it asked semantic for --author, was told
+// only which filters semantic does have, and had no way to learn that eleven
+// other sources take the flag. The rejection is correct; leaving the caller
+// stranded is not.
+#[test]
+fn search_semantic_author_redirects_to_sources_that_have_it() {
+    cmd()
+        .args([
+            "search",
+            "semantic",
+            "Hairong Zheng",
+            "--author",
+            "Hairong Zheng",
+            "--year",
+            "2026",
+        ])
+        .assert()
+        .failure()
+        .stderr(contains("--author"))
+        .stderr(contains("works on"))
+        .stderr(contains("crossref"));
+}
+
 #[test]
 fn search_pubmed_no_capability_error() {
     // pubmed supports search, so it should NOT fail with "does not support"

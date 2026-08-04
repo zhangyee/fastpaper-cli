@@ -56,6 +56,18 @@ pub const ALL: &[Source] = &[
     Source::Hal,
 ];
 
+/// The sources whose search honours `flag`, in `ALL` order.
+///
+/// A rejected filter is usually the wrong *source*, not the wrong flag, so the
+/// rejection needs somewhere to send the caller. Reading that off the table
+/// keeps the answer true as sources come and go.
+pub fn sources_supporting(flag: &str) -> Vec<&'static str> {
+    ALL.iter()
+        .filter(|s| s.caps().search.is_some_and(|caps| caps.supports(flag)))
+        .map(|s| s.name())
+        .collect()
+}
+
 pub struct SourceEntry {
     pub name: &'static str,
     pub caps: Capabilities,

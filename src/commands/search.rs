@@ -85,20 +85,54 @@ fn check_filters(query: &SearchQuery, caps: &SearchCaps, name: &str) -> CommandR
         format!("Supported here: {}", supported.join(", "))
     };
 
-    // --patents means "patents only", which only two sources can honour.
-    let patents_hint = if unsupported.contains(&"--patents") {
-        "\n--patents (patents only) works on europepmc and xueshu."
-    } else {
-        ""
-    };
-
     Err(failed(format!(
         "{} does not support {}.\n{}{}",
         name,
         unsupported.join(", "),
         available,
-        patents_hint
+        redirects(&unsupported)
     )))
+}
+
+/// Name the sources that do honour each rejected filter.
+///
+/// Listing this source's own filters answers "what else can I ask here", but
+/// the caller asked for something specific: the flag exists, they just picked a
+/// source without it. Without a redirect the only way on is to guess.
+fn redirects(unsupported: &[&str]) -> String {
+    let mut lines = String::new();
+    let mut done: Vec<&str> = Vec::new();
+
+    for flag in unsupported {
+        // One capability, two flags — redirect them together.
+        let label = match *flag {
+            "--after" | "--before" => "--after/--before",
+            other => other,
+        };
+        if done.contains(&label) {
+            continue;
+        }
+        done.push(label);
+
+        let elsewhere = crate::registry::sources_supporting(flag);
+        if elsewhere.is_empty() {
+            continue;
+        }
+        // --patents narrows to patents rather than including them, which is
+        // worth saying wherever the flag is named.
+        let gloss = if label == "--patents" {
+            " (patents only)"
+        } else {
+            ""
+        };
+        lines.push_str(&format!(
+            "\n{}{} works on: {}",
+            label,
+            gloss,
+            elsewhere.join(", ")
+        ));
+    }
+    lines
 }
 
 #[cfg(test)]
@@ -197,6 +231,48 @@ mod tests {
             err.message()
         );
         assert!(err.message().contains("xueshu"), "got: {}", err.message());
+    }
+
+    // Every source-specific filter has the same failure mode as --patents: the
+    // flag is real, the source is wrong, and this source's own filter list says
+    // nothing about where to go instead.
+    #[test]
+    fn author_rejection_names_the_sources_that_have_it() {
+        let mut q = SearchQuery::simple("Hairong Zheng", 30);
+        q.author = Some("Hairong Zheng".into());
+        let err = check_filters(&q, &caps_year_only(), "semantic").unwrap_err();
+        for name in ["arxiv", "crossref", "openalex", "pubmed"] {
+            assert!(err.message().contains(name), "got: {}", err.message());
+        }
+    }
+
+    #[test]
+    fn a_rejection_keeps_the_source_out_of_its_own_redirect() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.author = Some("Vaswani".into());
+        let err = check_filters(&q, &caps_year_only(), "semantic").unwrap_err();
+        let redirect = err
+            .message()
+            .lines()
+            .find(|l| l.starts_with("--author"))
+            .unwrap_or_default()
+            .to_string();
+        assert!(!redirect.contains("semantic"), "got: {}", redirect);
+    }
+
+    // --after and --before are one capability, so they redirect on one line.
+    #[test]
+    fn a_date_range_rejection_redirects_once() {
+        let mut q = SearchQuery::simple("attention", 10);
+        q.after = Some("2020-01-01".into());
+        q.before = Some("2024-01-01".into());
+        let err = check_filters(&q, &caps_none(), "dblp").unwrap_err();
+        let redirects = err
+            .message()
+            .lines()
+            .filter(|l| l.contains("works on"))
+            .count();
+        assert_eq!(redirects, 1, "got: {}", err.message());
     }
 
     #[test]
