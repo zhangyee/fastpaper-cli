@@ -37,7 +37,6 @@ pub fn run(args: &ReadArgs, global: &GlobalOpts) -> CommandResult {
                 Some(max) => text.chars().take(max).collect::<String>(),
                 None => text,
             };
-            let char_count = text.chars().count();
             let rendered = match global.format {
                 OutputFormat::Json => serde_json::to_string_pretty(&serde_json::json!({
                     "path": args.path.to_string_lossy(),
@@ -47,7 +46,11 @@ pub fn run(args: &ReadArgs, global: &GlobalOpts) -> CommandResult {
                 .unwrap(),
                 _ => text,
             };
-            let summary = chars_summary(char_count);
+            // Counted after rendering, not before: the receipt is about the
+            // file that landed, and in JSON the envelope and its escaping are
+            // part of that file. Text output renders to itself, so the number
+            // there is unchanged.
+            let summary = chars_summary(rendered.chars().count());
             emit(&rendered, args.output.as_deref(), &summary, global.quiet)
         }
     }

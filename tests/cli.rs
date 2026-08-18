@@ -1125,6 +1125,34 @@ fn output_flag_reports_what_it_wrote_on_stderr() {
     assert!(out.exists(), "the file should still be written");
 }
 
+// The receipt counted the extracted text, not the JSON envelope wrapped
+// around it, so `--format json -o` reported a number smaller than anything in
+// the file -- a caller comparing it against the file would think it was cut.
+#[test]
+fn the_receipt_counts_what_landed_in_the_file() {
+    for format in ["json", "table"] {
+        let out = temp_dir().join(format!("count_{}.txt", format));
+        let assert = cmd()
+            .arg("read")
+            .arg(fixture_pdf())
+            .arg("--format")
+            .arg(format)
+            .arg("-o")
+            .arg(&out)
+            .assert()
+            .success();
+        let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
+        let written = std::fs::read_to_string(&out).unwrap().chars().count();
+        assert!(
+            stderr.contains(&format!("({} chars)", written)),
+            "--format {} wrote {} chars but the receipt said: {}",
+            format,
+            written,
+            stderr.trim()
+        );
+    }
+}
+
 #[test]
 fn quiet_suppresses_the_receipt() {
     let out = temp_dir().join("quiet.txt");
