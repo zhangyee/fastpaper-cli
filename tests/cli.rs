@@ -1627,3 +1627,70 @@ fn an_unparseable_max_size_is_rejected_before_any_network_call() {
         .failure()
         .stderr(contains("is not a size"));
 }
+
+// `get` answers "that paper is not here" with exit 4; `download` answered the
+// same situation with exit 1, the code reserved for a malformed command. A
+// caller that branches on the exit code could not tell "try another source"
+// from "you typed it wrong".
+#[test]
+fn download_exits_4_when_the_source_does_not_have_the_paper() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(404)
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "arxiv", "9999.99999", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .code(4)
+        .stderr(contains("not found"));
+}
+
+// "The record exists but carries no open access file" is the same shape of
+// answer: nothing to fetch here, look elsewhere.
+#[test]
+fn download_exits_4_when_the_record_carries_no_pdf() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(r#"{"paperId":"abc","title":"No file here","openAccessPdf":null}"#)
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "semantic", "abc", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_SEMANTIC_URL", server.url())
+        .assert()
+        .code(4)
+        .stderr(contains("No open access PDF"));
+}
+
+// A size refusal is not "nothing matched" -- the file is there and the caller
+// can change one flag to get it, so it stays exit 1.
+#[test]
+fn an_oversized_pdf_still_exits_1_rather_than_4() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args([
+            "download",
+            "arxiv",
+            "2301.08745",
+            "--max-size",
+            "10",
+            "--dir",
+        ])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .code(1);
+}

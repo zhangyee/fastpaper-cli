@@ -1,6 +1,6 @@
 use super::{CommandError, CommandResult, failed};
 use crate::cli::DownloadArgs;
-use crate::download::{human_size, save_pdf};
+use crate::download::{FetchError, human_size, save_pdf};
 use crate::identifier::{IdType, detect_id_type};
 use crate::registry::Source;
 
@@ -21,7 +21,13 @@ pub fn run(args: &DownloadArgs) -> CommandResult {
     let fetch = entry.pdf.ok_or_else(|| unsupported_download(source))?;
 
     let id = normalize_id(source, raw_id);
-    let bytes = fetch(&source.pdf_base_url(), &id, args.max_size).map_err(CommandError::Failed)?;
+    // "This source has no file for that paper" is an empty answer, not a
+    // malformed command, so it takes exit 4 like `get`'s miss rather than the
+    // exit 1 it used to share with a refused size or a broken connection.
+    let bytes = fetch(&source.pdf_base_url(), &id, args.max_size).map_err(|e| match e {
+        FetchError::NotFound(m) => CommandError::NotFound(m),
+        FetchError::Failed(m) => CommandError::Failed(m),
+    })?;
 
     match save_pdf(&bytes, &args.dir, raw_id, args.overwrite) {
         Ok(path) => {

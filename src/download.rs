@@ -65,11 +65,48 @@ fn over_limit(actual: Option<u64>, limit: u64) -> String {
     )
 }
 
+/// Why a PDF could not be produced.
+///
+/// The two cases need different exit codes because they call for different
+/// next moves. `NotFound` means this source has nothing to give — no such
+/// record, or a record with no open access file — and the caller should try
+/// another source, which is `get`'s exit 4 situation exactly. Everything else
+/// is a genuine failure: a refused size, a 403, a broken connection. Collapsing
+/// them into one code, as this used to, left a caller unable to tell "look
+/// elsewhere" from "your command was wrong".
+#[derive(Debug)]
+pub enum FetchError {
+    NotFound(String),
+    Failed(String),
+}
+
+impl FetchError {
+    pub fn message(&self) -> &str {
+        match self {
+            FetchError::NotFound(m) | FetchError::Failed(m) => m,
+        }
+    }
+}
+
+impl std::fmt::Display for FetchError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.message())
+    }
+}
+
+/// Anything a source reports while resolving a record is a real failure: it
+/// got far enough to talk to the API and the API did not cooperate.
+impl From<String> for FetchError {
+    fn from(message: String) -> Self {
+        FetchError::Failed(message)
+    }
+}
+
 /// Download PDF bytes from a URL, refusing a body over `limit` bytes.
 ///
 /// `limit` is a byte count; `u64::MAX` means unlimited. The whole body is held
 /// in memory, which is exactly why a default limit exists at all.
-pub fn fetch_pdf(url: &str, limit: u64) -> Result<Vec<u8>, String> {
+pub fn fetch_pdf(url: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
     let not_found = format!("Not found: {}", url);
     fetch_pdf_named(url, limit, &not_found)
 }
@@ -80,7 +117,7 @@ pub fn fetch_pdf(url: &str, limit: u64) -> Result<Vec<u8>, String> {
 /// a bare URL fetch cannot. Everything else about the two is identical, and
 /// this is the only place in the crate that reads a PDF response body -- so the
 /// size limit cannot be forgotten on one path.
-pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>, String> {
+pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>, FetchError> {
     // `--max-size` is there to bound memory, and compression is what stopped
     // it doing that: ureq's `.limit()` counts bytes inside its decompressor,
     // so a gzip response could inflate ~1000x under the 100 MiB default before
@@ -101,7 +138,7 @@ pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>
             if let Some(size) = resp.body().content_length()
                 && size > limit
             {
-                return Err(over_limit(Some(size), limit));
+                return Err(FetchError::Failed(over_limit(Some(size), limit)));
             }
             // `.limit()` also cannot be trusted alone: it wraps the reader
             // *inside* the decompressor, so for a compressed response it
@@ -117,8 +154,8 @@ pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>
                 .limit(limit.saturating_add(1))
                 .read_to_vec()
                 .map_err(|e| match e {
-                    ureq::Error::BodyExceedsLimit(_) => over_limit(None, limit),
-                    other => format!("Could not fetch the PDF: {}", other),
+                    ureq::Error::BodyExceedsLimit(_) => FetchError::Failed(over_limit(None, limit)),
+                    other => FetchError::Failed(format!("Could not fetch the PDF: {}", other)),
                 })?;
             // The actual enforcement: bounds what is handed back to the
             // caller regardless of what Content-Length claimed or what
@@ -126,12 +163,15 @@ pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>
             // peak memory -- ureq has already buffered the full decompressed
             // body in `bytes` by the time this check runs.
             if bytes.len() as u64 > limit {
-                return Err(over_limit(Some(bytes.len() as u64), limit));
+                return Err(FetchError::Failed(over_limit(
+                    Some(bytes.len() as u64),
+                    limit,
+                )));
             }
             Ok(bytes)
         }
-        Err(ureq::Error::StatusCode(404)) => Err(not_found.to_string()),
-        Err(e) => Err(format!("HTTP error: {}", e)),
+        Err(ureq::Error::StatusCode(404)) => Err(FetchError::NotFound(not_found.to_string())),
+        Err(e) => Err(FetchError::Failed(format!("HTTP error: {}", e))),
     }
 }
 
@@ -142,12 +182,20 @@ pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>
 // only wants the bytes. `save_pdf` below does the writing.
 
 /// Fetch arXiv PDF bytes.
-pub fn pdf_bytes_arxiv(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_arxiv(
+    base_url: &str,
+    identifier: &str,
+    limit: u64,
+) -> Result<Vec<u8>, FetchError> {
     sources::arxiv::download_pdf(base_url, identifier, limit)
 }
 
 /// Fetch bioRxiv PDF bytes.
-pub fn pdf_bytes_biorxiv(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_biorxiv(
+    base_url: &str,
+    identifier: &str,
+    limit: u64,
+) -> Result<Vec<u8>, FetchError> {
     fetch_pdf(
         &format!("{}/content/{}v1.full.pdf", base_url, identifier),
         limit,
@@ -155,7 +203,11 @@ pub fn pdf_bytes_biorxiv(base_url: &str, identifier: &str, limit: u64) -> Result
 }
 
 /// Fetch medRxiv PDF bytes.
-pub fn pdf_bytes_medrxiv(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_medrxiv(
+    base_url: &str,
+    identifier: &str,
+    limit: u64,
+) -> Result<Vec<u8>, FetchError> {
     fetch_pdf(
         &format!("{}/content/{}v1.full.pdf", base_url, identifier),
         limit,
@@ -174,7 +226,7 @@ pub fn pdf_bytes_medrxiv(base_url: &str, identifier: &str, limit: u64) -> Result
 /// The Cloud Service (AWS Open Data) serves the same files over plain HTTPS and
 /// is the route that survives. Objects are keyed by article and version, so the
 /// version has to be discovered by listing the prefix first.
-pub fn pdf_bytes_pmc(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_pmc(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
     let numeric_id = identifier.strip_prefix("PMC").unwrap_or(identifier);
     // No `limit` here on purpose: this lists an S3 prefix as XML, not a PDF.
     // `limit` applies only to the actual PDF fetch below.
@@ -212,12 +264,16 @@ fn http_get_text(url: &str) -> Result<String, String> {
 }
 
 /// Fetch Semantic Scholar PDF bytes via the record's openAccessPdf URL.
-pub fn pdf_bytes_semantic(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_semantic(
+    base_url: &str,
+    identifier: &str,
+    limit: u64,
+) -> Result<Vec<u8>, FetchError> {
     let paper = sources::semantic::get_by_id(base_url, identifier)?
-        .ok_or_else(|| format!("Paper not found: {}", identifier))?;
+        .ok_or_else(|| FetchError::NotFound(format!("Paper not found: {}", identifier)))?;
     let pdf_url = paper
         .pdf_url
-        .ok_or_else(|| "No open access PDF available".to_string())?;
+        .ok_or_else(|| FetchError::NotFound("No open access PDF available".to_string()))?;
     fetch_pdf(&pdf_url, limit)
 }
 
@@ -231,17 +287,17 @@ pub fn pdf_bytes_semantic(base_url: &str, identifier: &str, limit: u64) -> Resul
 /// -- and whether a given client strips it is a detail we would be depending
 /// on. So the record is fetched first, authenticated, and its `downloadUrl` is
 /// then fetched on its own with no credentials attached.
-pub fn pdf_bytes_core(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_core(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
     let paper = sources::core::get_by_id(base_url, identifier)?
-        .ok_or_else(|| format!("Not found in CORE: {}", identifier))?;
-    let pdf_url = paper
-        .pdf_url
-        .ok_or_else(|| format!("CORE has no downloadable file for {}", identifier))?;
+        .ok_or_else(|| FetchError::NotFound(format!("Not found in CORE: {}", identifier)))?;
+    let pdf_url = paper.pdf_url.ok_or_else(|| {
+        FetchError::NotFound(format!("CORE has no downloadable file for {}", identifier))
+    })?;
     fetch_pdf(&pdf_url, limit)
 }
 
 /// Fetch DOAJ PDF bytes via the record's fulltext link.
-pub fn pdf_bytes_doaj(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_doaj(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
     resolve_and_fetch(
         &doaj_meta_url(base_url, identifier),
         sources::doaj::parse_search_response,
@@ -250,7 +306,11 @@ pub fn pdf_bytes_doaj(base_url: &str, identifier: &str, limit: u64) -> Result<Ve
 }
 
 /// Fetch Zenodo PDF bytes via the record's file link.
-pub fn pdf_bytes_zenodo(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_zenodo(
+    base_url: &str,
+    identifier: &str,
+    limit: u64,
+) -> Result<Vec<u8>, FetchError> {
     resolve_and_fetch(
         &zenodo_meta_url(base_url, identifier),
         sources::zenodo::parse_search_response,
@@ -259,7 +319,7 @@ pub fn pdf_bytes_zenodo(base_url: &str, identifier: &str, limit: u64) -> Result<
 }
 
 /// Fetch HAL PDF bytes via the record's fileMain_s URL.
-pub fn pdf_bytes_hal(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_hal(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
     resolve_and_fetch(
         &hal_meta_url(base_url, identifier),
         sources::hal::parse_search_response,
@@ -300,12 +360,15 @@ pub fn pdf_bytes_europepmc(
     base_url: &str,
     identifier: &str,
     limit: u64,
-) -> Result<Vec<u8>, String> {
+) -> Result<Vec<u8>, FetchError> {
     let paper = sources::europepmc::get_by_id(base_url, identifier)?
-        .ok_or_else(|| format!("Not found in Europe PMC: {}", identifier))?;
-    let pdf_url = paper
-        .pdf_url
-        .ok_or_else(|| format!("Europe PMC has no open access PDF for {}", identifier))?;
+        .ok_or_else(|| FetchError::NotFound(format!("Not found in Europe PMC: {}", identifier)))?;
+    let pdf_url = paper.pdf_url.ok_or_else(|| {
+        FetchError::NotFound(format!(
+            "Europe PMC has no open access PDF for {}",
+            identifier
+        ))
+    })?;
     fetch_pdf(&pdf_url, limit)
 }
 
@@ -314,7 +377,7 @@ fn resolve_and_fetch(
     meta_url: &str,
     parse: fn(&str) -> Result<Vec<sources::Paper>, String>,
     limit: u64,
-) -> Result<Vec<u8>, String> {
+) -> Result<Vec<u8>, FetchError> {
     // No `limit` here on purpose: this is the metadata lookup (JSON/XML), not
     // the PDF. `limit` applies only to `fetch_pdf` below.
     let body = ureq::get(meta_url)
@@ -327,7 +390,7 @@ fn resolve_and_fetch(
     let pdf_url = papers
         .first()
         .and_then(|p| p.pdf_url.as_deref())
-        .ok_or_else(|| "No PDF URL found".to_string())?;
+        .ok_or_else(|| FetchError::NotFound("No PDF URL found".to_string()))?;
     fetch_pdf(pdf_url, limit)
 }
 
@@ -604,7 +667,7 @@ mod tests {
             .with_body("<ListBucketResult><Contents><Key>PMC7318926.1/PMC7318926.1.xml</Key></Contents></ListBucketResult>")
             .create();
         let err = pdf_bytes_pmc(&server.url(), "PMC7318926", 10 * MIB).unwrap_err();
-        assert!(err.contains("no PDF"), "got: {}", err);
+        assert!(err.message().contains("no PDF"), "got: {}", err);
     }
 
     #[test]
@@ -717,8 +780,8 @@ mod tests {
             .with_chunked_body(|w| w.write_all(&[0u8; 100]))
             .create();
         let err = fetch_pdf(&format!("{}/big.pdf", server.url()), 10 * MIB).unwrap_err();
-        assert!(err.contains("24.3 MiB"), "got: {}", err);
-        assert!(err.contains("--max-size"), "got: {}", err);
+        assert!(err.message().contains("24.3 MiB"), "got: {}", err);
+        assert!(err.message().contains("--max-size"), "got: {}", err);
     }
 
     // Distinct from `a_body_within_the_limit_comes_back_whole`: that test's
@@ -747,7 +810,7 @@ mod tests {
         let mut server = mockito::Server::new();
         let _m = server.mock("GET", "/gone.pdf").with_status(404).create();
         let err = fetch_pdf(&format!("{}/gone.pdf", server.url()), 10 * MIB).unwrap_err();
-        assert!(err.contains("Not found"), "got: {}", err);
+        assert!(err.message().contains("Not found"), "got: {}", err);
     }
 
     #[test]
@@ -760,7 +823,7 @@ mod tests {
             "Paper not found: 2301.08745",
         )
         .unwrap_err();
-        assert_eq!(err, "Paper not found: 2301.08745");
+        assert_eq!(err.message(), "Paper not found: 2301.08745");
     }
 
     // A chunked response has no Content-Length, so this exercises the other
@@ -775,7 +838,11 @@ mod tests {
             .with_chunked_body(|w| w.write_all(&[0u8; 2 * 1024 * 1024]))
             .create();
         let err = fetch_pdf(&format!("{}/chunked.pdf", server.url()), 1024 * 1024).unwrap_err();
-        assert!(err.contains("did not report its size"), "got: {}", err);
+        assert!(
+            err.message().contains("did not report its size"),
+            "got: {}",
+            err
+        );
     }
 
     // `--max-size` exists to bound memory, and by default it did not: ureq's
@@ -821,11 +888,11 @@ mod tests {
             .create();
         let err = fetch_pdf(&format!("{}/gz.pdf", server.url()), 1024 * 1024).unwrap_err();
         assert!(
-            err.contains("2 MiB"),
+            err.message().contains("2 MiB"),
             "should name the real decompressed size: {}",
             err
         );
-        assert!(err.contains("--max-size"), "got: {}", err);
+        assert!(err.message().contains("--max-size"), "got: {}", err);
     }
 }
 

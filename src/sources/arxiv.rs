@@ -7,7 +7,11 @@ use super::Paper;
 ///
 /// Delegates the fetch so that the size limit lives in one place; the only
 /// thing arXiv adds is being able to name the paper in a 404.
-pub fn download_pdf(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+pub fn download_pdf(
+    base_url: &str,
+    identifier: &str,
+    limit: u64,
+) -> Result<Vec<u8>, crate::download::FetchError> {
     let url = format!("{}/pdf/{}.pdf", base_url, identifier);
     let not_found = format!("Paper not found: {}", identifier);
     crate::download::fetch_pdf_named(&url, limit, &not_found)
@@ -602,7 +606,7 @@ mod tests {
             .create();
         let result = download_pdf(&server.url(), "9999.99999", 10 * 1024 * 1024);
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("not found"));
+        assert!(result.unwrap_err().message().contains("not found"));
     }
 }
 
