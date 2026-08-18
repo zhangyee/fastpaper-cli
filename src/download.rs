@@ -65,6 +65,40 @@ fn over_limit(actual: Option<u64>, limit: u64) -> String {
     )
 }
 
+/// The host part of a URL, for naming who refused a request.
+fn host_of(url: &str) -> Option<String> {
+    let after_scheme = url.split("://").nth(1)?;
+    let host = after_scheme.split(['/', '?', '#']).next()?;
+    (!host.is_empty()).then(|| host.to_string())
+}
+
+/// Explain a request the server refused outright.
+///
+/// The old message was `HTTP error: http status: 403` and stopped there, which
+/// left the caller with no host, no link and no next move.
+///
+/// It deliberately does not say *why* the server refused, because nothing here
+/// can tell: an MDPI paper (fully open access) and an AHA one (subscription)
+/// both answer 403, and Semantic Scholar reports `open_access: true` for both.
+/// Guessing "paywall" would be wrong half the time and would send the caller
+/// away from a paper that is in fact free.
+///
+/// What it can do is hand over the link. Retrying elsewhere is usually wasted:
+/// unpaywall resolves this DOI to the same publisher URL byte for byte, and
+/// `download europepmc <DOI>` reaches it too, so the alternatives mostly lead
+/// back to the same door.
+fn refused(status: u16, url: &str) -> String {
+    let who = host_of(url).unwrap_or_else(|| "the server".to_string());
+    format!(
+        "{} from {}\n{}\n\
+         The server refused this request. fastpaper cannot tell a paywall from \
+         a bot block here -- they look the same from outside. Other resolvers \
+         usually hand back this same URL, so opening it yourself is more likely \
+         to help than retrying through another source.",
+        status, who, url
+    )
+}
+
 /// Why a PDF could not be produced.
 ///
 /// The two cases need different exit codes because they call for different
@@ -171,6 +205,13 @@ pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>
             Ok(bytes)
         }
         Err(ureq::Error::StatusCode(404)) => Err(FetchError::NotFound(not_found.to_string())),
+        // 401/402/403 are the server saying "no", as opposed to being unable:
+        // worth naming the host and handing back the link, since the caller
+        // can act on those and cannot act on `http status: 403`.
+        // 401 Unauthorized, 402 Payment Required, 403 Forbidden.
+        Err(ureq::Error::StatusCode(status @ 401..=403)) => {
+            Err(FetchError::Failed(refused(status, url)))
+        }
         Err(e) => Err(FetchError::Failed(format!("HTTP error: {}", e))),
     }
 }
@@ -442,6 +483,78 @@ pub fn save_pdf(
 mod tests {
     use super::*;
     use std::fs;
+
+    #[test]
+    fn host_of_takes_the_authority_and_nothing_else() {
+        assert_eq!(
+            host_of("https://www.mdpi.com/1424-8220/21/16/5542/pdf?version=1629270899"),
+            Some("www.mdpi.com".to_string())
+        );
+        assert_eq!(
+            host_of("http://export.arxiv.org/pdf/2301.08745.pdf"),
+            Some("export.arxiv.org".to_string())
+        );
+        assert_eq!(
+            host_of("https://example.org"),
+            Some("example.org".to_string())
+        );
+        assert_eq!(host_of("not a url"), None);
+    }
+
+    // The old message was `HTTP error: http status: 403` and nothing else: no
+    // host, no link, no way to act. Naming who refused and what they refused
+    // is the whole point.
+    #[test]
+    fn a_refusal_names_the_host_the_status_and_the_link() {
+        let msg = refused(
+            403,
+            "https://www.mdpi.com/1424-8220/21/16/5542/pdf?version=1",
+        );
+        assert!(msg.contains("403"), "got: {}", msg);
+        assert!(msg.contains("www.mdpi.com"), "got: {}", msg);
+        assert!(
+            msg.contains("https://www.mdpi.com/1424-8220/21/16/5542/pdf?version=1"),
+            "the whole link has to be there to be openable: {}",
+            msg
+        );
+    }
+
+    // Measured, not assumed: an MDPI paper (fully open access) and an AHA one
+    // (subscription) both come back 403, and semantic reports `open_access:
+    // true` for both. Nothing available here separates them, so the message
+    // must not pretend otherwise.
+    #[test]
+    fn a_refusal_does_not_claim_to_know_whether_it_is_a_paywall() {
+        let msg = refused(403, "https://example.org/x.pdf").to_lowercase();
+        assert!(
+            !msg.contains("paywall.") && !msg.contains("subscription required"),
+            "must not diagnose a cause it cannot observe: {}",
+            msg
+        );
+        assert!(
+            msg.contains("cannot tell") || msg.contains("indistinguishable"),
+            "should say the cause is undeterminable: {}",
+            msg
+        );
+    }
+
+    // Verified live: unpaywall hands back the same publisher URL semantic
+    // does, byte for byte, and `download europepmc <DOI>` lands on it too. A
+    // caller who retries elsewhere without knowing that burns three requests
+    // to reach the same 403.
+    #[test]
+    fn a_refusal_warns_that_other_resolvers_return_the_same_link() {
+        let msg = refused(403, "https://example.org/x.pdf");
+        assert!(msg.contains("same"), "got: {}", msg);
+    }
+
+    #[test]
+    fn a_refusal_covers_the_other_refusing_statuses() {
+        for status in [401, 402, 403] {
+            let msg = refused(status, "https://example.org/x.pdf");
+            assert!(msg.contains(&status.to_string()), "got: {}", msg);
+        }
+    }
 
     fn temp_dir() -> PathBuf {
         let dir = std::env::temp_dir().join(format!(
