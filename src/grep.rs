@@ -385,6 +385,23 @@ mod tests {
         );
     }
 
+    // The cut indexes characters, like everything else here; a byte-indexed
+    // one would slice mid-character and take the excerpt with it.
+    #[test]
+    fn a_cut_window_counts_characters_not_bytes() {
+        let text = format!("{}NEEDLE{}", "日".repeat(20), "本".repeat(20));
+        let mut result = grep(&text, &re("NEEDLE"), 20, 10);
+        apply_budget(&mut result, 10);
+        assert_eq!(result.windows.len(), 1);
+        assert_eq!(result.windows[0].text.chars().count(), 10);
+        assert!(
+            result.windows[0].text.contains("NEEDLE"),
+            "got: {}",
+            result.windows[0].text
+        );
+        assert_eq!(result.windows[0].offset(), 20);
+    }
+
     // A budget that cannot hold the match itself has nothing honest to show,
     // so it shows nothing rather than a fragment counted as a hit.
     #[test]
