@@ -168,6 +168,8 @@ fastpaper download <SOURCE> <IDENTIFIER> [OPTIONS]
 
 选项:
   -d, --dir <PATH>       下载目录 [默认: ./papers]
+  -s, --max-size <SIZE>  可接受的最大响应体,如 10MiB、200MB。
+                         0 表示不限制 [默认: 100MiB]
       --overwrite        覆盖已有文件
 ```
 
@@ -198,6 +200,11 @@ fastpaper read <PATH> [OPTIONS]
 选项:
       --section <SEC>    abstract, introduction, methods, results,
                          discussion, conclusion, references, full [默认: full]
+      --grep <PATTERN>   用正则表达式搜索文本。
+                         默认不区分大小写;用 (?-i) 切换为区分大小写
+      --context <N>      每个匹配两侧各保留多少字符的上下文
+                         [默认: 500,需要 --grep]
+      --max-matches <N>  最多显示 N 个匹配 [默认: 10,需要 --grep]
       --max-length <N>   截断输出到 N 个字符
   -o, --output <PATH>    输出到文件
 ```
@@ -205,7 +212,12 @@ fastpaper read <PATH> [OPTIONS]
 ```sh
 fastpaper download 2301.08745            # -> ./papers/2301.08745.pdf
 fastpaper read papers/2301.08745.pdf --section abstract
+fastpaper read papers/2301.08745.pdf --grep 'limitations?'
 ```
+
+`--grep` 搜索的是 `--section` 选中的那部分,不给 `--section` 时就搜索全文,所以
+"先试某一节,不行就退回全文"只需要改一个参数就行。命中的位置以字符偏移量报告,
+相互重叠的窗口会合并而不是重复打印。零命中时退出码为 4。
 
 ### `sources` -- 列出数据源及能力
 
@@ -228,6 +240,7 @@ fastpaper completions bash >> ~/.bashrc
 | 变量 | 用途 |
 |------|------|
 | `FASTPAPER_DOWNLOAD_DIR` | 默认下载目录（未设置则为 `./papers`） |
+| `FASTPAPER_MAX_DOWNLOAD_SIZE` | `download` 可接受的最大响应体（未设置则为 `100MiB`）；`0` 表示不限制 |
 | `FASTPAPER_EMAIL` | 发给 CrossRef、OpenAlex 和 NCBI 的联系邮箱。不设置就不发这个参数，三者都接受 |
 | `SEMANTIC_SCHOLAR_API_KEY` | 提升 Semantic Scholar 频率限制 |
 | `OPENALEX_API_KEY` | OpenAlex 自 2026-02 起按用量计费，设置后可用更大的免费额度 |
@@ -248,8 +261,12 @@ fastpaper completions bash >> ~/.bashrc
 | `1` | 一般错误（无效参数、解析失败） |
 | `2` | 网络错误（连接超时、DNS 失败） |
 | `3` | 数据源错误（API 报错、频率限制重试耗尽） |
-| `4` | 未找到结果 |
+| `4` | 什么都没匹配上：论文不存在、`--grep` 零命中、`--section` 未命中 |
 | `5` | 权限错误（论文未开放获取、缺少必需环境变量） |
+
+带 `-o` 的命令在文件写完后会向 stderr 打一行回执——
+`Saved: results.json (12 results)`——调用方不用回读文件就知道落地了什么。
+`-q` 会抑制这行输出。零结果时也照样打印,因为这恰恰是最该被看见的情况。
 
 ## 参与贡献
 

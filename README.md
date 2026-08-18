@@ -172,6 +172,8 @@ fastpaper download <SOURCE> <IDENTIFIER> [OPTIONS]
 
 Options:
   -d, --dir <PATH>       Download directory [default: ./papers]
+  -s, --max-size <SIZE>  Largest response body to accept, e.g. 10MiB, 200MB.
+                         0 means unlimited [default: 100MiB]
       --overwrite        Overwrite an existing file
 ```
 
@@ -203,6 +205,11 @@ fastpaper read <PATH> [OPTIONS]
 Options:
       --section <SEC>    abstract, introduction, methods, results,
                          discussion, conclusion, references, full [default: full]
+      --grep <PATTERN>   Search the text for a regular expression.
+                         Case-insensitive; use (?-i) for a case-sensitive one
+      --context <N>      Characters of context on each side of a match
+                         [default: 500, requires --grep]
+      --max-matches <N>  Show at most N matches [default: 10, requires --grep]
       --max-length <N>   Truncate output to N characters
   -o, --output <PATH>    Write to file
 ```
@@ -210,7 +217,13 @@ Options:
 ```sh
 fastpaper download 2301.08745            # -> ./papers/2301.08745.pdf
 fastpaper read papers/2301.08745.pdf --section abstract
+fastpaper read papers/2301.08745.pdf --grep 'limitations?'
 ```
+
+`--grep` searches the section `--section` selected, or the whole paper when it
+is not given, so "try the section, fall back to full text" is one command with
+one flag changed. Matches are reported with their character offset, and windows
+that overlap are merged rather than printed twice. No match exits 4.
 
 ### `sources` -- List sources and capabilities
 
@@ -233,6 +246,7 @@ All optional except where noted. 17 of 18 sources work with zero configuration.
 | Variable | Purpose |
 |----------|---------|
 | `FASTPAPER_DOWNLOAD_DIR` | Default download directory (otherwise `./papers`) |
+| `FASTPAPER_MAX_DOWNLOAD_SIZE` | Largest response body `download` will accept (otherwise `100MiB`); `0` means unlimited |
 | `FASTPAPER_EMAIL` | Contact address sent to CrossRef, OpenAlex and NCBI. Unset means the parameter is omitted, which all three accept |
 | `SEMANTIC_SCHOLAR_API_KEY` | Higher rate limit for Semantic Scholar |
 | `OPENALEX_API_KEY` | Larger free tier for OpenAlex, which has metered usage since 2026-02 |
@@ -255,8 +269,13 @@ Cloud Service on AWS Open Data, not the article pages).
 | `1` | General error (invalid arguments, parse failure) |
 | `2` | Network error (timeout, DNS failure) |
 | `3` | Source error (API error, rate limit exhausted) |
-| `4` | No results found |
+| `4` | Nothing matched: no such paper, no `--grep` match, no such `--section` |
 | `5` | Permission error (not open access, missing env var) |
+
+Commands that take `-o` print a receipt to stderr once the file is written —
+`Saved: results.json (12 results)` — so a caller never has to read the file back
+to find out what landed. `-q` suppresses it. Zero results still print, since
+that is the case most worth seeing.
 
 ## Contributing
 

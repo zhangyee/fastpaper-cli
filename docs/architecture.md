@@ -12,7 +12,7 @@ src/
 ├── cli.rs           # All clap definitions: Cli, GlobalOpts, Commands, per-command Args,
 │                    #   OutputFormat / Section, and the [source] <id> disambiguation
 ├── commands/        # One module per command; each owns its validation, calls and rendering
-│   ├── mod.rs       # CommandError (carries the exit code), render, emit
+│   ├── mod.rs       # CommandError (carries the exit code), render, emit (+ the -o receipt)
 │   └── search.rs · get.rs · download.rs · read.rs · sources.rs
 ├── registry.rs      # The Source enum and the single table mapping each source to its
 │                    #   base URLs, Capabilities and functions (plain fn pointers, no trait)
@@ -23,6 +23,7 @@ src/
 ├── download.rs      # fetch_pdf, per-source pdf_bytes_<src> resolvers, save_pdf
 ├── read.rs          # PDF text extraction (pdf_oxide): extract_text, extract_text_from_bytes,
 │                    #   extract_section
+├── grep.rs          # Finds a pattern in text and cuts context windows around the hits
 ├── output.rs        # Renderers: to_table, to_json, to_jsonl, to_csv, to_bibtex
 └── identifier.rs    # detect_id_type: Arxiv, ArxivOld, Doi, Pmc, Pmid, S2, Url, Unknown
 ```
