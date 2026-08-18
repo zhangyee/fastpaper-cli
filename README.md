@@ -284,9 +284,15 @@ Cloud Service on AWS Open Data, not the article pages).
 | `0` | Success |
 | `1` | General error (rejected arguments, parse failure, network failure) |
 | `2` | Usage error from argument parsing: unknown flag, bad value, or a flag whose partner is missing (`--context` without `--grep`) |
-| `3` | Source error (API error, rate limit exhausted) |
-| `4` | Nothing matched: no such paper, no `--grep` match, no such `--section` |
-| `5` | Permission error (not open access, missing env var) |
+| `4` | Nothing to return: no such paper, no `--grep` match, no such `--section`, no PDF for this paper at this source |
+
+Those four are the whole set. Anything a caller can branch on lives here — a
+rate limit, a 403 and a refused `--max-size` all arrive as `1`, distinguished by
+the message rather than the code.
+
+Exit `4` is the one worth branching on: it means the request was well-formed and
+this source simply has nothing, so the next move is another source rather than
+another spelling.
 
 Commands that take `-o` print a receipt to stderr once the file is written —
 `Saved: results.json (12 results)` — so a caller never has to read the file back

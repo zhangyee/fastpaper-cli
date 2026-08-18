@@ -131,6 +131,26 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
     Err(last_err)
 }
 
+/// Keep `url` only if it points at the file rather than at a page about it.
+///
+/// OpenAIRE lists every link it knows for a record, and most of them are DOI
+/// resolvers or PubMed landing pages. Putting one of those in `pdf_url` is
+/// worse than leaving the field empty: the caller fetches it, gets HTML, and
+/// reads that as a broken download rather than as "there was never a file
+/// here". So a link has to look like a file to qualify -- `.pdf` anywhere, or
+/// `pdf` as a path segment, which is how publishers like Liebert serve theirs
+/// (`/doi/pdf/10.1089/...`, no extension in sight).
+fn pdf_url_of(url: &str) -> Option<String> {
+    if !url.starts_with("http") {
+        return None;
+    }
+    let lower = url.to_lowercase();
+    let path = lower.split(['?', '#']).next().unwrap_or(&lower);
+    let looks_like_a_file =
+        path.contains(".pdf") || path.contains("/pdf/") || path.ends_with("/pdf");
+    looks_like_a_file.then(|| url.to_string())
+}
+
 /// Parse an OpenAIRE Graph v3 response into a list of Papers.
 pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
     let root: serde_json::Value =
@@ -171,6 +191,13 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
                 .flatten()
                 .find_map(|u| u.as_str().map(|s| s.to_string()))
         });
+        let pdf_url = instances.and_then(|arr| {
+            arr.iter()
+                .filter_map(|i| i["urls"].as_array())
+                .flatten()
+                .filter_map(|u| u.as_str())
+                .find_map(pdf_url_of)
+        });
 
         let year = item["publicationDate"]
             .as_str()
@@ -209,7 +236,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
             year,
             doi,
             url,
-            pdf_url: None,
+            pdf_url,
             venue: item["container"]["name"].as_str().map(|s| s.to_string()),
             citations,
             fields,
@@ -231,6 +258,51 @@ mod tests {
     fn parse_returns_ok() {
         let result = parse_search_response(FIXTURE);
         assert!(result.is_ok());
+    }
+
+    // Most instance URLs are DOI resolvers and PubMed landing pages; a couple
+    // are the publisher's actual file. Only the latter belongs in `pdf_url`.
+    #[test]
+    fn pdf_url_is_taken_from_the_instance_urls_that_are_files() {
+        let papers = parse_search_response(FIXTURE).unwrap();
+        let with_pdf: Vec<&str> = papers.iter().filter_map(|p| p.pdf_url.as_deref()).collect();
+        assert_eq!(with_pdf.len(), 2, "got: {:?}", with_pdf);
+        assert!(
+            with_pdf.iter().all(|u| u.contains("liebertpub.com")),
+            "got: {:?}",
+            with_pdf
+        );
+    }
+
+    // A landing page in `pdf_url` is worse than an empty one: the caller
+    // fetches it and gets HTML that looks like a failed download.
+    #[test]
+    fn a_doi_resolver_or_landing_page_is_not_a_pdf_url() {
+        for url in [
+            "https://doi.org/10.1089/crispr.2020.0030",
+            "http://dx.doi.org/10.1089/crispr.2020.0030",
+            "https://pubmed.ncbi.nlm.nih.gov/31021212",
+            "https://ec.europa.eu/research/participants/documents/downloadPublic?documentIds=080166e5",
+        ] {
+            assert_eq!(pdf_url_of(url), None, "{} should not count as a PDF", url);
+        }
+    }
+
+    #[test]
+    fn a_publisher_file_link_is_a_pdf_url() {
+        for url in [
+            "https://www.liebertpub.com/doi/pdf/10.1089/crispr.2018.29027.gre",
+            "https://example.org/article/12345.pdf",
+            "https://example.org/download/12345.PDF",
+            "https://example.org/record/9/pdf",
+        ] {
+            assert_eq!(pdf_url_of(url), Some(url.to_string()), "{}", url);
+        }
+    }
+
+    #[test]
+    fn a_non_http_url_is_rejected() {
+        assert_eq!(pdf_url_of("ftp://example.org/paper.pdf"), None);
     }
 
     #[test]

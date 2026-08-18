@@ -9,7 +9,7 @@
 
 use clap::ValueEnum;
 
-use crate::download;
+use crate::download::{self, FetchError};
 use crate::sources::{self, Capabilities, Direction, FieldCaps, Paper, SearchCaps, SearchQuery};
 
 #[derive(ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
@@ -79,7 +79,7 @@ pub struct SourceEntry {
     pub pdf_default_base: Option<&'static str>,
     pub search: Option<fn(&str, &SearchQuery) -> Result<Vec<Paper>, String>>,
     pub get: Option<fn(&str, &str) -> Result<Option<Paper>, String>>,
-    pub pdf: Option<fn(&str, &str, u64) -> Result<Vec<u8>, String>>,
+    pub pdf: Option<fn(&str, &str, u64) -> Result<Vec<u8>, FetchError>>,
     pub cite: Option<fn(&str, &str, Direction, u32) -> Result<Vec<Paper>, String>>,
 }
 
@@ -579,11 +579,7 @@ static OPENAIRE: SourceEntry = SourceEntry {
         download: false,
         cite: false,
         max_limit: None,
-        fields: FieldCaps {
-            pdf_url: false,
-            open_access: true,
-            citations: true,
-        },
+        fields: FieldCaps::ALL,
         notes: "--field takes an OpenAIRE field-of-science value; an unrecognised \
                 one is answered with the allowed list",
     },
