@@ -23,7 +23,11 @@ fn suggested_limit(bytes: u64) -> u64 {
         .iter()
         .map(|mib| mib * MIB)
         .find(|candidate| *candidate > bytes)
-        .unwrap_or_else(|| bytes.saturating_add(MIB) / MIB * MIB * 2)
+        // `bytes` came off a server's Content-Length, so it is attacker-
+        // controlled: `saturating_mul` keeps the doubling from wrapping (and
+        // panicking in debug) when `bytes` is within a factor of two of
+        // `u64::MAX`.
+        .unwrap_or_else(|| (bytes.saturating_add(MIB) / MIB * MIB).saturating_mul(2))
 }
 
 /// Explain a refused body.
@@ -71,22 +75,44 @@ pub fn fetch_pdf(url: &str, limit: u64) -> Result<Vec<u8>, String> {
 pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>, String> {
     match ureq::get(url).call() {
         Ok(mut resp) => {
-            // Checked before the body is touched: an oversized paper should
-            // cost no bandwidth, and content-length is the only place an exact
-            // size is available.
+            // A fast path, not the enforcement: oversized papers ideally cost
+            // no bandwidth, and content-length is the only place an exact size
+            // is available before reading starts. It is skipped by ureq
+            // whenever it is decompressing the response (e.g. gzip), because
+            // Content-Length then describes the wire size, not what
+            // `read_to_vec` below hands back -- so this check alone cannot be
+            // trusted to catch an oversized body.
             if let Some(size) = resp.body().content_length()
                 && size > limit
             {
                 return Err(over_limit(Some(size), limit));
             }
-            resp.body_mut()
+            // `.limit()` also cannot be trusted alone: it wraps the reader
+            // *inside* the decompressor, so for a compressed response it
+            // counts compressed bytes while decompression can still produce
+            // an unbounded `Vec` in memory. It stays here only to cut off a
+            // stream that never ends. `limit + 1` rather than `limit`: ureq's
+            // limited reader treats hitting the count exactly as "exceeded"
+            // even on genuine EOF, which would wrongly refuse a body of
+            // precisely `limit` bytes.
+            let bytes = resp
+                .body_mut()
                 .with_config()
-                .limit(limit)
+                .limit(limit.saturating_add(1))
                 .read_to_vec()
                 .map_err(|e| match e {
                     ureq::Error::BodyExceedsLimit(_) => over_limit(None, limit),
                     other => format!("Could not fetch the PDF: {}", other),
-                })
+                })?;
+            // The actual enforcement: bounds what is handed back to the
+            // caller regardless of what Content-Length claimed or what
+            // `.limit()` was counting. This bounds the *returned* value, not
+            // peak memory -- ureq has already buffered the full decompressed
+            // body in `bytes` by the time this check runs.
+            if bytes.len() as u64 > limit {
+                return Err(over_limit(Some(bytes.len() as u64), limit));
+            }
+            Ok(bytes)
         }
         Err(ureq::Error::StatusCode(404)) => Err(not_found.to_string()),
         Err(e) => Err(format!("HTTP error: {}", e)),
@@ -134,6 +160,8 @@ pub fn pdf_bytes_medrxiv(base_url: &str, identifier: &str, limit: u64) -> Result
 /// version has to be discovered by listing the prefix first.
 pub fn pdf_bytes_pmc(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
     let numeric_id = identifier.strip_prefix("PMC").unwrap_or(identifier);
+    // No `limit` here on purpose: this lists an S3 prefix as XML, not a PDF.
+    // `limit` applies only to the actual PDF fetch below.
     let listing = http_get_text(&format!(
         "{}/?list-type=2&prefix=PMC{}",
         base_url, numeric_id
@@ -271,6 +299,8 @@ fn resolve_and_fetch(
     parse: fn(&str) -> Result<Vec<sources::Paper>, String>,
     limit: u64,
 ) -> Result<Vec<u8>, String> {
+    // No `limit` here on purpose: this is the metadata lookup (JSON/XML), not
+    // the PDF. `limit` applies only to `fetch_pdf` below.
     let body = ureq::get(meta_url)
         .call()
         .map_err(|e| format!("HTTP error: {}", e))?
@@ -649,30 +679,42 @@ mod tests {
     }
 
     // Content-length is checked before the body is touched, so an oversized
-    // paper costs no bandwidth at all.
+    // paper costs no bandwidth at all -- the declared size is what triggers
+    // the refusal, not how many bytes the mock actually put on the wire (kept
+    // tiny here: a 25 MiB `with_body` in an earlier version of this test cost
+    // ~80 MiB of peak RSS in the test process for no extra coverage).
     #[test]
     fn content_length_over_the_limit_is_refused_with_the_real_size() {
         let mut server = mockito::Server::new();
         let _m = server
             .mock("GET", "/big.pdf")
             .with_header("content-length", "25480000")
-            .with_body(vec![0u8; 25_480_000])
+            .with_chunked_body(|w| w.write_all(&[0u8; 100]))
             .create();
         let err = fetch_pdf(&format!("{}/big.pdf", server.url()), 10 * MIB).unwrap_err();
         assert!(err.contains("24.3 MiB"), "got: {}", err);
         assert!(err.contains("--max-size"), "got: {}", err);
     }
 
+    // Distinct from `a_body_within_the_limit_comes_back_whole`: that test's
+    // declared content-length and its finite limit are both way above the
+    // body, so it would pass even if the limit were never applied at all.
+    // This one has no declared length to check against and a body a normal
+    // limit would refuse (10 MiB elsewhere in this file), so only an
+    // unlimited limit -- not a generous one -- can be why it passes.
     #[test]
-    fn a_limit_of_u64_max_accepts_anything_the_server_sends() {
+    fn an_unlimited_limit_accepts_a_body_a_normal_limit_would_refuse() {
         let mut server = mockito::Server::new();
+        let body = vec![0u8; 11 * 1024 * 1024];
         let _m = server
             .mock("GET", "/any.pdf")
-            .with_header("content-length", "13")
-            .with_body("%PDF-1.4 fake")
+            .with_chunked_body({
+                let body = body.clone();
+                move |w| w.write_all(&body)
+            })
             .create();
         let bytes = fetch_pdf(&format!("{}/any.pdf", server.url()), u64::MAX).unwrap();
-        assert_eq!(bytes, b"%PDF-1.4 fake");
+        assert_eq!(bytes, body);
     }
 
     #[test]
@@ -694,6 +736,47 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(err, "Paper not found: 2301.08745");
+    }
+
+    // A chunked response has no Content-Length, so this exercises the other
+    // enforcement path: ureq's own reader limit (`.limit()`), not the
+    // precheck. That path is what a compressed response also takes, since
+    // ureq reports no content-length while decompressing either.
+    #[test]
+    fn a_streaming_body_over_the_limit_is_refused_when_length_is_unknown() {
+        let mut server = mockito::Server::new();
+        let _m = server
+            .mock("GET", "/chunked.pdf")
+            .with_chunked_body(|w| w.write_all(&[0u8; 2 * 1024 * 1024]))
+            .create();
+        let err = fetch_pdf(&format!("{}/chunked.pdf", server.url()), 1024 * 1024).unwrap_err();
+        assert!(err.contains("did not report its size"), "got: {}", err);
+    }
+
+    // The regression this task exists to close: ureq reports no
+    // content-length while decompressing (so the precheck above is skipped),
+    // and its `.limit()` counts *compressed* bytes, inside the decompressor
+    // rather than around it -- so neither guard alone catches an inflated
+    // body. The fixture is ~2KiB of gzip that decompresses to 2 MiB, which
+    // slips straight past a 1 MiB `.limit()` on the wire; only the check on
+    // the decompressed `Vec` after `read_to_vec` catches it, and only that
+    // check can report the real, decompressed size.
+    #[test]
+    fn a_gzip_body_whose_decompressed_size_exceeds_the_limit_is_refused() {
+        let mut server = mockito::Server::new();
+        let compressed = include_bytes!("../tests/fixtures/oversized_gzip_body.pdf.gz").to_vec();
+        let _m = server
+            .mock("GET", "/gz.pdf")
+            .with_header("content-encoding", "gzip")
+            .with_body(compressed)
+            .create();
+        let err = fetch_pdf(&format!("{}/gz.pdf", server.url()), 1024 * 1024).unwrap_err();
+        assert!(
+            err.contains("2 MiB"),
+            "should name the real decompressed size: {}",
+            err
+        );
+        assert!(err.contains("--max-size"), "got: {}", err);
     }
 }
 
