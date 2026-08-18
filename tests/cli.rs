@@ -1196,6 +1196,97 @@ fn grep_rejects_an_invalid_pattern_with_exit_1() {
         .stderr(contains("Invalid pattern"));
 }
 
+// `--max-length 40` used to cut from the head of the window, so with the
+// default 500 characters of context the excerpt held 40 characters of lead-in
+// and none of the match -- while the receipt still claimed both matches.
+#[test]
+fn a_budgeted_excerpt_still_contains_the_match() {
+    let assert = cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("the")
+        .arg("--max-length")
+        .arg("40")
+        .assert()
+        .success();
+    let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+    let excerpt = stdout.lines().nth(1).unwrap_or("");
+    assert!(
+        excerpt.to_lowercase().contains("the"),
+        "excerpt has none of the pattern: {}",
+        stdout
+    );
+}
+
+// The same command in JSON: what the envelope claims has to match the body.
+#[test]
+fn a_budgeted_json_result_counts_only_the_matches_it_shows() {
+    let assert = cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("the")
+        .arg("--max-length")
+        .arg("40")
+        .arg("--format")
+        .arg("json")
+        .assert()
+        .success();
+    let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(v["total_matches"], 2);
+    assert_eq!(v["shown_matches"], 1);
+    assert_eq!(v["truncated"], true);
+    assert_eq!(v["truncated_by"], serde_json::json!(["--max-length"]));
+    let text = v["matches"][0]["text"].as_str().unwrap();
+    assert!(text.to_lowercase().contains("the"), "got: {}", text);
+}
+
+// Raising --max-matches when --max-length is what cut changes nothing, so the
+// notice has to name the flag that actually bound.
+#[test]
+fn the_truncation_notice_names_the_flag_that_bound() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("the")
+        .arg("--context")
+        .arg("5")
+        .arg("--max-length")
+        .arg("15")
+        .assert()
+        .success()
+        .stdout(contains("(--max-length to raise)"))
+        .stdout(contains("--max-matches").not());
+}
+
+// A budget that fits nothing shows nothing, and says so: `1 match` over an
+// empty body was the receipt lying about what landed.
+#[test]
+fn a_zero_budget_reports_no_matches_shown() {
+    let out = temp_dir().join("zero.txt");
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("the")
+        .arg("--max-length")
+        .arg("0")
+        .arg("-o")
+        .arg(&out)
+        .assert()
+        .success()
+        .stderr(contains("0 of 2 matches"));
+    let body = std::fs::read_to_string(&out).unwrap();
+    assert!(
+        !body.contains("── match"),
+        "nothing was shown, so no excerpt heading: {}",
+        body
+    );
+}
+
 #[test]
 fn context_without_grep_is_rejected() {
     cmd()
