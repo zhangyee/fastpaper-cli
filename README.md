@@ -154,13 +154,22 @@ for `-n` above a source's per-request cap. Run
 
 ### `get` -- Fetch metadata by identifier
 
-One argument is an identifier and the source is inferred from its shape (DOI,
-arXiv ID, PMID, PMC ID, S2 ID). Two arguments name the source explicitly.
+One argument is an identifier and the source is inferred from its shape. Two
+arguments name the source explicitly.
 
 ```
 fastpaper get <IDENTIFIER>
 fastpaper get <SOURCE> <IDENTIFIER>
 ```
+
+Routing: arXiv→`arxiv`, PMC→`pmc`, PMID→`pubmed`, DOI→`crossref`, `S2:`→`semantic`.
+
+Note this differs from `download`, which sends a DOI to `semantic` — the two
+commands look at records from different sources. Crossref registers DOIs and
+carries the most authoritative metadata but serves no files, so `get <DOI>`
+returns `pdf_url: null` no matter what; `download <DOI>` resolves an open access
+copy through Semantic Scholar instead. Do not read `pdf_url` off `get <DOI>` to
+predict whether `download` will succeed.
 
 ### `download` -- Download PDF
 

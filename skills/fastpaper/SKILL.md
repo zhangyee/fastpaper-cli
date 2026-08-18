@@ -13,6 +13,14 @@ Pass `--format json` on every call. Output is `{"source": "...", "results": [...
 the source did not supply is `null`, meaning **unknown**; report it as unknown
 rather than filling it in.
 
+`null` covers two opposite situations, and the record cannot tell them apart:
+the source has nothing to say about that field *at all*, or it does carry the
+field and has nothing for this paper. `fastpaper sources` separates them — its
+`pdf_url` / `open_access` / `citations` columns say which fields each source can
+fill. A `null` from a source marked `✗` means **ask a different source**; from
+one marked `✓` it means the answer really is unknown. Checking that column first
+is cheaper than a download attempt that was never going to work.
+
 ## Commands
 
 ```bash
@@ -35,9 +43,21 @@ fastpaper read papers/<id>.pdf [--section methods] [--max-length 4000]
 fastpaper sources --capabilities            # what each source supports, live
 ```
 
+`get` routes a bare identifier by its shape: arXiv→`arxiv`, PMC→`pmc`,
+PMID→`pubmed`, DOI→`crossref`, `S2:`→`semantic`.
+
 `download` routes a bare identifier by its shape: arXiv→`arxiv`, PMC→`pmc`,
 DOI→`semantic`; a PMID or a URL is rejected outright. Naming the source —
 `fastpaper download europepmc <id>` — overrides the routing.
+
+**The two disagree on DOIs, on purpose**: `get` sends one to `crossref`, the
+registrar with the most authoritative metadata, and `download` sends it to
+`semantic`, which resolves open access copies — crossref serves no files. The
+consequence for you is that `get <DOI>` shows a crossref record whose `pdf_url`
+is always `null`, while `download <DOI>` uses a link from a semantic record you
+never saw. **Do not read `pdf_url` from `get <DOI>` to predict whether
+`download` will work.** To see the link download would use, ask that source
+directly: `fastpaper get semantic DOI:<doi>`.
 
 `cite` routes a bare DOI→`openalex` (no key needed), and arXiv or `S2:` ids→
 `semantic`. Those two are the only sources here that carry citation edges.

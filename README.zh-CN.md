@@ -150,13 +150,19 @@ fastpaper search <SOURCE> <QUERY> [OPTIONS]
 
 ### `get` -- 按标识符取元数据
 
-给一个参数时它是标识符，数据源由其形状推断（DOI、arXiv ID、PMID、PMC ID、S2 ID）；
-给两个参数时第一个显式指定数据源。
+给一个参数时它是标识符，数据源由其形状推断；给两个参数时第一个显式指定数据源。
 
 ```
 fastpaper get <IDENTIFIER>
 fastpaper get <SOURCE> <IDENTIFIER>
 ```
+
+路由：arXiv→`arxiv`、PMC→`pmc`、PMID→`pubmed`、DOI→`crossref`、`S2:`→`semantic`。
+
+注意这与 `download` 不同——`download` 把 DOI 送给 `semantic`，两个命令看的是**不同源
+的记录**。Crossref 是 DOI 的注册机构，元数据最权威，但它不提供文件，所以
+`get <DOI>` 的 `pdf_url` 恒为 `null`；而 `download <DOI>` 走 Semantic Scholar 解析
+开放获取副本。不要用 `get <DOI>` 的 `pdf_url` 去预判 `download` 会不会成功。
 
 ### `download` -- 下载 PDF
 
