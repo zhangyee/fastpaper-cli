@@ -1150,3 +1150,92 @@ fn without_output_flag_there_is_no_receipt() {
         .success()
         .stderr("");
 }
+
+#[test]
+fn grep_finds_a_word_regardless_of_case() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("ATTENTION")
+        .arg("--context")
+        .arg("10")
+        .assert()
+        .success()
+        .stdout(contains("── match 1 @ 0 ──"));
+}
+
+#[test]
+fn grep_without_a_match_exits_4_and_writes_nothing() {
+    let out = temp_dir().join("nomatch.txt");
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("thermoluminescence")
+        .arg("-o")
+        .arg(&out)
+        .assert()
+        .code(4)
+        .stderr(contains("No match for 'thermoluminescence'"));
+    assert!(
+        !out.exists(),
+        "a failed search must not leave a file behind"
+    );
+}
+
+#[test]
+fn grep_rejects_an_invalid_pattern_with_exit_1() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("attention(")
+        .assert()
+        .code(1)
+        .stderr(contains("Invalid pattern"));
+}
+
+#[test]
+fn context_without_grep_is_rejected() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--context")
+        .arg("100")
+        .assert()
+        .failure()
+        .stderr(contains("--grep"));
+}
+
+#[test]
+fn grep_receipt_counts_matches_not_characters() {
+    let out = temp_dir().join("matches.txt");
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("attention")
+        .arg("-o")
+        .arg(&out)
+        .assert()
+        .success()
+        .stderr(contains("matches)"));
+}
+
+#[test]
+fn grep_json_carries_the_pattern_and_the_totals() {
+    let assert = cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("attention")
+        .arg("--format")
+        .arg("json")
+        .assert()
+        .success();
+    let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(v["pattern"], "attention");
+    assert_eq!(v["total_matches"], 2);
+}

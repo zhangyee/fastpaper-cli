@@ -259,6 +259,18 @@ pub struct ReadArgs {
     #[arg(long)]
     pub max_length: Option<usize>,
 
+    /// Search the text for a regular expression (case-insensitive)
+    #[arg(long, value_name = "PATTERN")]
+    pub grep: Option<String>,
+
+    /// Characters of context on each side of a match
+    #[arg(long, default_value = "500", requires = "grep")]
+    pub context: usize,
+
+    /// Show at most N matches
+    #[arg(long, default_value = "10", requires = "grep")]
+    pub max_matches: usize,
+
     /// Write content to a file instead of stdout
     #[arg(short, long)]
     pub output: Option<PathBuf>,
