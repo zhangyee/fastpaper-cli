@@ -2,15 +2,23 @@ use std::path::{Path, PathBuf};
 
 use crate::sources;
 
+const KIB: u64 = 1024;
 const MIB: u64 = 1024 * 1024;
 
 /// Sizes to suggest, in MiB, when telling the caller how to raise the limit.
 const SUGGESTIONS: &[u64] = &[50, 100, 200, 500, 1024, 2048, 5120];
 
-/// Render a byte count in MiB. Every limit in play is MiB-scale, so one unit
-/// keeps the message comparable at a glance.
-fn human_size(bytes: u64) -> String {
-    if bytes.is_multiple_of(MIB) {
+/// Render a byte count for a human.
+///
+/// Limits are MiB-scale and stay in MiB so two of them read as comparable at a
+/// glance. Actual file sizes are not: this also renders the `download` receipt,
+/// where a 40 KiB note printed as `0.0 MiB` would read like nothing arrived.
+pub(crate) fn human_size(bytes: u64) -> String {
+    if bytes < KIB {
+        format!("{} B", bytes)
+    } else if bytes < MIB {
+        format!("{:.1} KiB", bytes as f64 / KIB as f64)
+    } else if bytes.is_multiple_of(MIB) {
         format!("{} MiB", bytes / MIB)
     } else {
         format!("{:.1} MiB", bytes as f64 / MIB as f64)
@@ -623,6 +631,15 @@ mod tests {
     #[test]
     fn human_size_keeps_one_decimal_when_it_is_not_whole() {
         assert_eq!(human_size(25_480_000), "24.3 MiB");
+    }
+
+    // The `download` receipt prints real file sizes, and most papers are not
+    // MiB-scale. "0.0 MiB" for a 40 KiB note reads like nothing arrived.
+    #[test]
+    fn human_size_stays_readable_below_a_megabyte() {
+        assert_eq!(human_size(13), "13 B");
+        assert_eq!(human_size(0), "0 B");
+        assert_eq!(human_size(40 * 1024), "40.0 KiB");
     }
 
     // "Failed to read PDF" sent a user looking at the `read` subcommand. In a

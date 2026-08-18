@@ -1,10 +1,15 @@
 use super::{CommandError, CommandResult, failed};
-use crate::cli::{DownloadArgs, GlobalOpts};
-use crate::download::save_pdf;
+use crate::cli::DownloadArgs;
+use crate::download::{human_size, save_pdf};
 use crate::identifier::{IdType, detect_id_type};
 use crate::registry::Source;
 
-pub fn run(args: &DownloadArgs, global: &GlobalOpts) -> CommandResult {
+/// `-q` takes no part here on purpose. It scopes to commands that take `-o`,
+/// where the receipt duplicates a path the caller already typed. `download`
+/// writes nothing to stdout, so this line is its only output, and the path is
+/// not derivable from the arguments: `save_pdf` turns the `/` in a DOI into
+/// `_`, so `download 10.1038/nature12373` lands at `10.1038_nature12373.pdf`.
+pub fn run(args: &DownloadArgs) -> CommandResult {
     let (explicit, raw_id) = args.resolve().map_err(CommandError::Failed)?;
 
     let source = match explicit {
@@ -20,9 +25,11 @@ pub fn run(args: &DownloadArgs, global: &GlobalOpts) -> CommandResult {
 
     match save_pdf(&bytes, &args.dir, raw_id, args.overwrite) {
         Ok(path) => {
-            if !global.quiet {
-                eprintln!("Saved: {}", path.display());
-            }
+            eprintln!(
+                "Saved: {} ({})",
+                path.display(),
+                human_size(bytes.len() as u64)
+            );
             Ok(())
         }
         Err(e) if e.contains("already exists") => Err(CommandError::AlreadyExists(e)),

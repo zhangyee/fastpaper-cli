@@ -213,6 +213,49 @@ fn download_arxiv_overwrite_replaces_file() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+// `download` writes nothing to stdout, so the `Saved:` line is its only
+// output, and the path is not derivable: `save_pdf` turns the `/` in a DOI
+// into `_`. Silencing it under `-q` left the caller guessing at a filename.
+#[test]
+fn download_reports_the_path_even_under_quiet() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "arxiv", "2301.08745", "-q", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success()
+        .stderr(contains("Saved:").and(contains("2301.08745.pdf")));
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// Every other receipt on this branch carries a quantity; this one carries the
+// size, so "did the whole PDF arrive" needs no second look at the file.
+#[test]
+fn the_download_receipt_names_the_size() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "arxiv", "2301.08745", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success()
+        .stderr(contains("(13 B)"));
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 #[test]
 fn download_arxiv_404_exits_nonzero() {
     let mut server = mockito::Server::new();
