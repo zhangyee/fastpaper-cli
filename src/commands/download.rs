@@ -16,7 +16,7 @@ pub fn run(args: &DownloadArgs, global: &GlobalOpts) -> CommandResult {
     let fetch = entry.pdf.ok_or_else(|| unsupported_download(source))?;
 
     let id = normalize_id(source, raw_id);
-    let bytes = fetch(&source.pdf_base_url(), &id).map_err(CommandError::Failed)?;
+    let bytes = fetch(&source.pdf_base_url(), &id, args.max_size).map_err(CommandError::Failed)?;
 
     match save_pdf(&bytes, &args.dir, raw_id, args.overwrite) {
         Ok(path) => {

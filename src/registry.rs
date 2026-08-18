@@ -79,7 +79,7 @@ pub struct SourceEntry {
     pub pdf_default_base: Option<&'static str>,
     pub search: Option<fn(&str, &SearchQuery) -> Result<Vec<Paper>, String>>,
     pub get: Option<fn(&str, &str) -> Result<Option<Paper>, String>>,
-    pub pdf: Option<fn(&str, &str) -> Result<Vec<u8>, String>>,
+    pub pdf: Option<fn(&str, &str, u64) -> Result<Vec<u8>, String>>,
     pub cite: Option<fn(&str, &str, Direction, u32) -> Result<Vec<Paper>, String>>,
 }
 

@@ -4,19 +4,13 @@ use quick_xml::events::Event;
 use super::Paper;
 
 /// Download PDF bytes from arXiv.
-pub fn download_pdf(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+///
+/// Delegates the fetch so that the size limit lives in one place; the only
+/// thing arXiv adds is being able to name the paper in a 404.
+pub fn download_pdf(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
     let url = format!("{}/pdf/{}.pdf", base_url, identifier);
-    match ureq::get(&url).call() {
-        Ok(resp) => {
-            let bytes = resp
-                .into_body()
-                .read_to_vec()
-                .map_err(|e| format!("Failed to read PDF: {}", e))?;
-            Ok(bytes)
-        }
-        Err(ureq::Error::StatusCode(404)) => Err(format!("Paper not found: {}", identifier)),
-        Err(e) => Err(format!("HTTP error: {}", e)),
-    }
+    let not_found = format!("Paper not found: {}", identifier);
+    crate::download::fetch_pdf_named(&url, limit, &not_found)
 }
 
 /// Fetch a single paper by arXiv ID.
@@ -593,7 +587,7 @@ mod tests {
             .with_status(200)
             .with_body(fake_pdf.as_slice())
             .create();
-        let bytes = download_pdf(&server.url(), "2301.08745").unwrap();
+        let bytes = download_pdf(&server.url(), "2301.08745", 10 * 1024 * 1024).unwrap();
         assert!(!bytes.is_empty());
         assert!(bytes.starts_with(b"%PDF"));
         mock.assert();
@@ -606,7 +600,7 @@ mod tests {
             .mock("GET", mockito::Matcher::Any)
             .with_status(404)
             .create();
-        let result = download_pdf(&server.url(), "9999.99999");
+        let result = download_pdf(&server.url(), "9999.99999", 10 * 1024 * 1024);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("not found"));
     }
