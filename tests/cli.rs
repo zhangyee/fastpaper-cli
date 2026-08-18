@@ -1465,9 +1465,35 @@ fn context_without_grep_is_rejected() {
         .arg(fixture_pdf())
         .arg("--context")
         .arg("100")
+        // clap's own usage-error code, not one of ours. README documents it.
         .assert()
-        .failure()
+        .code(2)
         .stderr(contains("--grep"));
+}
+
+// `--context` and `--max-matches` are rejected without `--grep`, so `--help`
+// has to say so -- otherwise the only way to find out is exit 2.
+#[test]
+fn read_help_says_which_flags_need_grep() {
+    cmd()
+        .arg("read")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(contains("--context <CONTEXT>          Characters of context on each side of a match (requires --grep)"))
+        .stdout(contains("--max-matches <MAX_MATCHES>  Show at most N matches (requires --grep)"));
+}
+
+// `parse-size` reads a unit-less number as bytes, so `--max-size 10` means ten
+// bytes and refuses every PDF there is. Nothing in the help said so.
+#[test]
+fn download_help_says_a_bare_number_is_bytes() {
+    cmd()
+        .arg("download")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(contains("a bare number is bytes"));
 }
 
 #[test]

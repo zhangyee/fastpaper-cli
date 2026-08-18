@@ -810,6 +810,9 @@ mod tests {
     #[test]
     fn a_gzip_body_whose_decompressed_size_exceeds_the_limit_is_refused() {
         let mut server = mockito::Server::new();
+        // Generated with `head -c 2097152 /dev/zero | gzip -9`: 2 MiB of NUL
+        // bytes, not a PDF, which is why the assertion below is about the
+        // refusal and never about the content.
         let compressed = include_bytes!("../tests/fixtures/oversized_gzip_body.pdf.gz").to_vec();
         let _m = server
             .mock("GET", "/gz.pdf")

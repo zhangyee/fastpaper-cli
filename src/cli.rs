@@ -206,7 +206,8 @@ pub struct DownloadArgs {
     )]
     pub dir: PathBuf,
 
-    /// Maximum response body to accept, e.g. 10MiB, 200MB, 0 = unlimited
+    /// Maximum response body to accept, e.g. 10MiB, 200MB, 0 = unlimited; a
+    /// bare number is bytes
     #[arg(
         short = 's',
         long,
@@ -287,15 +288,18 @@ pub struct ReadArgs {
     #[arg(long)]
     pub max_length: Option<usize>,
 
-    /// Search the text for a regular expression (case-insensitive)
+    /// Search the text for a regular expression; case-insensitive, use (?-i)
+    /// for a case-sensitive one
     #[arg(long, value_name = "PATTERN")]
     pub grep: Option<String>,
 
-    /// Characters of context on each side of a match
+    // `requires` is named in the help text too: without it the only way to
+    // learn these need --grep is clap's exit 2.
+    /// Characters of context on each side of a match (requires --grep)
     #[arg(long, default_value = "500", requires = "grep")]
     pub context: usize,
 
-    /// Show at most N matches
+    /// Show at most N matches (requires --grep)
     #[arg(long, default_value = "10", requires = "grep")]
     pub max_matches: usize,
 
