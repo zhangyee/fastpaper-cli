@@ -211,8 +211,57 @@ pub struct Capabilities {
     pub cite: bool,
     /// Hard per-request result cap imposed by the source, if any.
     pub max_limit: Option<u32>,
+    /// Which `Paper` fields this source can actually fill.
+    pub fields: FieldCaps,
     /// Caveat shown by `fastpaper sources --capabilities`; empty when none.
     pub notes: &'static str,
+}
+
+/// Which optional `Paper` fields a source is able to supply.
+///
+/// `null` in the output means "unknown", but that covers two opposite
+/// situations: a source that structurally has nothing to say about a field
+/// (Crossref registers DOIs and never carries a PDF link) and a source that
+/// does carry it but has nothing for this particular paper. The caller should
+/// change source in the first case and stop looking in the second, and the
+/// record alone cannot tell them which they are in. This is what separates the
+/// two, so `sources --capabilities` can answer "who would know".
+///
+/// A `true` here is a claim about the parser, not about any one paper --
+/// `tests/field_capabilities.rs` holds it to captured responses.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct FieldCaps {
+    /// A link to the file itself.
+    pub pdf_url: bool,
+    /// Whether the paper is openly readable.
+    pub open_access: bool,
+    /// How many papers cite this one.
+    pub citations: bool,
+}
+
+impl FieldCaps {
+    /// Fills none of them: the source answers only the core bibliographic
+    /// fields every source has.
+    pub const NONE: FieldCaps = FieldCaps {
+        pdf_url: false,
+        open_access: false,
+        citations: false,
+    };
+
+    /// Everything a source that only indexes open access material can say
+    /// about access, with no citation data.
+    pub const OPEN_FILES: FieldCaps = FieldCaps {
+        pdf_url: true,
+        open_access: true,
+        citations: false,
+    };
+
+    /// Files, access and citation counts -- the full set.
+    pub const ALL: FieldCaps = FieldCaps {
+        pdf_url: true,
+        open_access: true,
+        citations: true,
+    };
 }
 
 /// Check that a `--after` / `--before` value is a plain `YYYY-MM-DD` date.

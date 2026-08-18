@@ -10,7 +10,7 @@
 use clap::ValueEnum;
 
 use crate::download;
-use crate::sources::{self, Capabilities, Direction, Paper, SearchCaps, SearchQuery};
+use crate::sources::{self, Capabilities, Direction, FieldCaps, Paper, SearchCaps, SearchQuery};
 
 #[derive(ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Source {
@@ -175,6 +175,7 @@ static ARXIV: SourceEntry = SourceEntry {
         download: true,
         cite: false,
         max_limit: Some(2000),
+        fields: FieldCaps::OPEN_FILES,
         notes: "--sort citations is unavailable: arXiv publishes no citation counts",
     },
     env_var: "FASTPAPER_ARXIV_URL",
@@ -205,6 +206,7 @@ static BIORXIV: SourceEntry = SourceEntry {
         download: true,
         cite: false,
         max_limit: None,
+        fields: FieldCaps::OPEN_FILES,
         notes: "no keyword search API: browses a date window and matches the \
                 keyword locally, so --after/--before/--year decide what is searched",
     },
@@ -236,6 +238,7 @@ static MEDRXIV: SourceEntry = SourceEntry {
         download: false,
         cite: false,
         max_limit: None,
+        fields: FieldCaps::OPEN_FILES,
         notes: "no keyword search API: browses a date window and matches the \
                 keyword locally, so --after/--before/--year decide what is \
                 searched; PDF downloads are blocked by medRxiv (HTTP 403)",
@@ -269,6 +272,7 @@ static PUBMED: SourceEntry = SourceEntry {
         download: false,
         cite: false,
         max_limit: Some(10000),
+        fields: FieldCaps::NONE,
         notes: "metadata only, for full text try pmc; --sort citations unavailable",
     },
     env_var: "FASTPAPER_PUBMED_URL",
@@ -298,6 +302,7 @@ static PMC: SourceEntry = SourceEntry {
         download: true,
         cite: false,
         max_limit: Some(10000),
+        fields: FieldCaps::OPEN_FILES,
         notes: "--sort citations unavailable; PDFs come from the OA subset only",
     },
     env_var: "FASTPAPER_PMC_URL",
@@ -330,6 +335,7 @@ static EUROPEPMC: SourceEntry = SourceEntry {
         download: true,
         cite: false,
         max_limit: Some(1000),
+        fields: FieldCaps::ALL,
         notes: "orders newest/most-cited first only, --order asc unavailable; \
                 --offset must be a multiple of -n; PDFs come from the open \
                 access subset",
@@ -355,6 +361,11 @@ static SCHOLAR: SourceEntry = SourceEntry {
         download: false,
         cite: false,
         max_limit: None,
+        fields: FieldCaps {
+            pdf_url: true,
+            open_access: false,
+            citations: false,
+        },
         notes: "HTML scraping, no official API; brittle and rate-limited",
     },
     env_var: "FASTPAPER_SCHOLAR_URL",
@@ -379,6 +390,11 @@ static XUESHU: SourceEntry = SourceEntry {
         download: false,
         cite: false,
         max_limit: None,
+        fields: FieldCaps {
+            pdf_url: true,
+            open_access: false,
+            citations: true,
+        },
         notes: "unofficial endpoint; subject to bot detection; --patents filters \
                 locally, so it pages further to fill -n",
     },
@@ -410,6 +426,7 @@ static SEMANTIC: SourceEntry = SourceEntry {
         download: true,
         cite: true,
         max_limit: Some(100),
+        fields: FieldCaps::ALL,
         notes: "--sort switches to the bulk endpoint, which pages by token, so it \
                 cannot be combined with --offset; set SEMANTIC_SCHOLAR_API_KEY to \
                 avoid heavy throttling",
@@ -443,6 +460,11 @@ static CROSSREF: SourceEntry = SourceEntry {
         download: false,
         cite: false,
         max_limit: Some(1000),
+        fields: FieldCaps {
+            pdf_url: false,
+            open_access: false,
+            citations: true,
+        },
         notes: "metadata only, no PDF links; --offset caps at 10000",
     },
     env_var: "FASTPAPER_CROSSREF_URL",
@@ -472,6 +494,7 @@ static OPENALEX: SourceEntry = SourceEntry {
         download: false,
         cite: true,
         max_limit: Some(100),
+        fields: FieldCaps::ALL,
         notes: "usage-metered since 2026-02, set OPENALEX_API_KEY for the larger free tier; \
                 --field takes a concept ID (e.g. C154945302), not a name; \
                 --offset must be a multiple of -n",
@@ -497,6 +520,7 @@ static DBLP: SourceEntry = SourceEntry {
         download: false,
         cite: false,
         max_limit: Some(1000),
+        fields: FieldCaps::NONE,
         notes: "computer science only, metadata only; the API takes a query and \
                 paging, nothing else",
     },
@@ -524,6 +548,7 @@ static CORE: SourceEntry = SourceEntry {
         download: true,
         cite: false,
         max_limit: Some(100),
+        fields: FieldCaps::ALL,
         notes: "CORE_API_KEY is effectively required -- anonymous requests are \
                 throttled to 429; --author matches authors.name",
     },
@@ -554,6 +579,11 @@ static OPENAIRE: SourceEntry = SourceEntry {
         download: false,
         cite: false,
         max_limit: None,
+        fields: FieldCaps {
+            pdf_url: false,
+            open_access: true,
+            citations: true,
+        },
         notes: "--field takes an OpenAIRE field-of-science value; an unrecognised \
                 one is answered with the allowed list",
     },
@@ -590,6 +620,7 @@ static DOAJ: SourceEntry = SourceEntry {
         download: false,
         cite: false,
         max_limit: Some(100),
+        fields: FieldCaps::OPEN_FILES,
         notes: "year granularity only, use --year rather than --after/--before; \
                 no PDFs -- its fulltext links point at publisher landing pages, \
                 not files",
@@ -613,6 +644,7 @@ static UNPAYWALL: SourceEntry = SourceEntry {
         download: false,
         cite: false,
         max_limit: None,
+        fields: FieldCaps::OPEN_FILES,
         notes: "DOI lookup only; requires a real address in UNPAYWALL_EMAIL",
     },
     env_var: "FASTPAPER_UNPAYWALL_URL",
@@ -642,6 +674,7 @@ static ZENODO: SourceEntry = SourceEntry {
         download: true,
         cite: false,
         max_limit: Some(25),
+        fields: FieldCaps::OPEN_FILES,
         notes: "anonymous callers get 25 results per request; --sort citations \
                 unavailable; --offset must be a multiple of -n",
     },
@@ -674,6 +707,7 @@ static HAL: SourceEntry = SourceEntry {
         download: true,
         cite: false,
         max_limit: Some(10000),
+        fields: FieldCaps::OPEN_FILES,
         notes: "year granularity only, use --year rather than --after/--before; \
                 --field takes a HAL domain code such as sdv or info",
     },
