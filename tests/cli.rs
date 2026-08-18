@@ -1212,6 +1212,54 @@ fn quiet_suppresses_the_receipt() {
     assert!(out.exists(), "-q silences the receipt, not the write");
 }
 
+// `read -o` was the only command whose receipt was covered end to end, so
+// `search -o` and `cite -o` could have gone silent without a test noticing --
+// and a silent `-o` is exactly what leaves an agent reading the file back.
+#[test]
+fn search_output_flag_reports_how_many_results_it_wrote() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let out = temp_dir().join("search.json");
+    cmd()
+        .args(["search", "arxiv", "attention", "--format", "json", "-o"])
+        .arg(&out)
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success()
+        .stdout("")
+        .stderr(contains("Saved:").and(contains("results")));
+    let v: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&out).unwrap()).unwrap();
+    let written = v["results"].as_array().unwrap().len();
+    assert!(written > 0, "the fixture should yield results");
+}
+
+#[test]
+fn cite_output_flag_reports_how_many_edges_it_wrote() {
+    let fixture = include_str!("fixtures/semantic_citations.json");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let out = temp_dir().join("cite.json");
+    cmd()
+        .args(["cite", "2301.08745", "--format", "json", "-o"])
+        .arg(&out)
+        .env("FASTPAPER_SEMANTIC_URL", server.url())
+        .assert()
+        .success()
+        .stdout("")
+        .stderr(contains("Saved:").and(contains("results")));
+    assert!(out.exists(), "the file should still be written");
+}
+
 #[test]
 fn without_output_flag_there_is_no_receipt() {
     cmd()
@@ -1358,6 +1406,58 @@ fn a_zero_budget_reports_no_matches_shown() {
     );
 }
 
+// Nothing tested the two flags together, so an implementation that ignored
+// --section and grepped the whole paper would have passed the suite. The word
+// only appears in the introduction, so searching the abstract must miss it.
+#[test]
+fn grep_searches_only_the_section_that_was_selected() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--section")
+        .arg("abstract")
+        .arg("--grep")
+        .arg("dominant")
+        .assert()
+        .code(4)
+        .stderr(contains("searched: abstract"));
+
+    // And the same word does match when the search covers the whole paper.
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("dominant")
+        .assert()
+        .success();
+}
+
+// The offset a section-scoped search reports is relative to that section, not
+// to the paper -- so the two cannot both be right, and the numbers have to
+// differ for a word that appears in both.
+#[test]
+fn a_section_scoped_offset_is_relative_to_the_section() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--section")
+        .arg("abstract")
+        .arg("--grep")
+        .arg("Transformer")
+        .assert()
+        .success()
+        .stdout(contains("── match 1 @ 50 ──"));
+
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("Transformer")
+        .assert()
+        .success()
+        .stdout(contains("── match 1 @ 86 ──"));
+}
+
 #[test]
 fn context_without_grep_is_rejected() {
     cmd()
@@ -1425,6 +1525,69 @@ fn download_help_documents_the_size_limit_and_its_env_var() {
         .assert()
         .success()
         .stdout(contains("--max-size").and(contains("FASTPAPER_MAX_DOWNLOAD_SIZE")));
+}
+
+// `download.rs` passes `args.max_size` into the fetch on a single line, and
+// nothing end to end checked it: hard-coding `u64::MAX` there would have kept
+// the whole suite green while the flag did nothing. A bare number is bytes, so
+// 10 refuses the 13-byte body below -- and nothing must land on disk.
+#[test]
+fn max_size_refuses_a_body_over_the_limit_and_writes_nothing() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args([
+            "download",
+            "arxiv",
+            "2301.08745",
+            "--max-size",
+            "10",
+            "--dir",
+        ])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .failure()
+        .stderr(contains("download limit"))
+        .stderr(contains("--max-size"));
+    assert!(
+        !dir.join("2301.08745.pdf").exists(),
+        "a refused download must leave nothing behind"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// The same body under a limit that clears it still arrives, so the test above
+// is about the limit and not about the mock.
+#[test]
+fn max_size_above_the_body_lets_it_through() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args([
+            "download",
+            "arxiv",
+            "2301.08745",
+            "--max-size",
+            "1KiB",
+            "--dir",
+        ])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success();
+    assert!(dir.join("2301.08745.pdf").exists());
+    let _ = std::fs::remove_dir_all(&dir);
 }
 
 #[test]
