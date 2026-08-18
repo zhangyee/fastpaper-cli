@@ -9,7 +9,11 @@ A pre-installed CLI for academic search, download and reading. Verify once with
 `which fastpaper`; it is NOT a Python package, never `pip install` it.
 
 Pass `--format json` on every call. Output is `{"source": "...", "results": [...]}`
-— the papers are under `results`. Exit 0 = success, non-zero = error. Any field
+— the papers are under `results`. Exit codes are `0` success, `2` a malformed
+command, `4` **nothing to return** — no such paper, no `--grep` match, no PDF
+for this paper at this source — and `1` for everything else. Branch on `4`: it
+means the request was fine and this source simply has nothing, so retry
+elsewhere rather than rewording. Any field
 the source did not supply is `null`, meaning **unknown**; report it as unknown
 rather than filling it in.
 
@@ -162,7 +166,7 @@ than a fault.
 | `crossref` | — | ✓ | **cross-discipline** DOI registry — the best title→DOI lookup here | registered metadata only: no PDFs, no OA status, and an abstract on few hits. Use it to resolve, then go elsewhere for content |
 | `dblp` | — | — | **computer science** bibliography — conference and journal records, curated and clean | no abstracts at all; metadata only. The API takes a query and paging, nothing else |
 | `core` | ✓ | 0 | **cross-discipline** OA aggregate, 400M+ from repositories and journals — a PDF on nearly every hit | a DOI on few hits and no journal name. `CORE_API_KEY` lifts the rate limit |
-| `openaire` | — | ✓ | **cross-discipline** EU open science graph | no PDF links at all — resolve the DOI elsewhere. `get` wants an OpenAIRE id, not a DOI |
+| `openaire` | — | ✓ | **cross-discipline** EU open science graph | `download` does not work here, but a `pdf_url` comes back on the minority of hits where a publisher file link is on record — most of its links are DOI resolvers and are not offered as PDFs. `get` wants an OpenAIRE id, not a DOI |
 | `doaj` | — | — | **cross-discipline** peer-reviewed OA journals — complete metadata, with a journal name and abstract on nearly every hit | **its `pdf_url` is a landing page, not a file** — fetching one returns HTML. Year granularity only, no sorting |
 | `hal` | ✓ | — | **cross-discipline** French national archive, with an abstract on nearly every hit and full text on most | `--field` takes a domain code: `math` `phys` `chim` `sdv` `shs` `spi` `info` `sde`. No journal name, and some records are metadata-only — filter on `pdf_url` before downloading |
 | `zenodo` | ✓ | — | **cross-discipline** CERN general-purpose repository — papers, datasets and software, with a DOI on nearly every hit | `-n` capped at 25. No journal name, and some records are metadata-only |
