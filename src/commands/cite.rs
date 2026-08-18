@@ -1,4 +1,4 @@
-use super::{CommandError, CommandResult, emit, failed, render};
+use super::{CommandError, CommandResult, emit, failed, render, results_summary};
 use crate::cli::{CiteArgs, GlobalOpts};
 use crate::identifier::{IdType, detect_id_type};
 use crate::registry::Source;
@@ -24,7 +24,13 @@ pub fn run(args: &CiteArgs, global: &GlobalOpts) -> CommandResult {
     // yet, or a record whose references are not indexed. `search` returns an
     // empty array and exit 0 for the same situation; matching that keeps
     // scripts from treating "no citations yet" as a failure.
-    emit(&render(&papers, global.format), args.output.as_deref())
+    let summary = results_summary(papers.len());
+    emit(
+        &render(&papers, global.format),
+        args.output.as_deref(),
+        &summary,
+        global.quiet,
+    )
 }
 
 /// Pick a source that actually holds citation edges for this identifier.

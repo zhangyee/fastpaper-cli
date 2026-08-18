@@ -1,4 +1,4 @@
-use super::{CommandError, CommandResult, emit, failed, render};
+use super::{CommandError, CommandResult, emit, failed, render, results_summary};
 use crate::cli::{GlobalOpts, SearchArgs};
 use crate::registry::Source;
 use crate::sources::{SearchCaps, SearchQuery};
@@ -20,7 +20,13 @@ pub fn run(args: &SearchArgs, global: &GlobalOpts) -> CommandResult {
         .ok_or_else(|| failed(format!("{} has no search implementation", entry.name)))?;
 
     let papers = search(&args.source.base_url(), &query).map_err(CommandError::Failed)?;
-    emit(&render(&papers, global.format), args.output.as_deref())
+    let summary = results_summary(papers.len());
+    emit(
+        &render(&papers, global.format),
+        args.output.as_deref(),
+        &summary,
+        global.quiet,
+    )
 }
 
 fn unsupported_search(source: Source) -> CommandError {

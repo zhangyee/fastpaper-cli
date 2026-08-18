@@ -1,10 +1,10 @@
 use super::{CommandError, CommandResult, failed};
-use crate::cli::DownloadArgs;
+use crate::cli::{DownloadArgs, GlobalOpts};
 use crate::download::save_pdf;
 use crate::identifier::{IdType, detect_id_type};
 use crate::registry::Source;
 
-pub fn run(args: &DownloadArgs) -> CommandResult {
+pub fn run(args: &DownloadArgs, global: &GlobalOpts) -> CommandResult {
     let (explicit, raw_id) = args.resolve().map_err(CommandError::Failed)?;
 
     let source = match explicit {
@@ -20,7 +20,9 @@ pub fn run(args: &DownloadArgs) -> CommandResult {
 
     match save_pdf(&bytes, &args.dir, raw_id, args.overwrite) {
         Ok(path) => {
-            eprintln!("Saved: {}", path.display());
+            if !global.quiet {
+                eprintln!("Saved: {}", path.display());
+            }
             Ok(())
         }
         Err(e) if e.contains("already exists") => Err(CommandError::AlreadyExists(e)),

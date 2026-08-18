@@ -1,4 +1,5 @@
 use assert_cmd::Command;
+use predicates::prelude::PredicateBooleanExt;
 use predicates::str::contains;
 use std::path::PathBuf;
 
@@ -1103,4 +1104,49 @@ fn search_with_a_blank_query_is_rejected() {
         .assert()
         .failure()
         .stderr(contains("empty"));
+}
+
+fn fixture_pdf() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/test.pdf")
+}
+
+#[test]
+fn output_flag_reports_what_it_wrote_on_stderr() {
+    let out = temp_dir().join("receipt.txt");
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("-o")
+        .arg(&out)
+        .assert()
+        .success()
+        .stdout("")
+        .stderr(contains("Saved:").and(contains("chars")));
+    assert!(out.exists(), "the file should still be written");
+}
+
+#[test]
+fn quiet_suppresses_the_receipt() {
+    let out = temp_dir().join("quiet.txt");
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("-o")
+        .arg(&out)
+        .arg("-q")
+        .assert()
+        .success()
+        .stdout("")
+        .stderr("");
+    assert!(out.exists(), "-q silences the receipt, not the write");
+}
+
+#[test]
+fn without_output_flag_there_is_no_receipt() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .assert()
+        .success()
+        .stderr("");
 }

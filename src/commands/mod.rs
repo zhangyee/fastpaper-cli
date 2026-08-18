@@ -60,14 +60,75 @@ pub fn render(papers: &[Paper], format: OutputFormat) -> String {
     }
 }
 
+/// How many papers were written, for the `-o` receipt.
+pub fn results_summary(n: usize) -> String {
+    format!("{} {}", n, if n == 1 { "result" } else { "results" })
+}
+
+/// How much text was written, for the `-o` receipt.
+pub fn chars_summary(n: usize) -> String {
+    format!("{} {}", n, if n == 1 { "char" } else { "chars" })
+}
+
+/// How many matches were written, for the `-o` receipt. Names the total only
+/// when the output was cut, so `3 matches` never has to be read as a subset.
+pub fn matches_summary(shown: usize, total: usize) -> String {
+    let noun = if total == 1 { "match" } else { "matches" };
+    if shown < total {
+        format!("{} of {} {}", shown, total, noun)
+    } else {
+        format!("{} {}", total, noun)
+    }
+}
+
 /// Write to a file when `-o` was given, otherwise to stdout.
-pub fn emit(text: &str, output_path: Option<&Path>) -> CommandResult {
+///
+/// A write to a file leaves stdout empty, so without a receipt the caller has
+/// no way to tell 12 results from 0 short of reading the file back. The line
+/// goes to stderr because that is where `download` already puts its own
+/// `Saved:` line, and because stdout is for what the program was asked to
+/// produce -- "I wrote a file" is not that.
+pub fn emit(text: &str, output_path: Option<&Path>, summary: &str, quiet: bool) -> CommandResult {
     match output_path {
-        Some(path) => std::fs::write(path, text)
-            .map_err(|e| failed(format!("Failed to write {}: {}", path.display(), e))),
+        Some(path) => {
+            std::fs::write(path, text)
+                .map_err(|e| failed(format!("Failed to write {}: {}", path.display(), e)))?;
+            if !quiet {
+                eprintln!("Saved: {} ({})", path.display(), summary);
+            }
+            Ok(())
+        }
         None => {
             print!("{}", text);
             Ok(())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn results_summary_uses_the_plural_that_matches_the_count() {
+        assert_eq!(results_summary(0), "0 results");
+        assert_eq!(results_summary(1), "1 result");
+        assert_eq!(results_summary(12), "12 results");
+    }
+
+    #[test]
+    fn chars_summary_counts_characters() {
+        assert_eq!(chars_summary(0), "0 chars");
+        assert_eq!(chars_summary(1), "1 char");
+        assert_eq!(chars_summary(18432), "18432 chars");
+    }
+
+    // Untruncated output says how many there were; a truncated one has to say
+    // both numbers, or the caller cannot tell it is looking at a subset.
+    #[test]
+    fn matches_summary_names_the_total_only_when_it_was_cut() {
+        assert_eq!(matches_summary(3, 3), "3 matches");
+        assert_eq!(matches_summary(1, 1), "1 match");
+        assert_eq!(matches_summary(10, 12), "10 of 12 matches");
     }
 }

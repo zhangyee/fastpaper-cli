@@ -1,4 +1,4 @@
-use super::{CommandResult, emit, failed};
+use super::{CommandResult, chars_summary, emit, failed};
 use crate::cli::{GlobalOpts, OutputFormat, ReadArgs, Section};
 use crate::read as pdf;
 
@@ -28,6 +28,7 @@ pub fn run(args: &ReadArgs, global: &GlobalOpts) -> CommandResult {
         None => text,
     };
 
+    let char_count = text.chars().count();
     let rendered = match global.format {
         OutputFormat::Json => serde_json::to_string_pretty(&serde_json::json!({
             "path": args.path.to_string_lossy(),
@@ -37,8 +38,8 @@ pub fn run(args: &ReadArgs, global: &GlobalOpts) -> CommandResult {
         .unwrap(),
         _ => text,
     };
-
-    emit(&rendered, args.output.as_deref())
+    let summary = chars_summary(char_count);
+    emit(&rendered, args.output.as_deref(), &summary, global.quiet)
 }
 
 /// The heading `extract_section` should look for, or `None` for the whole text.
