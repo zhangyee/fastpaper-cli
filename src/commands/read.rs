@@ -16,12 +16,13 @@ pub fn run(args: &ReadArgs, global: &GlobalOpts) -> CommandResult {
     let full_text = pdf::extract_text(&args.path).map_err(failed)?;
     let section = section_name(args.section);
 
-    // Still `failed` (exit 1) here -- Task 4 owns the change to exit 4, so that
-    // it gets a genuine failing test first.
+    // A section the heuristic could not find is an empty answer, not a
+    // malformed command -- same shape as `get` failing to find a paper, so it
+    // takes the same exit code instead of the "you typed it wrong" one.
     let text = match heading_for(args.section) {
         None => full_text,
         Some(heading) => pdf::extract_section(&full_text, heading).ok_or_else(|| {
-            failed(format!(
+            CommandError::NotFound(format!(
                 "No '{}' section found in {}",
                 heading,
                 args.path.display()

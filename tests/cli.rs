@@ -1239,3 +1239,18 @@ fn grep_json_carries_the_pattern_and_the_totals() {
     assert_eq!(v["pattern"], "attention");
     assert_eq!(v["total_matches"], 2);
 }
+
+// Was exit 1, which read like "you typed the command wrong". A section the
+// heuristic could not find is the same shape of answer as a paper that is not
+// there, so it exits 4 like `get` does.
+#[test]
+fn a_missing_section_exits_4() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--section")
+        .arg("references")
+        .assert()
+        .code(4)
+        .stderr(contains("No 'references' section found"));
+}
