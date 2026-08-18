@@ -145,15 +145,18 @@ fn truncation_notice(result: &GrepResult) -> Option<String> {
     if flags.is_empty() {
         return None;
     }
-    let raise = format!("{} to raise", flags.join(" and "));
     if result.shown_matches < result.total_matches {
         Some(format!(
-            "{} matches, showing first {} ({})",
-            result.total_matches, result.shown_matches, raise
+            "{} matches, showing first {} ({} to raise)",
+            result.total_matches,
+            result.shown_matches,
+            flags.join(" and ")
         ))
     } else {
         // Every match is here, but its excerpt was trimmed to fit the budget.
-        Some(format!("excerpt cut to fit --max-length ({})", raise))
+        // Only `--max-length` can reach this: capping `--max-matches` always
+        // leaves fewer matches shown than the text holds.
+        Some("excerpt cut to fit --max-length (raise it for more context)".to_string())
     }
 }
 
