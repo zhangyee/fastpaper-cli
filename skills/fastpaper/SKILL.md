@@ -150,8 +150,26 @@ fetch it for you.
 under some conditions · `0` field present but 0 on most records · `—` never.
 
 Even on a `✓` PDF source an individual record may hold no file — `pdf_url` is
-`null` and the download fails with "No PDF URL found". That is normal rather
-than a fault.
+`null` and the download fails with "No PDF URL found", **exit 4**. That is
+normal rather than a fault.
+
+**A `403` is a different thing and worth reading, not retrying.** The message
+names the host and prints the full URL:
+
+```
+Error: 403 from www.mdpi.com
+https://www.mdpi.com/1424-8220/21/16/5542/pdf?version=1629270899
+The server refused this request. fastpaper cannot tell a paywall from a bot
+block here -- they look the same from outside. ...
+```
+
+Do **not** loop over other sources after one of these. Measured: that MDPI
+paper is fully open access and still 403s, an AHA subscription paper 403s
+identically, and Semantic Scholar reports `open_access: true` for both — so
+the status tells you nothing about whether a free copy exists. And the
+alternatives are not independent: unpaywall resolves that DOI to the *same*
+publisher URL byte for byte, and `download europepmc <DOI>` lands on it too.
+Report the URL to the user instead; exit is `1`, not `4`.
 
 | Source | PDF | Cites | Use it for | Watch out |
 |---|:--:|:--:|---|---|

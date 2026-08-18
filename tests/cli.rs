@@ -1694,3 +1694,26 @@ fn an_oversized_pdf_still_exits_1_rather_than_4() {
         .assert()
         .code(1);
 }
+
+// `HTTP error: http status: 403` named neither who refused nor what they
+// refused, so the caller could not open the link, report it, or tell whether
+// another source was worth trying.
+#[test]
+fn a_refused_download_names_the_host_and_hands_back_the_link() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(403)
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "arxiv", "2301.08745", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .code(1)
+        .stderr(contains("403"))
+        .stderr(contains("/pdf/2301.08745.pdf"))
+        .stderr(contains("cannot tell"));
+    assert!(!dir.join("2301.08745.pdf").exists());
+}
