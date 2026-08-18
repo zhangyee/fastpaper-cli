@@ -1254,3 +1254,25 @@ fn a_missing_section_exits_4() {
         .code(4)
         .stderr(contains("No 'references' section found"));
 }
+
+#[test]
+fn download_help_documents_the_size_limit_and_its_env_var() {
+    cmd()
+        .arg("download")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(contains("--max-size").and(contains("FASTPAPER_MAX_DOWNLOAD_SIZE")));
+}
+
+#[test]
+fn an_unparseable_max_size_is_rejected_before_any_network_call() {
+    cmd()
+        .arg("download")
+        .arg("2301.08745")
+        .arg("--max-size")
+        .arg("huge")
+        .assert()
+        .failure()
+        .stderr(contains("is not a size"));
+}
