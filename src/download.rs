@@ -81,7 +81,15 @@ pub fn fetch_pdf(url: &str, limit: u64) -> Result<Vec<u8>, String> {
 /// this is the only place in the crate that reads a PDF response body -- so the
 /// size limit cannot be forgotten on one path.
 pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>, String> {
-    match ureq::get(url).call() {
+    // `--max-size` is there to bound memory, and compression is what stopped
+    // it doing that: ureq's `.limit()` counts bytes inside its decompressor,
+    // so a gzip response could inflate ~1000x under the 100 MiB default before
+    // the post-read check -- which only runs once the whole body is buffered
+    // -- got a say. A PDF is already compressed, so refusing an encoding costs
+    // no bandwidth, keeps Content-Length on the response for the precheck
+    // below, and makes `.limit()` count the bytes that land in memory. Servers
+    // that ignore the header are why that post-read check stays.
+    match ureq::get(url).header("accept-encoding", "identity").call() {
         Ok(mut resp) => {
             // A fast path, not the enforcement: oversized papers ideally cost
             // no bandwidth, and content-length is the only place an exact size
@@ -768,6 +776,27 @@ mod tests {
             .create();
         let err = fetch_pdf(&format!("{}/chunked.pdf", server.url()), 1024 * 1024).unwrap_err();
         assert!(err.contains("did not report its size"), "got: {}", err);
+    }
+
+    // `--max-size` exists to bound memory, and by default it did not: ureq's
+    // `.limit()` counts bytes *inside* its decompressor, and the check on
+    // `bytes.len()` only fires once the whole decompressed body is already
+    // buffered, so under the 100 MiB default a gzip response could inflate
+    // ~1000x before anything refused it. A PDF is already compressed, so
+    // asking for no transfer encoding costs nothing and buys two things: a
+    // Content-Length to precheck against, and a `.limit()` that counts the
+    // bytes that actually land in memory.
+    #[test]
+    fn a_pdf_fetch_asks_for_no_compression() {
+        let mut server = mockito::Server::new();
+        let m = server
+            .mock("GET", "/plain.pdf")
+            .match_header("accept-encoding", "identity")
+            .with_body("%PDF-1.4 fake")
+            .create();
+        let bytes = fetch_pdf(&format!("{}/plain.pdf", server.url()), 10 * MIB).unwrap();
+        assert!(bytes.starts_with(b"%PDF"));
+        m.assert();
     }
 
     // The regression this task exists to close: ureq reports no
