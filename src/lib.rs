@@ -1,6 +1,7 @@
 pub mod cli;
 pub mod commands;
 pub mod download;
+pub mod grep;
 pub mod identifier;
 pub mod output;
 pub mod read;

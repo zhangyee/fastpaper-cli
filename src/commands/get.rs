@@ -16,7 +16,7 @@ pub fn run(args: &GetArgs, global: &GlobalOpts) -> CommandResult {
 
     let id = normalize_id(source, raw_id);
     match get(&source.base_url(), &id).map_err(CommandError::Failed)? {
-        Some(paper) => emit(&render(&[paper], global.format), None),
+        Some(paper) => emit(&render(&[paper], global.format), None, "", global.quiet),
         None => Err(CommandError::NotFound(format!(
             "Paper not found in {}: {}",
             source.name(),

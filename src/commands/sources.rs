@@ -11,19 +11,31 @@ pub fn run(args: &SourcesArgs) -> CommandResult {
 /// cannot drift from what the commands actually do.
 fn render(detailed: bool) -> String {
     let mut out = String::new();
-    out.push_str("Source      search  get  download  cite\n");
-    out.push_str("───────────────────────────────────────\n");
+    out.push_str("Source      search  get  download  cite   pdf_url  open_access  citations\n");
+    out.push_str("────────────────────────────────────────────────────────────────────────\n");
     for source in registry::ALL {
         let caps = source.caps();
         out.push_str(&format!(
-            "{:<11} {:^6}  {:^3}  {:^8}  {:^4}\n",
+            "{:<11} {:^6}  {:^3}  {:^8}  {:^4}  {:^7}  {:^11}  {:^9}\n",
             source.name(),
             mark(caps.search.is_some()),
             mark(caps.get),
             mark(caps.download),
             mark(caps.cite),
+            mark(caps.fields.pdf_url),
+            mark(caps.fields.open_access),
+            mark(caps.fields.citations),
         ));
     }
+    // The first four columns say which commands work; the last three say which
+    // fields come back filled. Both are needed to pick a source: `crossref`
+    // answers `get` but never carries a PDF link, so a caller who reads only
+    // the left half asks it for something it structurally cannot supply.
+    out.push_str(
+        "\nThe last three columns are which fields this source can fill.\n\
+         `null` in a result means unknown -- a `✗` here says the source never\n\
+         supplies it, so ask a source marked `✓` instead of giving up.\n",
+    );
 
     if detailed {
         out.push_str("\nSearch filters\n──────────────\n");

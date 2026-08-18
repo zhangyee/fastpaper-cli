@@ -154,13 +154,22 @@ for `-n` above a source's per-request cap. Run
 
 ### `get` -- Fetch metadata by identifier
 
-One argument is an identifier and the source is inferred from its shape (DOI,
-arXiv ID, PMID, PMC ID, S2 ID). Two arguments name the source explicitly.
+One argument is an identifier and the source is inferred from its shape. Two
+arguments name the source explicitly.
 
 ```
 fastpaper get <IDENTIFIER>
 fastpaper get <SOURCE> <IDENTIFIER>
 ```
+
+Routing: arXiv→`arxiv`, PMC→`pmc`, PMID→`pubmed`, DOI→`crossref`, `S2:`→`semantic`.
+
+Note this differs from `download`, which sends a DOI to `semantic` — the two
+commands look at records from different sources. Crossref registers DOIs and
+carries the most authoritative metadata but serves no files, so `get <DOI>`
+returns `pdf_url: null` no matter what; `download <DOI>` resolves an open access
+copy through Semantic Scholar instead. Do not read `pdf_url` off `get <DOI>` to
+predict whether `download` will succeed.
 
 ### `download` -- Download PDF
 
@@ -172,6 +181,9 @@ fastpaper download <SOURCE> <IDENTIFIER> [OPTIONS]
 
 Options:
   -d, --dir <PATH>       Download directory [default: ./papers]
+  -s, --max-size <SIZE>  Largest response body to accept, e.g. 10MiB, 200MB.
+                         A bare number is bytes, so `--max-size 10` means ten
+                         bytes. 0 means unlimited [default: 100MiB]
       --overwrite        Overwrite an existing file
 ```
 
@@ -203,6 +215,11 @@ fastpaper read <PATH> [OPTIONS]
 Options:
       --section <SEC>    abstract, introduction, methods, results,
                          discussion, conclusion, references, full [default: full]
+      --grep <PATTERN>   Search the text for a regular expression.
+                         Case-insensitive; use (?-i) for a case-sensitive one
+      --context <N>      Characters of context on each side of a match
+                         (requires --grep) [default: 500]
+      --max-matches <N>  Show at most N matches (requires --grep) [default: 10]
       --max-length <N>   Truncate output to N characters
   -o, --output <PATH>    Write to file
 ```
@@ -210,7 +227,19 @@ Options:
 ```sh
 fastpaper download 2301.08745            # -> ./papers/2301.08745.pdf
 fastpaper read papers/2301.08745.pdf --section abstract
+fastpaper read papers/2301.08745.pdf --grep 'limitations?'
 ```
+
+`--grep` searches the section `--section` selected, or the whole paper when it
+is not given, so "try the section, fall back to full text" is one command with
+one flag changed. Matches are reported with their character offset, and windows
+that overlap are merged rather than printed twice. No match exits 4.
+
+`--max-length` bounds the output without erasing the hit: an excerpt too big for
+the budget is cut around its match rather than from its start, and only matches
+still shown are counted. When something was left out, the trailing line names
+the flag that did it — raising `--max-matches` does nothing when `--max-length`
+was what bound — and `--format json` carries the same answer in `truncated_by`.
 
 ### `sources` -- List sources and capabilities
 
@@ -233,6 +262,7 @@ All optional except where noted. 17 of 18 sources work with zero configuration.
 | Variable | Purpose |
 |----------|---------|
 | `FASTPAPER_DOWNLOAD_DIR` | Default download directory (otherwise `./papers`) |
+| `FASTPAPER_MAX_DOWNLOAD_SIZE` | Largest response body `download` will accept (otherwise `100MiB`); `0` means unlimited |
 | `FASTPAPER_EMAIL` | Contact address sent to CrossRef, OpenAlex and NCBI. Unset means the parameter is omitted, which all three accept |
 | `SEMANTIC_SCHOLAR_API_KEY` | Higher rate limit for Semantic Scholar |
 | `OPENALEX_API_KEY` | Larger free tier for OpenAlex, which has metered usage since 2026-02 |
@@ -252,11 +282,21 @@ Cloud Service on AWS Open Data, not the article pages).
 | Code | Meaning |
 |------|---------|
 | `0` | Success |
-| `1` | General error (invalid arguments, parse failure) |
-| `2` | Network error (timeout, DNS failure) |
+| `1` | General error (rejected arguments, parse failure, network failure) |
+| `2` | Usage error from argument parsing: unknown flag, bad value, or a flag whose partner is missing (`--context` without `--grep`) |
 | `3` | Source error (API error, rate limit exhausted) |
-| `4` | No results found |
+| `4` | Nothing matched: no such paper, no `--grep` match, no such `--section` |
 | `5` | Permission error (not open access, missing env var) |
+
+Commands that take `-o` print a receipt to stderr once the file is written —
+`Saved: results.json (12 results)` — so a caller never has to read the file back
+to find out what landed. `-q` suppresses it. Zero results still print, since
+that is the case most worth seeing.
+
+`download` prints `Saved: papers/2301.08745.pdf (2.2 MiB)` on stderr as well.
+`-q` does not suppress that one: `download` writes nothing to stdout, and the
+saved path is not derivable from the arguments, since a `/` in a DOI becomes
+`_` in the filename.
 
 ## Contributing
 

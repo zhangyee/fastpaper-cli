@@ -12,7 +12,7 @@ src/
 ├── cli.rs           # 全部 clap 定义:Cli、GlobalOpts、Commands、各命令 Args、
 │                    #   OutputFormat / Section,以及 [source] <id> 的消歧逻辑
 ├── commands/        # 每条命令一个模块,各自负责校验、调用与渲染
-│   ├── mod.rs       # CommandError(自带退出码)、render、emit
+│   ├── mod.rs       # CommandError(自带退出码)、render、emit(+ -o 回执)
 │   └── search.rs · get.rs · download.rs · read.rs · sources.rs
 ├── registry.rs      # Source 枚举,以及把每个源映射到其 base URL、Capabilities
 │                    #   和函数的唯一一张表(纯函数指针,不引入 trait)
@@ -23,6 +23,7 @@ src/
 ├── download.rs      # fetch_pdf、各源 pdf_bytes_<src> 解析函数、save_pdf
 ├── read.rs          # PDF 文本提取(pdf_oxide):extract_text、extract_text_from_bytes、
 │                    #   extract_section
+├── grep.rs          # 在文本中查找匹配,并在命中位置两侧截取上下文窗口
 ├── output.rs        # 渲染器:to_table、to_json、to_jsonl、to_csv、to_bibtex
 └── identifier.rs    # detect_id_type:Arxiv、ArxivOld、Doi、Pmc、Pmid、S2、Url、Unknown
 ```

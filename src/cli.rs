@@ -206,6 +206,17 @@ pub struct DownloadArgs {
     )]
     pub dir: PathBuf,
 
+    /// Maximum response body to accept, e.g. 10MiB, 200MB, 0 = unlimited; a
+    /// bare number is bytes
+    #[arg(
+        short = 's',
+        long,
+        env = "FASTPAPER_MAX_DOWNLOAD_SIZE",
+        default_value = "100MiB",
+        value_parser = parse_max_size
+    )]
+    pub max_size: u64,
+
     /// Overwrite an existing file
     #[arg(long)]
     pub overwrite: bool,
@@ -244,6 +255,24 @@ fn resolve_source_and_id<'a>(
     }
 }
 
+/// Parse a `--max-size` value into a byte count.
+///
+/// `0` maps to `u64::MAX` so that "unlimited" needs no special case anywhere
+/// downstream. `parse-size` is what tells `10MB` (10^6) from `10MiB` (2^20);
+/// the help text promises that distinction, so it should not be hand-rolled.
+fn parse_max_size(raw: &str) -> Result<u64, String> {
+    let raw = raw.trim();
+    if raw == "0" {
+        return Ok(u64::MAX);
+    }
+    parse_size::parse_size(raw).map_err(|_| {
+        format!(
+            "'{}' is not a size. Try 100MiB, 500MB, or 0 for unlimited.",
+            raw
+        )
+    })
+}
+
 // ── read ────────────────────────────────────────
 
 #[derive(clap::Args)]
@@ -258,6 +287,21 @@ pub struct ReadArgs {
     /// Truncate output to N characters
     #[arg(long)]
     pub max_length: Option<usize>,
+
+    /// Search the text for a regular expression; case-insensitive, use (?-i)
+    /// for a case-sensitive one
+    #[arg(long, value_name = "PATTERN")]
+    pub grep: Option<String>,
+
+    // `requires` is named in the help text too: without it the only way to
+    // learn these need --grep is clap's exit 2.
+    /// Characters of context on each side of a match (requires --grep)
+    #[arg(long, default_value = "500", requires = "grep")]
+    pub context: usize,
+
+    /// Show at most N matches (requires --grep)
+    #[arg(long, default_value = "10", requires = "grep")]
+    pub max_matches: usize,
 
     /// Write content to a file instead of stdout
     #[arg(short, long)]
@@ -328,5 +372,27 @@ mod tests {
         let (source, id) = resolve_source_and_id("arxiv", None).unwrap();
         assert_eq!(source, None);
         assert_eq!(id, "arxiv");
+    }
+
+    #[test]
+    fn max_size_distinguishes_binary_from_decimal_units() {
+        assert_eq!(parse_max_size("10MiB").unwrap(), 10_485_760);
+        assert_eq!(parse_max_size("10MB").unwrap(), 10_000_000);
+        assert_eq!(parse_max_size("100MiB").unwrap(), 104_857_600);
+    }
+
+    // The help text offers 0 as "unlimited"; internally that is the largest
+    // limit there is, so nothing downstream needs a special case.
+    #[test]
+    fn zero_means_unlimited() {
+        assert_eq!(parse_max_size("0").unwrap(), u64::MAX);
+        assert_eq!(parse_max_size(" 0 ").unwrap(), u64::MAX);
+    }
+
+    #[test]
+    fn a_bad_size_is_rejected_with_examples() {
+        let err = parse_max_size("huge").unwrap_err();
+        assert!(err.contains("huge"), "should quote the input: {}", err);
+        assert!(err.contains("MiB"), "should show a valid form: {}", err);
     }
 }

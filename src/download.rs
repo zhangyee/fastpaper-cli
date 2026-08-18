@@ -2,14 +2,135 @@ use std::path::{Path, PathBuf};
 
 use crate::sources;
 
-/// Download PDF bytes from a URL.
-pub fn fetch_pdf(url: &str) -> Result<Vec<u8>, String> {
-    match ureq::get(url).call() {
-        Ok(resp) => resp
-            .into_body()
-            .read_to_vec()
-            .map_err(|e| format!("Failed to read PDF: {}", e)),
-        Err(ureq::Error::StatusCode(404)) => Err(format!("Not found: {}", url)),
+const KIB: u64 = 1024;
+const MIB: u64 = 1024 * 1024;
+
+/// Sizes to suggest, in MiB, when telling the caller how to raise the limit.
+const SUGGESTIONS: &[u64] = &[50, 100, 200, 500, 1024, 2048, 5120];
+
+/// Render a byte count for a human.
+///
+/// Limits are MiB-scale and stay in MiB so two of them read as comparable at a
+/// glance. Actual file sizes are not: this also renders the `download` receipt,
+/// where a 40 KiB note printed as `0.0 MiB` would read like nothing arrived.
+pub(crate) fn human_size(bytes: u64) -> String {
+    if bytes < KIB {
+        format!("{} B", bytes)
+    } else if bytes < MIB {
+        format!("{:.1} KiB", bytes as f64 / KIB as f64)
+    } else if bytes.is_multiple_of(MIB) {
+        format!("{} MiB", bytes / MIB)
+    } else {
+        format!("{:.1} MiB", bytes as f64 / MIB as f64)
+    }
+}
+
+/// The next suggestion above `bytes`, so the printed fix actually clears it.
+fn suggested_limit(bytes: u64) -> u64 {
+    SUGGESTIONS
+        .iter()
+        .map(|mib| mib * MIB)
+        .find(|candidate| *candidate > bytes)
+        // `bytes` came off a server's Content-Length, so it is attacker-
+        // controlled: `saturating_mul` keeps the doubling from wrapping (and
+        // panicking in debug) when `bytes` is within a factor of two of
+        // `u64::MAX`.
+        .unwrap_or_else(|| (bytes.saturating_add(MIB) / MIB * MIB).saturating_mul(2))
+}
+
+/// Explain a refused body.
+///
+/// Deliberately avoids the word "read": this CLI has a `read` subcommand, and
+/// the old `Failed to read PDF` was routinely taken to mean it. Naming the
+/// actual size matters too -- 11 MiB means "raise the limit", 500 MiB means
+/// "take another route", and the old message let you tell neither.
+fn over_limit(actual: Option<u64>, limit: u64) -> String {
+    let head = match actual {
+        Some(bytes) => format!(
+            "PDF is {}, over the {} download limit.",
+            human_size(bytes),
+            human_size(limit)
+        ),
+        None => format!(
+            "PDF exceeds the {} download limit (server did not report its size).",
+            human_size(limit)
+        ),
+    };
+    let suggestion = human_size(suggested_limit(actual.unwrap_or(limit)));
+    format!(
+        "{}\nRaise it with --max-size {} (or FASTPAPER_MAX_DOWNLOAD_SIZE={}).",
+        head,
+        suggestion.replace(' ', ""),
+        suggestion.replace(' ', "")
+    )
+}
+
+/// Download PDF bytes from a URL, refusing a body over `limit` bytes.
+///
+/// `limit` is a byte count; `u64::MAX` means unlimited. The whole body is held
+/// in memory, which is exactly why a default limit exists at all.
+pub fn fetch_pdf(url: &str, limit: u64) -> Result<Vec<u8>, String> {
+    let not_found = format!("Not found: {}", url);
+    fetch_pdf_named(url, limit, &not_found)
+}
+
+/// `fetch_pdf` with a caller-supplied 404 message.
+///
+/// Sources that address papers by identifier can say which paper was missing;
+/// a bare URL fetch cannot. Everything else about the two is identical, and
+/// this is the only place in the crate that reads a PDF response body -- so the
+/// size limit cannot be forgotten on one path.
+pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>, String> {
+    // `--max-size` is there to bound memory, and compression is what stopped
+    // it doing that: ureq's `.limit()` counts bytes inside its decompressor,
+    // so a gzip response could inflate ~1000x under the 100 MiB default before
+    // the post-read check -- which only runs once the whole body is buffered
+    // -- got a say. A PDF is already compressed, so refusing an encoding costs
+    // no bandwidth, keeps Content-Length on the response for the precheck
+    // below, and makes `.limit()` count the bytes that land in memory. Servers
+    // that ignore the header are why that post-read check stays.
+    match ureq::get(url).header("accept-encoding", "identity").call() {
+        Ok(mut resp) => {
+            // A fast path, not the enforcement: oversized papers ideally cost
+            // no bandwidth, and content-length is the only place an exact size
+            // is available before reading starts. It is skipped by ureq
+            // whenever it is decompressing the response (e.g. gzip), because
+            // Content-Length then describes the wire size, not what
+            // `read_to_vec` below hands back -- so this check alone cannot be
+            // trusted to catch an oversized body.
+            if let Some(size) = resp.body().content_length()
+                && size > limit
+            {
+                return Err(over_limit(Some(size), limit));
+            }
+            // `.limit()` also cannot be trusted alone: it wraps the reader
+            // *inside* the decompressor, so for a compressed response it
+            // counts compressed bytes while decompression can still produce
+            // an unbounded `Vec` in memory. It stays here only to cut off a
+            // stream that never ends. `limit + 1` rather than `limit`: ureq's
+            // limited reader treats hitting the count exactly as "exceeded"
+            // even on genuine EOF, which would wrongly refuse a body of
+            // precisely `limit` bytes.
+            let bytes = resp
+                .body_mut()
+                .with_config()
+                .limit(limit.saturating_add(1))
+                .read_to_vec()
+                .map_err(|e| match e {
+                    ureq::Error::BodyExceedsLimit(_) => over_limit(None, limit),
+                    other => format!("Could not fetch the PDF: {}", other),
+                })?;
+            // The actual enforcement: bounds what is handed back to the
+            // caller regardless of what Content-Length claimed or what
+            // `.limit()` was counting. This bounds the *returned* value, not
+            // peak memory -- ureq has already buffered the full decompressed
+            // body in `bytes` by the time this check runs.
+            if bytes.len() as u64 > limit {
+                return Err(over_limit(Some(bytes.len() as u64), limit));
+            }
+            Ok(bytes)
+        }
+        Err(ureq::Error::StatusCode(404)) => Err(not_found.to_string()),
         Err(e) => Err(format!("HTTP error: {}", e)),
     }
 }
@@ -21,18 +142,24 @@ pub fn fetch_pdf(url: &str) -> Result<Vec<u8>, String> {
 // only wants the bytes. `save_pdf` below does the writing.
 
 /// Fetch arXiv PDF bytes.
-pub fn pdf_bytes_arxiv(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
-    sources::arxiv::download_pdf(base_url, identifier)
+pub fn pdf_bytes_arxiv(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+    sources::arxiv::download_pdf(base_url, identifier, limit)
 }
 
 /// Fetch bioRxiv PDF bytes.
-pub fn pdf_bytes_biorxiv(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
-    fetch_pdf(&format!("{}/content/{}v1.full.pdf", base_url, identifier))
+pub fn pdf_bytes_biorxiv(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+    fetch_pdf(
+        &format!("{}/content/{}v1.full.pdf", base_url, identifier),
+        limit,
+    )
 }
 
 /// Fetch medRxiv PDF bytes.
-pub fn pdf_bytes_medrxiv(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
-    fetch_pdf(&format!("{}/content/{}v1.full.pdf", base_url, identifier))
+pub fn pdf_bytes_medrxiv(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
+    fetch_pdf(
+        &format!("{}/content/{}v1.full.pdf", base_url, identifier),
+        limit,
+    )
 }
 
 /// Fetch PMC PDF bytes from the PMC Cloud Service.
@@ -47,8 +174,10 @@ pub fn pdf_bytes_medrxiv(base_url: &str, identifier: &str) -> Result<Vec<u8>, St
 /// The Cloud Service (AWS Open Data) serves the same files over plain HTTPS and
 /// is the route that survives. Objects are keyed by article and version, so the
 /// version has to be discovered by listing the prefix first.
-pub fn pdf_bytes_pmc(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_pmc(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
     let numeric_id = identifier.strip_prefix("PMC").unwrap_or(identifier);
+    // No `limit` here on purpose: this lists an S3 prefix as XML, not a PDF.
+    // `limit` applies only to the actual PDF fetch below.
     let listing = http_get_text(&format!(
         "{}/?list-type=2&prefix=PMC{}",
         base_url, numeric_id
@@ -60,7 +189,7 @@ pub fn pdf_bytes_pmc(base_url: &str, identifier: &str) -> Result<Vec<u8>, String
             numeric_id
         )
     })?;
-    fetch_pdf(&format!("{}/{}", base_url, key))
+    fetch_pdf(&format!("{}/{}", base_url, key), limit)
 }
 
 /// Pick the `.pdf` object out of an S3 `ListBucketResult`.
@@ -83,13 +212,13 @@ fn http_get_text(url: &str) -> Result<String, String> {
 }
 
 /// Fetch Semantic Scholar PDF bytes via the record's openAccessPdf URL.
-pub fn pdf_bytes_semantic(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_semantic(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
     let paper = sources::semantic::get_by_id(base_url, identifier)?
         .ok_or_else(|| format!("Paper not found: {}", identifier))?;
     let pdf_url = paper
         .pdf_url
         .ok_or_else(|| "No open access PDF available".to_string())?;
-    fetch_pdf(&pdf_url)
+    fetch_pdf(&pdf_url, limit)
 }
 
 /// Fetch CORE PDF bytes from its dedicated download endpoint.
@@ -102,36 +231,39 @@ pub fn pdf_bytes_semantic(base_url: &str, identifier: &str) -> Result<Vec<u8>, S
 /// -- and whether a given client strips it is a detail we would be depending
 /// on. So the record is fetched first, authenticated, and its `downloadUrl` is
 /// then fetched on its own with no credentials attached.
-pub fn pdf_bytes_core(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_core(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
     let paper = sources::core::get_by_id(base_url, identifier)?
         .ok_or_else(|| format!("Not found in CORE: {}", identifier))?;
     let pdf_url = paper
         .pdf_url
         .ok_or_else(|| format!("CORE has no downloadable file for {}", identifier))?;
-    fetch_pdf(&pdf_url)
+    fetch_pdf(&pdf_url, limit)
 }
 
 /// Fetch DOAJ PDF bytes via the record's fulltext link.
-pub fn pdf_bytes_doaj(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_doaj(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
     resolve_and_fetch(
         &doaj_meta_url(base_url, identifier),
         sources::doaj::parse_search_response,
+        limit,
     )
 }
 
 /// Fetch Zenodo PDF bytes via the record's file link.
-pub fn pdf_bytes_zenodo(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_zenodo(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
     resolve_and_fetch(
         &zenodo_meta_url(base_url, identifier),
         sources::zenodo::parse_search_response,
+        limit,
     )
 }
 
 /// Fetch HAL PDF bytes via the record's fileMain_s URL.
-pub fn pdf_bytes_hal(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_hal(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, String> {
     resolve_and_fetch(
         &hal_meta_url(base_url, identifier),
         sources::hal::parse_search_response,
+        limit,
     )
 }
 
@@ -164,20 +296,27 @@ fn hal_meta_url(base_url: &str, identifier: &str) -> String {
 }
 
 /// Fetch Europe PMC PDF bytes via the record's `?pdf=render` URL.
-pub fn pdf_bytes_europepmc(base_url: &str, identifier: &str) -> Result<Vec<u8>, String> {
+pub fn pdf_bytes_europepmc(
+    base_url: &str,
+    identifier: &str,
+    limit: u64,
+) -> Result<Vec<u8>, String> {
     let paper = sources::europepmc::get_by_id(base_url, identifier)?
         .ok_or_else(|| format!("Not found in Europe PMC: {}", identifier))?;
     let pdf_url = paper
         .pdf_url
         .ok_or_else(|| format!("Europe PMC has no open access PDF for {}", identifier))?;
-    fetch_pdf(&pdf_url)
+    fetch_pdf(&pdf_url, limit)
 }
 
 /// Fetch a metadata URL, take the first record's `pdf_url`, and download it.
 fn resolve_and_fetch(
     meta_url: &str,
     parse: fn(&str) -> Result<Vec<sources::Paper>, String>,
+    limit: u64,
 ) -> Result<Vec<u8>, String> {
+    // No `limit` here on purpose: this is the metadata lookup (JSON/XML), not
+    // the PDF. `limit` applies only to `fetch_pdf` below.
     let body = ureq::get(meta_url)
         .call()
         .map_err(|e| format!("HTTP error: {}", e))?
@@ -189,7 +328,7 @@ fn resolve_and_fetch(
         .first()
         .and_then(|p| p.pdf_url.as_deref())
         .ok_or_else(|| "No PDF URL found".to_string())?;
-    fetch_pdf(pdf_url)
+    fetch_pdf(pdf_url, limit)
 }
 
 /// Save PDF bytes to a file. Returns the path where the file was saved.
@@ -271,7 +410,7 @@ mod tests {
             .with_body(b"%PDF-1.4 fake content".as_slice())
             .create();
         let dir = temp_dir();
-        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745").unwrap();
+        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745", 10 * MIB).unwrap();
         let path = save_pdf(&bytes, &dir, "2301.08745", false).unwrap();
         assert!(path.exists());
         assert_eq!(fs::read(&path).unwrap(), b"%PDF-1.4 fake content");
@@ -288,7 +427,7 @@ mod tests {
             .with_body(b"%PDF-1.4".as_slice())
             .create();
         let dir = temp_dir();
-        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745").unwrap();
+        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745", 10 * MIB).unwrap();
         let path = save_pdf(&bytes, &dir, "2301.08745", false).unwrap();
         assert!(
             path.file_name()
@@ -312,7 +451,7 @@ mod tests {
             .with_body(b"%PDF-1.4".as_slice())
             .create();
         let dir = temp_dir().join("custom_subdir");
-        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745").unwrap();
+        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745", 10 * MIB).unwrap();
         let path = save_pdf(&bytes, &dir, "2301.08745", false).unwrap();
         assert!(path.starts_with(&dir));
         let _ = fs::remove_dir_all(dir.parent().unwrap());
@@ -329,7 +468,7 @@ mod tests {
             .create();
         let dir = temp_dir();
         // First download succeeds
-        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745").unwrap();
+        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745", 10 * MIB).unwrap();
         save_pdf(&bytes, &dir, "2301.08745", false).unwrap();
         // Second save fails because the file exists
         let result = save_pdf(&bytes, &dir, "2301.08745", false);
@@ -355,7 +494,7 @@ mod tests {
         fs::create_dir_all(&dir).unwrap();
         fs::write(dir.join("2301.08745.pdf"), b"old content").unwrap();
         // Download with overwrite
-        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745").unwrap();
+        let bytes = pdf_bytes_arxiv(&server.url(), "2301.08745", 10 * MIB).unwrap();
         let path = save_pdf(&bytes, &dir, "2301.08745", true).unwrap();
         assert_eq!(fs::read(&path).unwrap(), b"%PDF-1.4 version2");
         let _ = fs::remove_dir_all(&dir);
@@ -370,7 +509,7 @@ mod tests {
             .with_status(404)
             .create();
         let dir = temp_dir();
-        let result = pdf_bytes_arxiv(&server.url(), "9999.99999");
+        let result = pdf_bytes_arxiv(&server.url(), "9999.99999", 10 * MIB);
         assert!(result.is_err());
         let _ = fs::remove_dir_all(&dir);
     }
@@ -389,7 +528,8 @@ mod tests {
             .with_body(b"%PDF-1.4 biorxiv".as_slice())
             .create();
         let dir = temp_dir();
-        let bytes = pdf_bytes_biorxiv(&server.url(), "10.1101/2024.01.01.574894").unwrap();
+        let bytes =
+            pdf_bytes_biorxiv(&server.url(), "10.1101/2024.01.01.574894", 10 * MIB).unwrap();
         let path = save_pdf(&bytes, &dir, "10.1101/2024.01.01.574894", false).unwrap();
         assert!(path.exists());
         let _ = fs::remove_dir_all(&dir);
@@ -407,7 +547,8 @@ mod tests {
             .with_body(b"%PDF-1.4 medrxiv".as_slice())
             .create();
         let dir = temp_dir();
-        let bytes = pdf_bytes_medrxiv(&server.url(), "10.1101/2024.01.01.123456").unwrap();
+        let bytes =
+            pdf_bytes_medrxiv(&server.url(), "10.1101/2024.01.01.123456", 10 * MIB).unwrap();
         let path = save_pdf(&bytes, &dir, "10.1101/2024.01.01.123456", false).unwrap();
         assert!(path.exists());
         let _ = fs::remove_dir_all(&dir);
@@ -429,7 +570,7 @@ mod tests {
             .with_body(b"%PDF-1.4 pmc".as_slice())
             .create();
         let dir = temp_dir();
-        let bytes = pdf_bytes_pmc(&server.url(), "PMC7318926").unwrap();
+        let bytes = pdf_bytes_pmc(&server.url(), "PMC7318926", 10 * MIB).unwrap();
         let path = save_pdf(&bytes, &dir, "PMC7318926", false).unwrap();
         assert!(path.exists());
         let _ = fs::remove_dir_all(&dir);
@@ -449,7 +590,7 @@ mod tests {
             .with_body(b"%PDF-1.4".as_slice())
             .create();
         // "PMC7318926" and "7318926" must produce the same prefix query.
-        assert!(pdf_bytes_pmc(&server.url(), "PMC7318926").is_ok());
+        assert!(pdf_bytes_pmc(&server.url(), "PMC7318926", 10 * MIB).is_ok());
         listing.assert();
     }
 
@@ -462,7 +603,7 @@ mod tests {
             .with_status(200)
             .with_body("<ListBucketResult><Contents><Key>PMC7318926.1/PMC7318926.1.xml</Key></Contents></ListBucketResult>")
             .create();
-        let err = pdf_bytes_pmc(&server.url(), "PMC7318926").unwrap_err();
+        let err = pdf_bytes_pmc(&server.url(), "PMC7318926", 10 * MIB).unwrap_err();
         assert!(err.contains("no PDF"), "got: {}", err);
     }
 
@@ -474,7 +615,7 @@ mod tests {
             .with_status(200)
             .with_body(b"%PDF-1.4 test".as_slice())
             .create();
-        let bytes = fetch_pdf(&format!("{}/test.pdf", server.url())).unwrap();
+        let bytes = fetch_pdf(&format!("{}/test.pdf", server.url()), 10 * MIB).unwrap();
         assert!(bytes.starts_with(b"%PDF"));
     }
 
@@ -485,8 +626,206 @@ mod tests {
             .mock("GET", mockito::Matcher::Any)
             .with_status(404)
             .create();
-        let result = fetch_pdf(&format!("{}/missing.pdf", server.url()));
+        let result = fetch_pdf(&format!("{}/missing.pdf", server.url()), 10 * MIB);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn human_size_prints_whole_mib_without_a_decimal() {
+        assert_eq!(human_size(104_857_600), "100 MiB");
+        assert_eq!(human_size(10_485_760), "10 MiB");
+    }
+
+    #[test]
+    fn human_size_keeps_one_decimal_when_it_is_not_whole() {
+        assert_eq!(human_size(25_480_000), "24.3 MiB");
+    }
+
+    // The `download` receipt prints real file sizes, and most papers are not
+    // MiB-scale. "0.0 MiB" for a 40 KiB note reads like nothing arrived.
+    #[test]
+    fn human_size_stays_readable_below_a_megabyte() {
+        assert_eq!(human_size(13), "13 B");
+        assert_eq!(human_size(0), "0 B");
+        assert_eq!(human_size(40 * 1024), "40.0 KiB");
+    }
+
+    // "Failed to read PDF" sent a user looking at the `read` subcommand. In a
+    // CLI that has one, the word cannot also mean "read the HTTP body".
+    #[test]
+    fn the_over_limit_message_never_says_read() {
+        let msg = over_limit(Some(233_000_000), 104_857_600);
+        assert!(!msg.to_lowercase().contains("read"), "got: {}", msg);
+    }
+
+    #[test]
+    fn the_over_limit_message_gives_the_actual_size_and_a_fix() {
+        let msg = over_limit(Some(233_000_000), 104_857_600);
+        assert!(
+            msg.contains("222.2 MiB"),
+            "should name the actual size: {}",
+            msg
+        );
+        assert!(msg.contains("100 MiB"), "should name the limit: {}", msg);
+        assert!(msg.contains("--max-size"), "should show the fix: {}", msg);
+        assert!(
+            msg.contains("FASTPAPER_MAX_DOWNLOAD_SIZE"),
+            "should show the env var too: {}",
+            msg
+        );
+    }
+
+    // Without content-length there is no honest number to report, so the
+    // message says so rather than repeating the limit as if it were the size.
+    #[test]
+    fn an_unknown_size_is_admitted_rather_than_guessed() {
+        let msg = over_limit(None, 104_857_600);
+        assert!(msg.contains("did not report its size"), "got: {}", msg);
+        assert!(msg.contains("--max-size"), "got: {}", msg);
+    }
+
+    #[test]
+    fn the_suggested_limit_clears_the_actual_size() {
+        let msg = over_limit(Some(233_000_000), 104_857_600);
+        assert!(msg.contains("--max-size 500MiB"), "got: {}", msg);
+    }
+
+    #[test]
+    fn a_body_within_the_limit_comes_back_whole() {
+        let mut server = mockito::Server::new();
+        let m = server
+            .mock("GET", "/small.pdf")
+            .with_header("content-length", "13")
+            .with_body("%PDF-1.4 fake")
+            .create();
+        let bytes = fetch_pdf(&format!("{}/small.pdf", server.url()), 10 * MIB).unwrap();
+        assert_eq!(bytes, b"%PDF-1.4 fake");
+        m.assert();
+    }
+
+    // Content-length is checked before the body is touched, so an oversized
+    // paper costs no bandwidth at all -- the declared size is what triggers
+    // the refusal, not how many bytes the mock actually put on the wire (kept
+    // tiny here: a 25 MiB `with_body` in an earlier version of this test cost
+    // ~80 MiB of peak RSS in the test process for no extra coverage).
+    #[test]
+    fn content_length_over_the_limit_is_refused_with_the_real_size() {
+        let mut server = mockito::Server::new();
+        let _m = server
+            .mock("GET", "/big.pdf")
+            .with_header("content-length", "25480000")
+            .with_chunked_body(|w| w.write_all(&[0u8; 100]))
+            .create();
+        let err = fetch_pdf(&format!("{}/big.pdf", server.url()), 10 * MIB).unwrap_err();
+        assert!(err.contains("24.3 MiB"), "got: {}", err);
+        assert!(err.contains("--max-size"), "got: {}", err);
+    }
+
+    // Distinct from `a_body_within_the_limit_comes_back_whole`: that test's
+    // declared content-length and its finite limit are both way above the
+    // body, so it would pass even if the limit were never applied at all.
+    // This one has no declared length to check against and a body a normal
+    // limit would refuse (10 MiB elsewhere in this file), so only an
+    // unlimited limit -- not a generous one -- can be why it passes.
+    #[test]
+    fn an_unlimited_limit_accepts_a_body_a_normal_limit_would_refuse() {
+        let mut server = mockito::Server::new();
+        let body = vec![0u8; 11 * 1024 * 1024];
+        let _m = server
+            .mock("GET", "/any.pdf")
+            .with_chunked_body({
+                let body = body.clone();
+                move |w| w.write_all(&body)
+            })
+            .create();
+        let bytes = fetch_pdf(&format!("{}/any.pdf", server.url()), u64::MAX).unwrap();
+        assert_eq!(bytes, body);
+    }
+
+    #[test]
+    fn a_404_still_reports_not_found_rather_than_a_size_problem() {
+        let mut server = mockito::Server::new();
+        let _m = server.mock("GET", "/gone.pdf").with_status(404).create();
+        let err = fetch_pdf(&format!("{}/gone.pdf", server.url()), 10 * MIB).unwrap_err();
+        assert!(err.contains("Not found"), "got: {}", err);
+    }
+
+    #[test]
+    fn a_named_fetch_uses_its_own_not_found_wording() {
+        let mut server = mockito::Server::new();
+        let _m = server.mock("GET", "/gone.pdf").with_status(404).create();
+        let err = fetch_pdf_named(
+            &format!("{}/gone.pdf", server.url()),
+            10 * MIB,
+            "Paper not found: 2301.08745",
+        )
+        .unwrap_err();
+        assert_eq!(err, "Paper not found: 2301.08745");
+    }
+
+    // A chunked response has no Content-Length, so this exercises the other
+    // enforcement path: ureq's own reader limit (`.limit()`), not the
+    // precheck. That path is what a compressed response also takes, since
+    // ureq reports no content-length while decompressing either.
+    #[test]
+    fn a_streaming_body_over_the_limit_is_refused_when_length_is_unknown() {
+        let mut server = mockito::Server::new();
+        let _m = server
+            .mock("GET", "/chunked.pdf")
+            .with_chunked_body(|w| w.write_all(&[0u8; 2 * 1024 * 1024]))
+            .create();
+        let err = fetch_pdf(&format!("{}/chunked.pdf", server.url()), 1024 * 1024).unwrap_err();
+        assert!(err.contains("did not report its size"), "got: {}", err);
+    }
+
+    // `--max-size` exists to bound memory, and by default it did not: ureq's
+    // `.limit()` counts bytes *inside* its decompressor, and the check on
+    // `bytes.len()` only fires once the whole decompressed body is already
+    // buffered, so under the 100 MiB default a gzip response could inflate
+    // ~1000x before anything refused it. A PDF is already compressed, so
+    // asking for no transfer encoding costs nothing and buys two things: a
+    // Content-Length to precheck against, and a `.limit()` that counts the
+    // bytes that actually land in memory.
+    #[test]
+    fn a_pdf_fetch_asks_for_no_compression() {
+        let mut server = mockito::Server::new();
+        let m = server
+            .mock("GET", "/plain.pdf")
+            .match_header("accept-encoding", "identity")
+            .with_body("%PDF-1.4 fake")
+            .create();
+        let bytes = fetch_pdf(&format!("{}/plain.pdf", server.url()), 10 * MIB).unwrap();
+        assert!(bytes.starts_with(b"%PDF"));
+        m.assert();
+    }
+
+    // The regression this task exists to close: ureq reports no
+    // content-length while decompressing (so the precheck above is skipped),
+    // and its `.limit()` counts *compressed* bytes, inside the decompressor
+    // rather than around it -- so neither guard alone catches an inflated
+    // body. The fixture is ~2KiB of gzip that decompresses to 2 MiB, which
+    // slips straight past a 1 MiB `.limit()` on the wire; only the check on
+    // the decompressed `Vec` after `read_to_vec` catches it, and only that
+    // check can report the real, decompressed size.
+    #[test]
+    fn a_gzip_body_whose_decompressed_size_exceeds_the_limit_is_refused() {
+        let mut server = mockito::Server::new();
+        // Generated with `head -c 2097152 /dev/zero | gzip -9`: 2 MiB of NUL
+        // bytes, not a PDF, which is why the assertion below is about the
+        // refusal and never about the content.
+        let compressed = include_bytes!("../tests/fixtures/oversized_gzip_body.pdf.gz").to_vec();
+        let _m = server
+            .mock("GET", "/gz.pdf")
+            .with_header("content-encoding", "gzip")
+            .with_body(compressed)
+            .create();
+        let err = fetch_pdf(&format!("{}/gz.pdf", server.url()), 1024 * 1024).unwrap_err();
+        assert!(
+            err.contains("2 MiB"),
+            "should name the real decompressed size: {}",
+            err
+        );
+        assert!(err.contains("--max-size"), "got: {}", err);
     }
 }
 

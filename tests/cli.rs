@@ -1,4 +1,5 @@
 use assert_cmd::Command;
+use predicates::prelude::PredicateBooleanExt;
 use predicates::str::contains;
 use std::path::PathBuf;
 
@@ -209,6 +210,49 @@ fn download_arxiv_overwrite_replaces_file() {
         std::fs::read(dir.join("2301.08745.pdf")).unwrap(),
         b"%PDF-1.4 new content"
     );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// `download` writes nothing to stdout, so the `Saved:` line is its only
+// output, and the path is not derivable: `save_pdf` turns the `/` in a DOI
+// into `_`. Silencing it under `-q` left the caller guessing at a filename.
+#[test]
+fn download_reports_the_path_even_under_quiet() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "arxiv", "2301.08745", "-q", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success()
+        .stderr(contains("Saved:").and(contains("2301.08745.pdf")));
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// Every other receipt on this branch carries a quantity; this one carries the
+// size, so "did the whole PDF arrive" needs no second look at the file.
+#[test]
+fn the_download_receipt_names_the_size() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "arxiv", "2301.08745", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success()
+        .stderr(contains("(13 B)"));
     let _ = std::fs::remove_dir_all(&dir);
 }
 
@@ -1103,4 +1147,483 @@ fn search_with_a_blank_query_is_rejected() {
         .assert()
         .failure()
         .stderr(contains("empty"));
+}
+
+fn fixture_pdf() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/test.pdf")
+}
+
+#[test]
+fn output_flag_reports_what_it_wrote_on_stderr() {
+    let out = temp_dir().join("receipt.txt");
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("-o")
+        .arg(&out)
+        .assert()
+        .success()
+        .stdout("")
+        .stderr(contains("Saved:").and(contains("chars")));
+    assert!(out.exists(), "the file should still be written");
+}
+
+// The receipt counted the extracted text, not the JSON envelope wrapped
+// around it, so `--format json -o` reported a number smaller than anything in
+// the file -- a caller comparing it against the file would think it was cut.
+#[test]
+fn the_receipt_counts_what_landed_in_the_file() {
+    for format in ["json", "table"] {
+        let out = temp_dir().join(format!("count_{}.txt", format));
+        let assert = cmd()
+            .arg("read")
+            .arg(fixture_pdf())
+            .arg("--format")
+            .arg(format)
+            .arg("-o")
+            .arg(&out)
+            .assert()
+            .success();
+        let stderr = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
+        let written = std::fs::read_to_string(&out).unwrap().chars().count();
+        assert!(
+            stderr.contains(&format!("({} chars)", written)),
+            "--format {} wrote {} chars but the receipt said: {}",
+            format,
+            written,
+            stderr.trim()
+        );
+    }
+}
+
+#[test]
+fn quiet_suppresses_the_receipt() {
+    let out = temp_dir().join("quiet.txt");
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("-o")
+        .arg(&out)
+        .arg("-q")
+        .assert()
+        .success()
+        .stdout("")
+        .stderr("");
+    assert!(out.exists(), "-q silences the receipt, not the write");
+}
+
+// `read -o` was the only command whose receipt was covered end to end, so
+// `search -o` and `cite -o` could have gone silent without a test noticing --
+// and a silent `-o` is exactly what leaves an agent reading the file back.
+#[test]
+fn search_output_flag_reports_how_many_results_it_wrote() {
+    let fixture = include_str!("fixtures/arxiv_search.xml");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let out = temp_dir().join("search.json");
+    cmd()
+        .args(["search", "arxiv", "attention", "--format", "json", "-o"])
+        .arg(&out)
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success()
+        .stdout("")
+        .stderr(contains("Saved:").and(contains("results")));
+    let v: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&out).unwrap()).unwrap();
+    let written = v["results"].as_array().unwrap().len();
+    assert!(written > 0, "the fixture should yield results");
+}
+
+#[test]
+fn cite_output_flag_reports_how_many_edges_it_wrote() {
+    let fixture = include_str!("fixtures/semantic_citations.json");
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let out = temp_dir().join("cite.json");
+    cmd()
+        .args(["cite", "2301.08745", "--format", "json", "-o"])
+        .arg(&out)
+        .env("FASTPAPER_SEMANTIC_URL", server.url())
+        .assert()
+        .success()
+        .stdout("")
+        .stderr(contains("Saved:").and(contains("results")));
+    assert!(out.exists(), "the file should still be written");
+}
+
+#[test]
+fn without_output_flag_there_is_no_receipt() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .assert()
+        .success()
+        .stderr("");
+}
+
+#[test]
+fn grep_finds_a_word_regardless_of_case() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("ATTENTION")
+        .arg("--context")
+        .arg("10")
+        .assert()
+        .success()
+        .stdout(contains("── match 1 @ 0 ──"));
+}
+
+#[test]
+fn grep_without_a_match_exits_4_and_writes_nothing() {
+    let out = temp_dir().join("nomatch.txt");
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("thermoluminescence")
+        .arg("-o")
+        .arg(&out)
+        .assert()
+        .code(4)
+        .stderr(contains("No match for 'thermoluminescence'"));
+    assert!(
+        !out.exists(),
+        "a failed search must not leave a file behind"
+    );
+}
+
+#[test]
+fn grep_rejects_an_invalid_pattern_with_exit_1() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("attention(")
+        .assert()
+        .code(1)
+        .stderr(contains("Invalid pattern"));
+}
+
+// `--max-length 40` used to cut from the head of the window, so with the
+// default 500 characters of context the excerpt held 40 characters of lead-in
+// and none of the match -- while the receipt still claimed both matches.
+#[test]
+fn a_budgeted_excerpt_still_contains_the_match() {
+    let assert = cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("the")
+        .arg("--max-length")
+        .arg("40")
+        .assert()
+        .success();
+    let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+    let excerpt = stdout.lines().nth(1).unwrap_or("");
+    assert!(
+        excerpt.to_lowercase().contains("the"),
+        "excerpt has none of the pattern: {}",
+        stdout
+    );
+}
+
+// The same command in JSON: what the envelope claims has to match the body.
+#[test]
+fn a_budgeted_json_result_counts_only_the_matches_it_shows() {
+    let assert = cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("the")
+        .arg("--max-length")
+        .arg("40")
+        .arg("--format")
+        .arg("json")
+        .assert()
+        .success();
+    let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(v["total_matches"], 2);
+    assert_eq!(v["shown_matches"], 1);
+    assert_eq!(v["truncated"], true);
+    assert_eq!(v["truncated_by"], serde_json::json!(["--max-length"]));
+    let text = v["matches"][0]["text"].as_str().unwrap();
+    assert!(text.to_lowercase().contains("the"), "got: {}", text);
+}
+
+// Raising --max-matches when --max-length is what cut changes nothing, so the
+// notice has to name the flag that actually bound.
+#[test]
+fn the_truncation_notice_names_the_flag_that_bound() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("the")
+        .arg("--context")
+        .arg("5")
+        .arg("--max-length")
+        .arg("15")
+        .assert()
+        .success()
+        .stdout(contains("(--max-length to raise)"))
+        .stdout(contains("--max-matches").not());
+}
+
+// A budget that fits nothing shows nothing, and says so: `1 match` over an
+// empty body was the receipt lying about what landed.
+#[test]
+fn a_zero_budget_reports_no_matches_shown() {
+    let out = temp_dir().join("zero.txt");
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("the")
+        .arg("--max-length")
+        .arg("0")
+        .arg("-o")
+        .arg(&out)
+        .assert()
+        .success()
+        .stderr(contains("0 of 2 matches"));
+    let body = std::fs::read_to_string(&out).unwrap();
+    assert!(
+        !body.contains("── match"),
+        "nothing was shown, so no excerpt heading: {}",
+        body
+    );
+}
+
+// Nothing tested the two flags together, so an implementation that ignored
+// --section and grepped the whole paper would have passed the suite. The word
+// only appears in the introduction, so searching the abstract must miss it.
+#[test]
+fn grep_searches_only_the_section_that_was_selected() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--section")
+        .arg("abstract")
+        .arg("--grep")
+        .arg("dominant")
+        .assert()
+        .code(4)
+        .stderr(contains("searched: abstract"));
+
+    // And the same word does match when the search covers the whole paper.
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("dominant")
+        .assert()
+        .success();
+}
+
+// The offset a section-scoped search reports is relative to that section, not
+// to the paper -- so the two cannot both be right, and the numbers have to
+// differ for a word that appears in both.
+#[test]
+fn a_section_scoped_offset_is_relative_to_the_section() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--section")
+        .arg("abstract")
+        .arg("--grep")
+        .arg("Transformer")
+        .assert()
+        .success()
+        .stdout(contains("── match 1 @ 50 ──"));
+
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("Transformer")
+        .assert()
+        .success()
+        .stdout(contains("── match 1 @ 86 ──"));
+}
+
+#[test]
+fn context_without_grep_is_rejected() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--context")
+        .arg("100")
+        // clap's own usage-error code, not one of ours. README documents it.
+        .assert()
+        .code(2)
+        .stderr(contains("--grep"));
+}
+
+// `--context` and `--max-matches` are rejected without `--grep`, so `--help`
+// has to say so -- otherwise the only way to find out is exit 2.
+#[test]
+fn read_help_says_which_flags_need_grep() {
+    cmd()
+        .arg("read")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(contains("--context <CONTEXT>          Characters of context on each side of a match (requires --grep)"))
+        .stdout(contains("--max-matches <MAX_MATCHES>  Show at most N matches (requires --grep)"));
+}
+
+// `parse-size` reads a unit-less number as bytes, so `--max-size 10` means ten
+// bytes and refuses every PDF there is. Nothing in the help said so.
+#[test]
+fn download_help_says_a_bare_number_is_bytes() {
+    cmd()
+        .arg("download")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(contains("a bare number is bytes"));
+}
+
+#[test]
+fn grep_receipt_counts_matches_not_characters() {
+    let out = temp_dir().join("matches.txt");
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("attention")
+        .arg("-o")
+        .arg(&out)
+        .assert()
+        .success()
+        .stderr(contains("matches)"));
+}
+
+#[test]
+fn grep_json_carries_the_pattern_and_the_totals() {
+    let assert = cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--grep")
+        .arg("attention")
+        .arg("--format")
+        .arg("json")
+        .assert()
+        .success();
+    let stdout = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
+    let v: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    assert_eq!(v["pattern"], "attention");
+    assert_eq!(v["total_matches"], 2);
+}
+
+// Was exit 1, which read like "you typed the command wrong". A section the
+// heuristic could not find is the same shape of answer as a paper that is not
+// there, so it exits 4 like `get` does.
+#[test]
+fn a_missing_section_exits_4() {
+    cmd()
+        .arg("read")
+        .arg(fixture_pdf())
+        .arg("--section")
+        .arg("references")
+        .assert()
+        .code(4)
+        .stderr(contains("No 'references' section found"));
+}
+
+#[test]
+fn download_help_documents_the_size_limit_and_its_env_var() {
+    cmd()
+        .arg("download")
+        .arg("--help")
+        .assert()
+        .success()
+        .stdout(contains("--max-size").and(contains("FASTPAPER_MAX_DOWNLOAD_SIZE")));
+}
+
+// `download.rs` passes `args.max_size` into the fetch on a single line, and
+// nothing end to end checked it: hard-coding `u64::MAX` there would have kept
+// the whole suite green while the flag did nothing. A bare number is bytes, so
+// 10 refuses the 13-byte body below -- and nothing must land on disk.
+#[test]
+fn max_size_refuses_a_body_over_the_limit_and_writes_nothing() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args([
+            "download",
+            "arxiv",
+            "2301.08745",
+            "--max-size",
+            "10",
+            "--dir",
+        ])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .failure()
+        .stderr(contains("download limit"))
+        .stderr(contains("--max-size"));
+    assert!(
+        !dir.join("2301.08745.pdf").exists(),
+        "a refused download must leave nothing behind"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// The same body under a limit that clears it still arrives, so the test above
+// is about the limit and not about the mock.
+#[test]
+fn max_size_above_the_body_lets_it_through() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args([
+            "download",
+            "arxiv",
+            "2301.08745",
+            "--max-size",
+            "1KiB",
+            "--dir",
+        ])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success();
+    assert!(dir.join("2301.08745.pdf").exists());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn an_unparseable_max_size_is_rejected_before_any_network_call() {
+    cmd()
+        .arg("download")
+        .arg("2301.08745")
+        .arg("--max-size")
+        .arg("huge")
+        .assert()
+        .failure()
+        .stderr(contains("is not a size"));
 }

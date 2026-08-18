@@ -150,13 +150,19 @@ fastpaper search <SOURCE> <QUERY> [OPTIONS]
 
 ### `get` -- 按标识符取元数据
 
-给一个参数时它是标识符，数据源由其形状推断（DOI、arXiv ID、PMID、PMC ID、S2 ID）；
-给两个参数时第一个显式指定数据源。
+给一个参数时它是标识符，数据源由其形状推断；给两个参数时第一个显式指定数据源。
 
 ```
 fastpaper get <IDENTIFIER>
 fastpaper get <SOURCE> <IDENTIFIER>
 ```
+
+路由：arXiv→`arxiv`、PMC→`pmc`、PMID→`pubmed`、DOI→`crossref`、`S2:`→`semantic`。
+
+注意这与 `download` 不同——`download` 把 DOI 送给 `semantic`，两个命令看的是**不同源
+的记录**。Crossref 是 DOI 的注册机构，元数据最权威，但它不提供文件，所以
+`get <DOI>` 的 `pdf_url` 恒为 `null`；而 `download <DOI>` 走 Semantic Scholar 解析
+开放获取副本。不要用 `get <DOI>` 的 `pdf_url` 去预判 `download` 会不会成功。
 
 ### `download` -- 下载 PDF
 
@@ -168,6 +174,9 @@ fastpaper download <SOURCE> <IDENTIFIER> [OPTIONS]
 
 选项:
   -d, --dir <PATH>       下载目录 [默认: ./papers]
+  -s, --max-size <SIZE>  可接受的最大响应体,如 10MiB、200MB。
+                         不带单位的数字按字节算,`--max-size 10` 就是 10 字节。
+                         0 表示不限制 [默认: 100MiB]
       --overwrite        覆盖已有文件
 ```
 
@@ -198,6 +207,11 @@ fastpaper read <PATH> [OPTIONS]
 选项:
       --section <SEC>    abstract, introduction, methods, results,
                          discussion, conclusion, references, full [默认: full]
+      --grep <PATTERN>   用正则表达式搜索文本。
+                         默认不区分大小写;用 (?-i) 切换为区分大小写
+      --context <N>      每个匹配两侧各保留多少字符的上下文
+                         (需要 --grep)[默认: 500]
+      --max-matches <N>  最多显示 N 个匹配(需要 --grep)[默认: 10]
       --max-length <N>   截断输出到 N 个字符
   -o, --output <PATH>    输出到文件
 ```
@@ -205,7 +219,17 @@ fastpaper read <PATH> [OPTIONS]
 ```sh
 fastpaper download 2301.08745            # -> ./papers/2301.08745.pdf
 fastpaper read papers/2301.08745.pdf --section abstract
+fastpaper read papers/2301.08745.pdf --grep 'limitations?'
 ```
+
+`--grep` 搜索的是 `--section` 选中的那部分,不给 `--section` 时就搜索全文,所以
+"先试某一节,不行就退回全文"只需要改一个参数就行。命中的位置以字符偏移量报告,
+相互重叠的窗口会合并而不是重复打印。零命中时退出码为 4。
+
+`--max-length` 只限制输出长度,不会把命中本身裁掉:超出预算的片段是围绕命中裁剪的,
+而不是从头截断,而且只统计仍然显示出来的命中。有内容被略去时,末尾那行会指名是哪个
+参数造成的——`--max-length` 触顶时去调大 `--max-matches` 毫无作用——`--format json`
+则把同样的答案放在 `truncated_by` 字段里。
 
 ### `sources` -- 列出数据源及能力
 
@@ -228,6 +252,7 @@ fastpaper completions bash >> ~/.bashrc
 | 变量 | 用途 |
 |------|------|
 | `FASTPAPER_DOWNLOAD_DIR` | 默认下载目录（未设置则为 `./papers`） |
+| `FASTPAPER_MAX_DOWNLOAD_SIZE` | `download` 可接受的最大响应体（未设置则为 `100MiB`）；`0` 表示不限制 |
 | `FASTPAPER_EMAIL` | 发给 CrossRef、OpenAlex 和 NCBI 的联系邮箱。不设置就不发这个参数，三者都接受 |
 | `SEMANTIC_SCHOLAR_API_KEY` | 提升 Semantic Scholar 频率限制 |
 | `OPENALEX_API_KEY` | OpenAlex 自 2026-02 起按用量计费，设置后可用更大的免费额度 |
@@ -245,11 +270,19 @@ fastpaper completions bash >> ~/.bashrc
 | 代码 | 含义 |
 |------|------|
 | `0` | 成功 |
-| `1` | 一般错误（无效参数、解析失败） |
-| `2` | 网络错误（连接超时、DNS 失败） |
+| `1` | 一般错误（参数被拒、解析失败、网络失败） |
+| `2` | 命令行解析层面的用法错误：未知参数、取值非法，或缺少配套参数（`--context` 没配 `--grep`） |
 | `3` | 数据源错误（API 报错、频率限制重试耗尽） |
-| `4` | 未找到结果 |
+| `4` | 什么都没匹配上：论文不存在、`--grep` 零命中、`--section` 未命中 |
 | `5` | 权限错误（论文未开放获取、缺少必需环境变量） |
+
+带 `-o` 的命令在文件写完后会向 stderr 打一行回执——
+`Saved: results.json (12 results)`——调用方不用回读文件就知道落地了什么。
+`-q` 会抑制这行输出。零结果时也照样打印,因为这恰恰是最该被看见的情况。
+
+`download` 同样会向 stderr 打一行 `Saved: papers/2301.08745.pdf (2.2 MiB)`。
+这一行 `-q` 不会抑制:`download` 不往标准输出写任何东西,而落盘路径也没法由参数推出来
+——DOI 里的 `/` 在文件名里会变成 `_`。
 
 ## 参与贡献
 
