@@ -40,13 +40,10 @@ pub fn extract_document_from_bytes(bytes: &[u8]) -> Result<Document, String> {
             if span.text.trim().is_empty() {
                 continue;
             }
-            // A new row starts when the baseline moves. The tolerance is a
-            // fraction of the type size so superscripts and inline maths stay
-            // on the line they belong to.
-            let moved = row.last().is_some_and(|last| {
-                (last.bbox.y - span.bbox.y).abs() > (span.font_size * 0.4).max(1.0)
+            let broke = row.last().is_some_and(|last: &&pdf_oxide::layout::TextSpan| {
+                starts_new_row(placed_at(last), placed_at(span))
             });
-            if moved {
+            if broke {
                 push_line(&mut text, &mut lines, &row);
                 row.clear();
             }
@@ -57,6 +54,69 @@ pub fn extract_document_from_bytes(bytes: &[u8]) -> Result<Document, String> {
 
     Ok(Document { text, lines })
 }
+
+/// Where a span sits and how big it is set -- what deciding a line break needs.
+#[derive(Debug, Clone, Copy)]
+struct Placed {
+    x: f32,
+    y: f32,
+    width: f32,
+    font_size: f32,
+}
+
+/// Read a span's placement off the PDF.
+fn placed_at(span: &pdf_oxide::layout::TextSpan) -> Placed {
+    Placed {
+        x: span.bbox.x,
+        y: span.bbox.y,
+        width: span.bbox.width,
+        font_size: span.font_size,
+    }
+}
+
+/// Whether `next` opens a new row rather than continuing the one `last` is on.
+///
+/// Three things end a row. The baseline moving is the obvious one. The other
+/// two are what a shared baseline across two columns looks like, and reading
+/// order alone does not separate them: a heading at the top of one column and
+/// body text in the other are handed over one after the other, at the same
+/// height, and joining them buries the heading inside a sentence.
+///
+/// A jump far wider than any word space says the text moved to another column
+/// or block. Where the columns sit close enough that the jump is only a space
+/// or two -- 16pt in one of the journals measured -- the type gives it away
+/// instead: body text does not run into a heading half again its size
+/// mid-line. A superscript is a size jump too, so that one only counts when
+/// there is a gap; a superscript sits against the word it marks.
+fn starts_new_row(last: Placed, next: Placed) -> bool {
+    let larger = last.font_size.max(next.font_size);
+    let smaller = last.font_size.min(next.font_size).max(0.1);
+
+    // Measured against the larger of the two: a superscript is raised relative
+    // to the line it sits on, not to its own small size, so a tolerance scaled
+    // to the superscript reads the raise as a new line.
+    if (last.y - next.y).abs() > (larger * 0.4).max(1.0) {
+        return true;
+    }
+
+    let gap = next.x - (last.x + last.width);
+    if gap.abs() > larger * COLUMN_JUMP {
+        return true;
+    }
+
+    larger / smaller >= DISPLAY_JUMP && gap > smaller * 0.5
+}
+
+/// How far apart, in multiples of the type size, two spans have to be before
+/// the space between them reads as a column break rather than a word space.
+/// Measured over the corpus: table cells sit 3 to 5 across, column breaks 11
+/// and up.
+const COLUMN_JUMP: f32 = 6.0;
+
+/// How much larger one span has to be set than its neighbour before they
+/// cannot be on one line. The headings this separates run 1.5 and 1.67 times
+/// the body they were joined to.
+const DISPLAY_JUMP: f32 = 1.4;
 
 /// Append one rebuilt row to the text, recording where it landed.
 fn push_line(text: &mut String, lines: &mut Vec<Line>, row: &[&pdf_oxide::layout::TextSpan]) {
@@ -582,5 +642,64 @@ mod tests {
         let found = detect_headings(&doc);
         assert_eq!(found.len(), 1, "got: {:?}", found);
         assert_eq!(found[0].section, "introduction");
+    }
+
+    // ── rows ─────────────────────────────────────
+
+    fn placed(x: f32, y: f32, width: f32, font_size: f32) -> Placed {
+        Placed { x, y, width, font_size }
+    }
+
+    #[test]
+    fn a_span_further_along_the_same_line_continues_the_row() {
+        let last = placed(209.6, 329.4, 84.1, 9.0);
+        let next = placed(296.0, 329.4, 20.0, 9.0);
+        assert!(!starts_new_row(last, next));
+    }
+
+    #[test]
+    fn a_span_on_a_new_baseline_opens_a_row() {
+        let last = placed(42.5, 329.4, 84.1, 9.0);
+        let next = placed(42.5, 316.0, 84.1, 9.0);
+        assert!(starts_new_row(last, next));
+    }
+
+    // Communications Medicine sets `Plain language summary` at the top of the
+    // right column and `Abstract` at the top of the left, on one baseline. The
+    // reading-order pass hands them over in that order, and joining them hid
+    // the abstract heading inside `Plain language summaryAbstract`.
+    #[test]
+    fn a_span_that_jumps_to_another_column_opens_a_row() {
+        let last = placed(395.4, 690.0, 111.8, 10.0);
+        let next = placed(39.7, 690.0, 35.0, 10.0);
+        assert!(starts_new_row(last, next), "-467pt is not a word space");
+    }
+
+    // The columns of this journal are only 16pt apart, so the jump alone does
+    // not give it away. The type does: 9pt body does not run into a 15pt
+    // heading mid-line.
+    #[test]
+    fn body_text_does_not_run_into_a_display_heading() {
+        let last = placed(209.6, 329.4, 84.1, 9.0);
+        let next = placed(309.5, 325.4, 60.0, 15.0);
+        assert!(starts_new_row(last, next), "9pt into 15pt is a new row");
+    }
+
+    // A superscript is a size jump too, but it sits right against the word it
+    // marks rather than a space away.
+    #[test]
+    fn a_superscript_stays_on_its_line() {
+        let last = placed(100.0, 329.4, 30.0, 9.0);
+        let next = placed(130.2, 332.0, 4.0, 6.0);
+        assert!(!starts_new_row(last, next));
+    }
+
+    // Table cells sit several spaces apart on a shared baseline, and the row
+    // they form is a real line of the document.
+    #[test]
+    fn table_cells_stay_on_one_row() {
+        let last = placed(100.0, 400.0, 40.0, 9.0);
+        let next = placed(180.0, 400.0, 30.0, 9.0);
+        assert!(!starts_new_row(last, next), "40pt is 4.4x the type, still a cell gap");
     }
 }
