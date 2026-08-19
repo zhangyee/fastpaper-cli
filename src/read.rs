@@ -121,9 +121,23 @@ pub struct Heading {
 /// `INTRODUCTION` gets eaten along with the `I.` in front of it.
 fn canonical_section(text: &str) -> Option<&'static str> {
     let mut rest = text.trim();
-    while let Some(split) = rest.find(['.', ' ']) {
+    loop {
+        // Digits can be taken without a delimiter. LaTeX sets the number apart
+        // from the heading by position rather than by a space character, so the
+        // extractor hands back `1Introduction`, and no section is named with a
+        // digit anyway.
+        let after_digits = rest.trim_start_matches(|c: char| c.is_ascii_digit());
+        if after_digits.len() < rest.len() {
+            rest = after_digits.trim_start_matches(['.', ' ']);
+            continue;
+        }
+        // A roman numeral has to be delimited, or stripping it takes the `I`
+        // of `INTRODUCTION` with it.
+        let Some(split) = rest.find(['.', ' ']) else {
+            break;
+        };
         let (token, tail) = rest.split_at(split);
-        if token.is_empty() || !is_numbering(token) {
+        if token.is_empty() || !is_roman_numeral(token) {
             break;
         }
         rest = tail[1..].trim_start();
@@ -166,12 +180,11 @@ const HEADING_ALIASES: &[(&str, &str)] = &[
     ("references", "references"),
 ];
 
-/// Whether a token is a section number: `3`, `2`, `IV`.
-fn is_numbering(token: &str) -> bool {
-    token.chars().all(|c| c.is_ascii_digit())
-        || token
-            .chars()
-            .all(|c| matches!(c.to_ascii_uppercase(), 'I' | 'V' | 'X' | 'L' | 'C'))
+/// Whether a token is a roman section number: `II`, `IV`.
+fn is_roman_numeral(token: &str) -> bool {
+    token
+        .chars()
+        .all(|c| matches!(c.to_ascii_uppercase(), 'I' | 'V' | 'X' | 'L' | 'C'))
 }
 
 /// The type size the body of the document is set in.
@@ -550,5 +563,24 @@ mod tests {
         let found = detect_headings(&doc);
         assert_eq!(found.len(), 1, "got: {:?}", found);
         assert_eq!(found[0].section, "conclusion");
+    }
+
+    // LaTeX sets the number and the heading apart with positioning, not with a
+    // space character, so the extractor hands back `1Introduction`.
+    #[test]
+    fn detect_headings_strips_a_numbering_prefix_with_no_separator() {
+        let doc = lines(&[("1Introduction", 12.0, true), ("3.1Results", 12.0, true)]);
+        let found: Vec<&str> = detect_headings(&doc).iter().map(|h| h.section).collect();
+        assert_eq!(found, vec!["introduction", "results"]);
+    }
+
+    // The roman numeral still needs its delimiter: without one, stripping
+    // leading roman characters eats the `I` of `INTRODUCTION`.
+    #[test]
+    fn detect_headings_keeps_a_word_that_opens_with_roman_letters() {
+        let doc = lines(&[("I.INTRODUCTION", 12.0, true)]);
+        let found = detect_headings(&doc);
+        assert_eq!(found.len(), 1, "got: {:?}", found);
+        assert_eq!(found[0].section, "introduction");
     }
 }
