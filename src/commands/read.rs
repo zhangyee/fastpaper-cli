@@ -59,6 +59,7 @@ pub fn run(args: &ReadArgs, global: &GlobalOpts) -> CommandResult {
                     if let Some(heading) = &heading {
                         envelope["heading"] = serde_json::json!({
                             "text": heading.text,
+                            "page": heading.page,
                             "offset": heading.offset,
                             "font_size": heading.font_size,
                         });
@@ -102,6 +103,7 @@ fn list_sections(args: &ReadArgs, global: &GlobalOpts, document: &pdf::Document)
                 .map(|h| serde_json::json!({
                     "section": h.section,
                     "heading": h.text,
+                    "page": h.page,
                     "offset": h.offset,
                     "font_size": h.font_size,
                 }))
@@ -112,8 +114,8 @@ fn list_sections(args: &ReadArgs, global: &GlobalOpts, document: &pdf::Document)
             .iter()
             .map(|h| {
                 format!(
-                    "{:<14} @{:<8} {:>5.1}pt  {}",
-                    h.section, h.offset, h.font_size, h.text
+                    "{:<14} p{:<4} @{:<8} {:>5.1}pt  {}",
+                    h.section, h.page, h.offset, h.font_size, h.text
                 )
             })
             .collect::<Vec<_>>()
@@ -459,6 +461,8 @@ mod tests {
                     font_size: size,
                     bold: true,
                     offset: text.len(),
+                    page: 1,
+                    y: 700.0,
                 });
                 text.push_str(line);
                 text.push('\n');

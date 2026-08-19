@@ -230,12 +230,8 @@ fn report_unrecognised_heading_shapes() {
 }
 
 /// Not an assertion -- a triage aid. Prints every detected heading with the
-/// page and baseline it sits on, so the page can be rendered and the reading
-/// checked against what the publisher actually printed.
-///
-/// Rows are rebuilt here exactly as `extract_document` builds them, so the
-/// running offset lines up with the heading offsets the library reports and
-/// the lookup is exact rather than a text match.
+/// page it was printed on, and every heading-shaped line that was not read as
+/// one, so both can be cropped out of a render and compared with the page.
 #[test]
 #[ignore = "diagnostic, not an assertion"]
 fn report_heading_positions() {
@@ -249,6 +245,11 @@ fn report_heading_positions() {
         .collect();
     entries.sort();
 
+    const WORDS: &[&str] = &[
+        "abstract", "introduction", "background", "method", "result",
+        "discussion", "conclusion", "reference",
+    ];
+
     for path in entries {
         let name = path.file_name().unwrap().to_string_lossy().to_string();
         if !only.is_empty() && !name.contains(&only) {
@@ -260,64 +261,30 @@ fn report_heading_positions() {
         let Ok(pdf) = pdf_oxide::PdfDocument::open(&path) else {
             continue;
         };
-        let Ok(pages) = pdf.page_count() else { continue };
-
-        // (offset, page, y, page_height) for every rebuilt row
-        let mut placed: Vec<(usize, usize, f32, f32)> = Vec::new();
-        let mut offset = 0usize;
-        for page in 0..pages {
-            let height = pdf.extract_page_text(page).map(|t| t.page_height).unwrap_or(792.0);
-            let Ok(spans) =
-                pdf.extract_spans_with_reading_order(page, pdf_oxide::ReadingOrder::ColumnAware)
-            else {
-                continue;
-            };
-            let mut row: Vec<&pdf_oxide::layout::TextSpan> = Vec::new();
-            let mut flush = |row: &Vec<&pdf_oxide::layout::TextSpan>, offset: &mut usize| {
-                let Some(first) = row.first() else { return };
-                let joined: String = row.iter().map(|s| s.text.as_str()).collect();
-                let trimmed = joined.trim();
-                if trimmed.is_empty() {
-                    return;
-                }
-                placed.push((*offset, page, first.bbox.y, height));
-                *offset += trimmed.len() + 1;
-            };
-            for span in &spans {
-                if span.text.trim().is_empty() {
-                    continue;
-                }
-                let moved = row.last().is_some_and(|last: &&pdf_oxide::layout::TextSpan| {
-                    (last.bbox.y - span.bbox.y).abs() > (span.font_size * 0.4).max(1.0)
-                });
-                if moved {
-                    flush(&row, &mut offset);
-                    row.clear();
-                }
-                row.push(span);
-            }
-            flush(&row, &mut offset);
-        }
+        let height = |page: usize| {
+            pdf.extract_page_text(page.saturating_sub(1))
+                .map(|t| t.page_height)
+                .unwrap_or(792.0)
+        };
 
         let headings = fastpaper::read::detect_headings(&document.lines);
-        let mut emit = |kind: &str, section: &str, offset: usize, text: &str| {
-            if let Some((_, page, y, height)) = placed.iter().find(|(at, ..)| *at == offset) {
-                println!(
-                    "{}\t{}\t{}\t{}\t{:.1}\t{:.1}\t{}",
-                    name, kind, section, page + 1, y, height, text
-                );
-            }
-        };
         for heading in &headings {
-            emit("HEAD", heading.section, heading.offset, &heading.text);
+            let line = document
+                .lines
+                .iter()
+                .find(|l| l.offset == heading.offset)
+                .unwrap();
+            println!(
+                "{}\tHEAD\t{}\t{}\t{:.1}\t{:.1}\t{}",
+                name,
+                heading.section,
+                heading.page,
+                line.y,
+                height(heading.page),
+                heading.text
+            );
         }
 
-        // Lines that look like a heading but were not read as one. Rendered
-        // alongside, these are what a false negative looks like.
-        const WORDS: &[&str] = &[
-            "abstract", "introduction", "background", "method", "result",
-            "discussion", "conclusion", "reference",
-        ];
         let taken: Vec<usize> = headings.iter().map(|h| h.offset).collect();
         let body = {
             let mut tally: Vec<(f32, usize)> = Vec::new();
@@ -337,8 +304,17 @@ fn report_heading_positions() {
                 && WORDS.iter().any(|w| lower.contains(w))
                 && !taken.contains(&line.offset)
             {
-                emit("MISS", "-", line.offset, &line.text);
+                println!(
+                    "{}\tMISS\t-\t{}\t{:.1}\t{:.1}\t{}",
+                    name,
+                    line.page,
+                    line.y,
+                    height(line.page),
+                    line.text
+                );
             }
         }
     }
 }
+
+

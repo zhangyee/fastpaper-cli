@@ -44,12 +44,12 @@ pub fn extract_document_from_bytes(bytes: &[u8]) -> Result<Document, String> {
                 starts_new_row(placed_at(last), placed_at(span))
             });
             if broke {
-                push_line(&mut text, &mut lines, &row);
+                push_line(&mut text, &mut lines, page + 1, &row);
                 row.clear();
             }
             row.push(span);
         }
-        push_line(&mut text, &mut lines, &row);
+        push_line(&mut text, &mut lines, page + 1, &row);
     }
 
     Ok(Document { text, lines })
@@ -119,10 +119,15 @@ const COLUMN_JUMP: f32 = 6.0;
 const DISPLAY_JUMP: f32 = 1.4;
 
 /// Append one rebuilt row to the text, recording where it landed.
-fn push_line(text: &mut String, lines: &mut Vec<Line>, row: &[&pdf_oxide::layout::TextSpan]) {
-    if row.is_empty() {
+fn push_line(
+    text: &mut String,
+    lines: &mut Vec<Line>,
+    page: usize,
+    row: &[&pdf_oxide::layout::TextSpan],
+) {
+    let Some(first) = row.first() else {
         return;
-    }
+    };
     let joined: String = row.iter().map(|s| s.text.as_str()).collect();
     let trimmed = joined.trim();
     if trimmed.is_empty() {
@@ -143,6 +148,8 @@ fn push_line(text: &mut String, lines: &mut Vec<Line>, row: &[&pdf_oxide::layout
         font_size,
         bold,
         offset,
+        page,
+        y: first.bbox.y,
     });
 }
 
@@ -157,6 +164,11 @@ pub struct Line {
     pub bold: bool,
     /// Byte offset of this line's first character in the rebuilt full text.
     pub offset: usize,
+    /// The page it was set on, numbered from one.
+    pub page: usize,
+    /// The baseline it sits on, in PDF points up from the foot of the page.
+    /// With `page`, this is what finds the line on the page again.
+    pub y: f32,
 }
 
 /// A section heading located in a document.
@@ -171,6 +183,8 @@ pub struct Heading {
     /// Byte offset where the body starts, just past the heading line.
     pub body_start: usize,
     pub font_size: f32,
+    /// The page the heading was printed on, numbered from one.
+    pub page: usize,
 }
 
 /// The section a heading line names, or `None` if the line is not a heading.
@@ -180,7 +194,14 @@ pub struct Heading {
 /// delimiter rather than by consuming roman-numeral characters, or the `I` of
 /// `INTRODUCTION` gets eaten along with the `I.` in front of it.
 fn canonical_section(text: &str) -> Option<&'static str> {
-    let mut rest = text.trim();
+    // Hyphenation points and joiners are set inside the heading itself in some
+    // PDFs -- Nature hands back `Methods` with a soft hyphen between every
+    // other letter -- and none of them are meant to be read.
+    let visible: String = text
+        .chars()
+        .filter(|c| !matches!(c, '\u{ad}' | '\u{200b}' | '\u{200c}' | '\u{200d}' | '\u{2060}' | '\u{feff}'))
+        .collect();
+    let mut rest = visible.trim();
     loop {
         // Digits can be taken without a delimiter. LaTeX sets the number apart
         // from the heading by position rather than by a space character, so the
@@ -203,9 +224,20 @@ fn canonical_section(text: &str) -> Option<&'static str> {
         rest = tail[1..].trim_start();
     }
     let normalised = rest.to_lowercase();
-    HEADING_ALIASES
+    if let Some((_, section)) = HEADING_ALIASES
         .iter()
         .find(|(printed, _)| *printed == normalised)
+    {
+        return Some(section);
+    }
+    // Word spacing is positioning rather than space characters, and some PDFs
+    // return none of it: `2. Materials and Methods` arrives as
+    // `2.MaterialsandMethods`. Comparing without the spaces costs nothing here,
+    // because the whole line has to be the heading either way.
+    let unspaced: String = normalised.chars().filter(|c| !c.is_whitespace()).collect();
+    HEADING_ALIASES
+        .iter()
+        .find(|(printed, _)| printed.replace(' ', "") == unspaced)
         .map(|(_, section)| *section)
 }
 
@@ -235,6 +267,7 @@ const HEADING_ALIASES: &[(&str, &str)] = &[
     ("materials and methods", "methods"),
     ("results", "results"),
     ("discussion", "discussion"),
+    ("discussions", "discussion"),
     ("conclusion", "conclusion"),
     ("conclusions", "conclusion"),
     ("references", "references"),
@@ -297,6 +330,7 @@ pub fn detect_headings(lines: &[Line]) -> Vec<Heading> {
             offset: line.offset,
             body_start: line.offset + line.text.len(),
             font_size: line.font_size,
+            page: line.page,
         };
         match best.iter_mut().find(|h| h.section == candidate.section) {
             Some(kept) if candidate.font_size > kept.font_size => *kept = candidate,
@@ -350,6 +384,8 @@ mod tests {
                     font_size: *size,
                     bold: *bold,
                     offset,
+                    page: 1,
+                    y: 700.0 - offset as f32,
                 };
                 offset += text.len() + 1;
                 line
@@ -701,5 +737,62 @@ mod tests {
         let last = placed(100.0, 400.0, 40.0, 9.0);
         let next = placed(180.0, 400.0, 30.0, 9.0);
         assert!(!starts_new_row(last, next), "40pt is 4.4x the type, still a cell gap");
+    }
+
+    // IEEE Transactions on Biomedical Engineering heads the section
+    // `IV. DISCUSSIONS`, plural.
+    #[test]
+    fn detect_headings_accepts_a_plural_discussions_heading() {
+        let doc = lines(&[("IV. DISCUSSIONS", 12.0, true)]);
+        let found = detect_headings(&doc);
+        assert_eq!(found.len(), 1, "got: {:?}", found);
+        assert_eq!(found[0].section, "discussion");
+    }
+
+    // Word spacing is positioning, not spaces, and some PDFs give none of it
+    // back: `2. Materials and Methods` arrives as `2.MaterialsandMethods`.
+    #[test]
+    fn detect_headings_accepts_a_heading_whose_spaces_were_lost() {
+        let doc = lines(&[("2.MaterialsandMethods", 12.0, true)]);
+        let found = detect_headings(&doc);
+        assert_eq!(found.len(), 1, "got: {:?}", found);
+        assert_eq!(found[0].section, "methods");
+    }
+
+    // Nature hyphenates inside the heading itself, so `Methods` comes back
+    // carrying soft hyphens between its letters.
+    #[test]
+    fn detect_headings_ignores_invisible_formatting_inside_a_heading() {
+        let doc = lines(&[("M\u{ad}et\u{ad}ho\u{ad}ds", 12.0, true)]);
+        let found = detect_headings(&doc);
+        assert_eq!(found.len(), 1, "got: {:?}", found);
+        assert_eq!(found[0].section, "methods");
+    }
+
+    // A byte offset says where a heading is in the extracted text; the page
+    // says where to look in the PDF. Checking the reading against the page is
+    // the only way to know it is right, so the page has to come back with it.
+    #[test]
+    fn extract_document_reports_the_page_each_line_came_from() {
+        let doc = extract_document(&fixture_path()).unwrap();
+        assert!(!doc.lines.is_empty());
+        assert_eq!(doc.lines[0].page, 1, "pages are numbered from one");
+        assert!(
+            doc.lines.windows(2).all(|w| w[0].page <= w[1].page),
+            "pages should not go backwards"
+        );
+    }
+
+    // Page plus baseline is what it takes to find a line on the page again --
+    // to crop it out of a render and check the reading against the print.
+    #[test]
+    fn extract_document_reports_where_on_the_page_each_line_sits() {
+        let doc = extract_document(&fixture_path()).unwrap();
+        assert!(doc.lines.iter().all(|l| l.y > 0.0), "baselines should be set");
+        let first_page: Vec<&Line> = doc.lines.iter().filter(|l| l.page == 1).collect();
+        assert!(
+            first_page.windows(2).all(|w| w[0].y >= w[1].y),
+            "a page is read from its top down, and PDF y counts from the bottom"
+        );
     }
 }
