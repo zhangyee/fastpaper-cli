@@ -59,6 +59,21 @@ const KNOWN_SECTIONS: &[(&str, &str, &str)] = &[
         "results",
         "Table 1 summarizes accuracy",
     ),
+    // Cardiovascular Diagnosis and Therapy sets the `Background` subsection in
+    // the same size as the `Introduction` chapter above it, telling them apart
+    // by typeface and colour alone -- neither of which survives into text. The
+    // introduction has to keep the subsection rather than end at it. Verified
+    // against a render of page 2.
+    ("10.21037_cdt-2025-aw-561.pdf", "introduction", "Background"),
+    // Same paper, plural heading: `Conclusions`. Verified against page 15.
+    (
+        "10.21037_cdt-2025-aw-561.pdf",
+        "conclusion",
+        "AI-enhanced ECG for AMI detection shows promising",
+    ),
+    // JMIR heads its sections in a face pdf_oxide reports as italic, though it
+    // renders upright -- style flags are not a reliable heading signal.
+    ("10.2196_31129.pdf", "introduction", "Wearable devices"),
 ];
 
 #[test]
@@ -159,6 +174,57 @@ fn report_detected_headings() {
                 println!("{:<42} {}", name, found.join(" "));
             }
             Err(e) => println!("{:<42} ERROR {}", name, e),
+        }
+    }
+}
+
+/// Not an assertion -- a triage aid. Prints heading-shaped lines the alias
+/// table did not recognise, which is how a publisher's wording variant gets
+/// found rather than guessed at.
+#[test]
+#[ignore = "diagnostic, not an assertion"]
+fn report_unrecognised_heading_shapes() {
+    let Some(dir) = papers_dir() else { return };
+    const WORDS: &[&str] = &[
+        "abstract",
+        "introduction",
+        "background",
+        "method",
+        "result",
+        "discussion",
+        "conclusion",
+        "reference",
+        "related work",
+        "summary",
+    ];
+    let mut entries: Vec<_> = std::fs::read_dir(&dir)
+        .unwrap()
+        .filter_map(|e| e.ok())
+        .map(|e| e.path())
+        .filter(|p| p.extension().is_some_and(|x| x == "pdf"))
+        .collect();
+    entries.sort();
+    for path in entries {
+        let Ok(doc) = fastpaper::read::extract_document(&path) else {
+            continue;
+        };
+        let recognised: Vec<usize> = fastpaper::read::detect_headings(&doc.lines)
+            .iter()
+            .map(|h| h.offset)
+            .collect();
+        for line in &doc.lines {
+            let lower = line.text.to_lowercase();
+            if line.text.len() < 40
+                && WORDS.iter().any(|w| lower.contains(w))
+                && !recognised.contains(&line.offset)
+            {
+                println!(
+                    "{:<40} {:>6.2} | {}",
+                    path.file_name().unwrap().to_string_lossy(),
+                    line.font_size,
+                    line.text
+                );
+            }
         }
     }
 }

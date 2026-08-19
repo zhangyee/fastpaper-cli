@@ -141,11 +141,16 @@ fn canonical_section(text: &str) -> Option<&'static str> {
 /// section `Method`, Elsevier prints `Materials and methods`.
 ///
 /// Only sections `--section` can ask for appear here. A heading that names no
-/// such section is left to fall inside the one above it, which is how a
-/// subsection like `Ethical approval` ends up part of the methods rather than
-/// cutting them short. `Background` is the case that makes this matter: some
-/// journals head the introduction with it, others head the introduction's
-/// first subsection with it, and both want the same answer.
+/// such section falls inside the one above it, which is how a subsection like
+/// `Ethical approval` ends up part of the methods rather than cutting them
+/// short.
+///
+/// `Background` maps to the introduction because journals use it for both:
+/// some head the introduction itself with it, and Cardiovascular Diagnosis and
+/// Therapy heads the introduction's first subsection with it -- set in the
+/// same size as the chapter heading above, distinguished only by typeface and
+/// colour, which is not something the extracted text records. Sending both to
+/// `introduction` gives the same answer either way.
 const HEADING_ALIASES: &[(&str, &str)] = &[
     ("abstract", "abstract"),
     ("introduction", "introduction"),
@@ -157,6 +162,7 @@ const HEADING_ALIASES: &[(&str, &str)] = &[
     ("results", "results"),
     ("discussion", "discussion"),
     ("conclusion", "conclusion"),
+    ("conclusions", "conclusion"),
     ("references", "references"),
 ];
 
@@ -535,5 +541,14 @@ mod tests {
             "got: {:?}",
             found.body
         );
+    }
+
+    // Most journals head the section `Conclusions`, plural.
+    #[test]
+    fn detect_headings_accepts_a_plural_conclusions_heading() {
+        let doc = lines(&[("Conclusions", 15.0, true)]);
+        let found = detect_headings(&doc);
+        assert_eq!(found.len(), 1, "got: {:?}", found);
+        assert_eq!(found[0].section, "conclusion");
     }
 }
