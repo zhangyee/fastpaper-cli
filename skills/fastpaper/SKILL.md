@@ -129,7 +129,7 @@ fastpaper search arxiv "attention mechanism" --field cs.CL --after 2023-01-01 -n
 fastpaper search pubmed 'CRISPR AND systematic review[pt] AND humans[mh]' -n 20 --format json
 
 # Europe PMC: threshold on citations, then sort by them
-fastpaper search europepmc 'CRISPR AND CITED:>500' --sort citations -n 20 --format json
+fastpaper search europepmc 'CRISPR AND CITED:[500 TO *]' --sort citations -n 20 --format json
 
 # patents only
 fastpaper search europepmc "gene editing" --patents -n 10 --format json
@@ -204,7 +204,7 @@ Report the URL to the user instead; exit is `1`, not `4`.
 | `arxiv` | ✓ | — | **CS, AI, math, physics, stats, q-bio, q-fin, econ** preprints, every one of them free to read | query syntax is rewritten — see below. `pdf_url` on every hit, but a DOI on only about half |
 | `pubmed` | — | — | **biomedicine**, 35M+ records — the reference index for clinical and life-science work | abstracts only, no PDFs and no journal name; move to `pmc` or `europepmc` for either |
 | `pmc` | ✓ | — | **biomedical full text** (NLM) — the OA subset of what pubmed indexes | PDFs come from the OA subset only, so a pubmed hit may have no pmc record |
-| `europepmc` | ✓ | ~ | **widest biomedical** — 45M+ abstracts, 9M+ full text, plus EPO patents, NICE guidelines, Agricola, preprints and Chinese Biological Abstracts | richest query syntax here, and the only source that can threshold on citations (`CITED:>N`). Relevance-ranked hits are mostly uncited, so sort or threshold explicitly when you want impact |
+| `europepmc` | ✓ | ~ | **widest biomedical** — 45M+ abstracts, 9M+ full text, plus EPO patents, NICE guidelines, Agricola, preprints and Chinese Biological Abstracts | richest query syntax here, and the only source that can threshold on citations (`CITED:[N TO *]`). Relevance-ranked hits are mostly uncited, so sort or threshold explicitly when you want impact |
 | `biorxiv` | ✓ | — | **life-science preprints** (CSHL), full text on all of them | **no keyword search API** — browses a date window and matches locally, so `--after`/`--before` decide what is even searched |
 | `medrxiv` | — | — | **medical / health preprints** (CSHL) | same date-window search as biorxiv, and its PDFs are blocked (403) — take the DOI elsewhere |
 | `semantic` | ✓ | ✓ | **cross-discipline**, and the surest citation counts here — the basis for any ranking by impact | throttles hard without `SEMANTIC_SCHOLAR_API_KEY`. Carries a DOI on most hits and a PDF on about half |
@@ -259,7 +259,7 @@ arXiv categories for `--field`: `cs.CL` `cs.LG` `cs.CV` `cs.AI` `cs.RO`,
 your query through verbatim**, so their own field syntax works:
 
 - `pubmed` / `pmc`: `[pt]` publication type · `[mh]` MeSH · `[tiab]` title/abstract · `[au]` author · `[dp]` date
-- `europepmc`: `CITED:>N` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `SRC:` subsets (`PPR` preprints, `CTX` NICE guidelines, `AGR` Agricola, `CBA` Chinese Biological Abstracts, `MED`, `PMC`)
+- `europepmc`: `CITED:[N TO *]` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `SRC:` subsets (`PPR` preprints, `CTX` NICE guidelines, `AGR` Agricola, `CBA` Chinese Biological Abstracts, `MED`, `PMC`)
 - `doaj`: Lucene on `bibjson.*` · `zenodo`: Elasticsearch · `hal`: Solr · `dblp`: `year:` `author:` `venue:`
 
 **`crossref`, `openalex`, `semantic`, `scholar`, `xueshu` are free-text only** —
