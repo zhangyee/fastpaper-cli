@@ -1455,7 +1455,7 @@ fn a_section_scoped_offset_is_relative_to_the_section() {
         .arg("Transformer")
         .assert()
         .success()
-        .stdout(contains("── match 1 @ 86 ──"));
+        .stdout(contains("── match 1 @ 85 ──"));
 }
 
 #[test]
@@ -1716,4 +1716,35 @@ fn a_refused_download_names_the_host_and_hands_back_the_link() {
         .stderr(contains("/pdf/2301.08745.pdf"))
         .stderr(contains("cannot tell"));
     assert!(!dir.join("2301.08745.pdf").exists());
+}
+
+// A section that came back wrong used to be indistinguishable from one that
+// came back right: the JSON echoed the name that was asked for. Reporting the
+// heading the slice actually started at is what lets a caller check.
+#[test]
+fn read_section_json_names_the_heading_it_matched() {
+    let output = cmd()
+        .args([
+            "read",
+            "tests/fixtures/test.pdf",
+            "--section",
+            "abstract",
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
+    assert_eq!(
+        v["heading"]["text"], "Abstract",
+        "should report the heading line as printed, got {}",
+        v
+    );
+    assert!(
+        v["heading"]["offset"].is_number(),
+        "should report where the heading sits in the document, got {}",
+        v
+    );
 }

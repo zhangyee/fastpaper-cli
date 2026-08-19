@@ -13,21 +13,25 @@ pub fn run(args: &ReadArgs, global: &GlobalOpts) -> CommandResult {
         )));
     }
 
-    let full_text = pdf::extract_text(&args.path).map_err(failed)?;
+    let document = pdf::extract_document(&args.path).map_err(failed)?;
     let section = section_name(args.section);
 
     // A section the heuristic could not find is an empty answer, not a
     // malformed command -- same shape as `get` failing to find a paper, so it
     // takes the same exit code instead of the "you typed it wrong" one.
-    let text = match heading_for(args.section) {
-        None => full_text,
-        Some(heading) => pdf::extract_section(&full_text, heading).ok_or_else(|| {
-            CommandError::NotFound(format!(
-                "No '{}' section found in {}",
-                heading,
-                args.path.display()
-            ))
-        })?,
+    let (text, heading) = match heading_for(args.section) {
+        None => (document.text.clone(), None),
+        Some(name) => {
+            let found = pdf::find_section(&document, name).ok_or_else(|| {
+                CommandError::NotFound(format!(
+                    "No '{}' section found in {}\nTo see which sections this PDF does have: fastpaper read {} --list-sections",
+                    name,
+                    args.path.display(),
+                    args.path.display()
+                ))
+            })?;
+            (found.body, Some(found.heading))
+        }
     };
 
     match args.grep.as_deref() {
@@ -38,12 +42,24 @@ pub fn run(args: &ReadArgs, global: &GlobalOpts) -> CommandResult {
                 None => text,
             };
             let rendered = match global.format {
-                OutputFormat::Json => serde_json::to_string_pretty(&serde_json::json!({
-                    "path": args.path.to_string_lossy(),
-                    "section": section,
-                    "content": { "full_text": text },
-                }))
-                .unwrap(),
+                OutputFormat::Json => {
+                    let mut envelope = serde_json::json!({
+                        "path": args.path.to_string_lossy(),
+                        "section": section,
+                        "content": { "full_text": text },
+                    });
+                    // Which heading the slice actually started at. Without it a
+                    // section cut from the wrong place looks exactly like one
+                    // cut from the right place.
+                    if let Some(heading) = &heading {
+                        envelope["heading"] = serde_json::json!({
+                            "text": heading.text,
+                            "offset": heading.offset,
+                            "font_size": heading.font_size,
+                        });
+                    }
+                    serde_json::to_string_pretty(&envelope).unwrap()
+                }
                 _ => text,
             };
             // Counted after rendering, not before: the receipt is about the
@@ -380,10 +396,25 @@ mod tests {
             Section::References,
         ] {
             let heading = heading_for(section).expect("should map to a heading");
-            let paper = format!("Title\nAbstract\nx\n{}\ncontent here\n", heading);
+            // Set the heading in display type over body-type prose, which is
+            // the shape the detector looks for.
+            let rows: [(&str, f32); 2] = [(heading, 12.0), ("content here", 9.0)];
+            let mut text = String::new();
+            let mut lines = Vec::new();
+            for (line, size) in rows {
+                lines.push(crate::read::Line {
+                    text: line.to_string(),
+                    font_size: size,
+                    bold: true,
+                    offset: text.len(),
+                });
+                text.push_str(line);
+                text.push('\n');
+            }
+            let document = crate::read::Document { text, lines };
             assert!(
-                crate::read::extract_section(&paper, heading).is_some(),
-                "{:?} maps to '{}' which the extractor does not find",
+                crate::read::find_section(&document, heading).is_some(),
+                "{:?} maps to '{}' which the detector does not find",
                 section,
                 heading
             );
