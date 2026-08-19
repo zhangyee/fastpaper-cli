@@ -193,8 +193,30 @@ fn canonical_section(text: &str) -> Option<&'static str> {
         rest = tail[1..].trim_start();
     }
     let normalised = rest.to_lowercase();
-    SECTION_HEADINGS.iter().find(|h| ***h == *normalised).copied()
+    HEADING_ALIASES
+        .iter()
+        .find(|(printed, _)| *printed == normalised)
+        .map(|(_, section)| *section)
 }
+
+/// Headings as journals actually print them, mapped to the section they name.
+///
+/// One section goes by several names: EHJ Digital Health heads its methods
+/// section `Method`, Elsevier prints `Materials and methods`.
+const HEADING_ALIASES: &[(&str, &str)] = &[
+    ("abstract", "abstract"),
+    ("introduction", "introduction"),
+    ("background", "background"),
+    ("related work", "background"),
+    ("method", "methods"),
+    ("methods", "methods"),
+    ("methodology", "methods"),
+    ("materials and methods", "methods"),
+    ("results", "results"),
+    ("discussion", "discussion"),
+    ("conclusion", "conclusion"),
+    ("references", "references"),
+];
 
 /// Whether a token is a section number: `3`, `2`, `IV`.
 fn is_numbering(token: &str) -> bool {
@@ -202,6 +224,27 @@ fn is_numbering(token: &str) -> bool {
         || token
             .chars()
             .all(|c| matches!(c.to_ascii_uppercase(), 'I' | 'V' | 'X' | 'L' | 'C'))
+}
+
+/// The type size the body of the document is set in.
+///
+/// Taken as the size carrying the most characters rather than the average:
+/// running heads, captions and the title would all pull an average away from
+/// the size that actually matters.
+fn body_font_size(lines: &[Line]) -> f32 {
+    let mut tally: Vec<(f32, usize)> = Vec::new();
+    for line in lines {
+        let size = (line.font_size * 10.0).round() / 10.0;
+        match tally.iter_mut().find(|(seen, _)| *seen == size) {
+            Some((_, chars)) => *chars += line.text.len(),
+            None => tally.push((size, line.text.len())),
+        }
+    }
+    tally
+        .iter()
+        .max_by_key(|(_, chars)| *chars)
+        .map(|(size, _)| *size)
+        .unwrap_or_default()
 }
 
 /// Locate the real section headings among a document's typeset lines.
@@ -213,12 +256,20 @@ fn is_numbering(token: &str) -> bool {
 /// line only makes a candidate. The body heading is the one set in display
 /// type, so when a name repeats the largest type wins.
 pub fn detect_headings(lines: &[Line]) -> Vec<Heading> {
+    let body = body_font_size(lines);
     let mut best: Vec<Heading> = Vec::new();
     for line in lines {
         let text = line.text.trim();
         let Some(section) = canonical_section(text) else {
             continue;
         };
+        // A footnote or figure label can read exactly `Methods` and own its
+        // line. No journal sets a heading smaller than the body it heads, so
+        // small type rules the line out. The margin absorbs papers that head
+        // their sections in body-sized capitals.
+        if line.font_size < body * 0.95 {
+            continue;
+        }
         let candidate = Heading {
             section,
             text: text.to_string(),
@@ -460,5 +511,28 @@ References
         ]);
         let found: Vec<&str> = detect_headings(&doc).iter().map(|h| h.section).collect();
         assert_eq!(found, vec!["introduction", "methods", "results"]);
+    }
+
+    // EHJ Digital Health heads its methods section `Method`, singular.
+    #[test]
+    fn detect_headings_accepts_a_singular_method_heading() {
+        let doc = lines(&[("Method", 15.0, true)]);
+        let found = detect_headings(&doc);
+        assert_eq!(found.len(), 1, "got: {:?}", found);
+        assert_eq!(found[0].section, "methods");
+        assert_eq!(found[0].text, "Method", "the printed heading is kept as-is");
+    }
+
+    // A footnote or figure label can read exactly `Methods` and own its line.
+    // Type size is what gives it away: a heading is never set smaller than the
+    // body it heads.
+    #[test]
+    fn detect_headings_rejects_a_candidate_set_smaller_than_the_body() {
+        let mut rows: Vec<(&str, f32, bool)> = (0..20)
+            .map(|_| ("ordinary body text carrying most of the paper", 10.9, false))
+            .collect();
+        rows.push(("Methods", 5.1, false));
+        let found = detect_headings(&lines(&rows));
+        assert!(found.is_empty(), "got: {:?}", found);
     }
 }

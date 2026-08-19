@@ -145,3 +145,34 @@ fn report_lines_around_offset() {
         }
     }
 }
+
+#[test]
+#[ignore = "needs a local corpus of publisher PDFs"]
+fn report_display_type_lines() {
+    let Some(dir) = papers_dir() else { return };
+    let only = std::env::var("FASTPAPER_ONLY").unwrap_or_default();
+    let min: f32 = std::env::var("FASTPAPER_MINSIZE")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(13.0);
+    for entry in std::fs::read_dir(&dir).unwrap().filter_map(|e| e.ok()) {
+        let path = entry.path();
+        let name = path.file_name().unwrap().to_string_lossy().to_string();
+        if !name.ends_with(".pdf") || (!only.is_empty() && !name.contains(&only)) {
+            continue;
+        }
+        let doc = fastpaper::read::extract_document(&path).unwrap();
+        println!("===== {}", name);
+        for line in &doc.lines {
+            if line.font_size >= min && line.text.len() < 60 {
+                println!(
+                    "  @{:<6} {:>6.2} {:<5} | {:?}",
+                    line.offset,
+                    line.font_size,
+                    if line.bold { "bold" } else { "" },
+                    line.text
+                );
+            }
+        }
+    }
+}
