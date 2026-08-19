@@ -27,10 +27,13 @@ pub fn extract_document_from_bytes(bytes: &[u8]) -> Result<Document, String> {
         .page_count()
         .map_err(|e| format!("Failed to read page count: {}", e))?;
 
-    let mut text = String::new();
-    let mut lines = Vec::new();
+    let mut rows: Vec<Row> = Vec::new();
+    let mut page_height = 0.0f32;
 
     for page in 0..pages {
+        if let Ok(measured) = doc.extract_page_text(page) {
+            page_height = page_height.max(measured.page_height);
+        }
         let spans = doc
             .extract_spans_with_reading_order(page, pdf_oxide::ReadingOrder::ColumnAware)
             .map_err(|e| format!("Failed to extract text: {}", e))?;
@@ -47,22 +50,131 @@ pub fn extract_document_from_bytes(bytes: &[u8]) -> Result<Document, String> {
                 (last.bbox.y - span.bbox.y).abs() > (span.font_size * 0.4).max(1.0)
             });
             if moved {
-                push_line(&mut text, &mut lines, &row);
+                push_row(&mut rows, page, &row);
                 row.clear();
             }
             row.push(span);
         }
-        push_line(&mut text, &mut lines, &row);
+        push_row(&mut rows, page, &row);
+    }
+
+    // Furniture is dropped before the offsets are handed out, so a caller
+    // never gets an offset pointing at a line it cannot see.
+    let furniture = furniture_mask(&rows, page_height);
+    let mut text = String::new();
+    let mut lines = Vec::new();
+    for (row, is_furniture) in rows.into_iter().zip(furniture) {
+        if is_furniture {
+            continue;
+        }
+        let offset = text.len();
+        text.push_str(&row.text);
+        text.push('\n');
+        lines.push(Line {
+            text: row.text,
+            font_size: row.font_size,
+            bold: row.bold,
+            offset,
+        });
     }
 
     Ok(Document { text, lines })
 }
 
-/// Append one rebuilt row to the text, recording where it landed.
-fn push_line(text: &mut String, lines: &mut Vec<Line>, row: &[&pdf_oxide::layout::TextSpan]) {
-    if row.is_empty() {
-        return;
+/// One row as it sits on its page, before page furniture is filtered out.
+struct Row {
+    page: usize,
+    y: f32,
+    text: String,
+    font_size: f32,
+    bold: bool,
+}
+
+/// Which rows are page furniture: running heads, folios, journal footers.
+///
+/// Two things have to hold together. The row has to repeat across pages --
+/// compared with its digits collapsed, so `Page 3 of 18` and `Page 4 of 18`
+/// count as the same row -- and its repeats have to sit at the same edge of
+/// the page. Repetition alone is not enough: a figure's DOI or a bare numeral
+/// repeats too, from wherever the figure happens to fall, and cutting those
+/// would take real content out of the middle of the paper.
+fn furniture_mask(rows: &[Row], page_height: f32) -> Vec<bool> {
+    if page_height <= 0.0 {
+        return vec![false; rows.len()];
     }
+    let at_edge = |y: f32| {
+        let fraction = y / page_height;
+        fraction <= FOOT_BAND || fraction >= HEAD_BAND
+    };
+
+    let mut shapes: Vec<(String, Vec<usize>, usize, usize)> = Vec::new();
+    for (index, row) in rows.iter().enumerate() {
+        let shape = digits_collapsed(&row.text);
+        match shapes.iter_mut().find(|(seen, ..)| *seen == shape) {
+            Some((_, pages, seen, edge)) => {
+                if !pages.contains(&row.page) {
+                    pages.push(row.page);
+                }
+                *seen += 1;
+                *edge += usize::from(at_edge(rows[index].y));
+            }
+            None => shapes.push((
+                shape,
+                vec![row.page],
+                1,
+                usize::from(at_edge(row.y)),
+            )),
+        }
+    }
+
+    rows.iter()
+        .map(|row| {
+            let shape = digits_collapsed(&row.text);
+            shapes
+                .iter()
+                .find(|(seen, ..)| *seen == shape)
+                .is_some_and(|(_, pages, seen, edge)| {
+                    pages.len() >= FURNITURE_PAGES && edge * 10 >= seen * 8
+                })
+        })
+        .collect()
+}
+
+/// Where the margins start, as a fraction of the page height. The two are not
+/// symmetric because journals do not set them symmetrically: measured across
+/// the corpus, footers sit below 0.07 and running heads from 0.90 up --
+/// Cardiovascular Diagnosis and Therapy puts its folio at 0.91, which a band
+/// mirrored from the foot would walk straight past.
+const FOOT_BAND: f32 = 0.07;
+const HEAD_BAND: f32 = 0.90;
+
+/// How many pages a row has to repeat on before it reads as furniture.
+const FURNITURE_PAGES: usize = 3;
+
+/// A row with every run of digits replaced by one `#`, so a folio counting up
+/// across the paper compares equal to itself.
+fn digits_collapsed(text: &str) -> String {
+    let mut out = String::new();
+    let mut in_digits = false;
+    for c in text.chars() {
+        if c.is_ascii_digit() {
+            if !in_digits {
+                out.push('#');
+                in_digits = true;
+            }
+        } else {
+            out.push(c);
+            in_digits = false;
+        }
+    }
+    out.trim().to_string()
+}
+
+/// Collect one rebuilt row, keeping where on the page it sat.
+fn push_row(rows: &mut Vec<Row>, page: usize, row: &[&pdf_oxide::layout::TextSpan]) {
+    let Some(first) = row.first() else {
+        return;
+    };
     let joined: String = row.iter().map(|s| s.text.as_str()).collect();
     let trimmed = joined.trim();
     if trimmed.is_empty() {
@@ -75,14 +187,12 @@ fn push_line(text: &mut String, lines: &mut Vec<Line>, row: &[&pdf_oxide::layout
         .iter()
         .any(|s| matches!(s.font_weight, pdf_oxide::layout::FontWeight::Bold));
 
-    let offset = text.len();
-    text.push_str(trimmed);
-    text.push('\n');
-    lines.push(Line {
+    rows.push(Row {
+        page,
+        y: first.bbox.y,
         text: trimmed.to_string(),
         font_size,
         bold,
-        offset,
     });
 }
 
@@ -550,5 +660,62 @@ mod tests {
         let found = detect_headings(&doc);
         assert_eq!(found.len(), 1, "got: {:?}", found);
         assert_eq!(found[0].section, "conclusion");
+    }
+
+    // ── page furniture ───────────────────────────
+
+    fn row(page: usize, y: f32, text: &str) -> Row {
+        Row {
+            page,
+            y,
+            text: text.to_string(),
+            font_size: 9.0,
+            bold: false,
+        }
+    }
+
+    // A running head and a folio repeat at the same edge of page after page.
+    // Left in, they splice themselves into the middle of a quoted sentence.
+    #[test]
+    fn furniture_mask_catches_a_running_head_and_a_folio() {
+        let mut rows = Vec::new();
+        for page in 0..4 {
+            rows.push(row(page, 760.0, "www.nature.com/scientificreports/"));
+            rows.push(row(page, 400.0, "a sentence from the paper itself"));
+            rows.push(row(page, 18.0, &format!("Page {} of 4", page + 1)));
+        }
+        let mask = furniture_mask(&rows, 782.0);
+        let kept: Vec<&str> = rows
+            .iter()
+            .zip(&mask)
+            .filter(|(_, furniture)| !**furniture)
+            .map(|(r, _)| r.text.as_str())
+            .collect();
+        assert_eq!(kept, vec!["a sentence from the paper itself"; 4], "kept: {:?}", kept);
+    }
+
+    // Repetition alone is not enough. A bare figure number or a table's DOI
+    // repeats too, but from wherever the figure happens to sit, and cutting
+    // those would take real content with them.
+    #[test]
+    fn furniture_mask_spares_text_that_repeats_away_from_the_page_edge() {
+        let mut rows = Vec::new();
+        for page in 0..4 {
+            rows.push(row(page, 300.0 + page as f32 * 40.0, "https://doi.org/10.1371/journal.t001"));
+        }
+        let mask = furniture_mask(&rows, 792.0);
+        assert!(mask.iter().all(|f| !f), "nothing here sits at a page edge");
+    }
+
+    // Journals do not agree on how deep the top margin is. Cardiovascular
+    // Diagnosis and Therapy sets its folio at 0.91 of the page height, which a
+    // band measured from the foot alone walks straight past.
+    #[test]
+    fn furniture_mask_reaches_a_folio_set_low_in_the_head_margin() {
+        let rows: Vec<Row> = (0..4)
+            .map(|page| row(page, 713.0, &format!("Page {} of 18", page + 2)))
+            .collect();
+        let mask = furniture_mask(&rows, 780.0);
+        assert!(mask.iter().all(|f| *f), "0.91 of the page height is the head margin");
     }
 }
