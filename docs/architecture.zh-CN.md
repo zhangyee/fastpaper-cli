@@ -21,8 +21,8 @@ src/
 │   │                #   encode_query、validate_ymd、contact_email
 │   └── <source>.rs  # 每个数据源一个完全自包含的模块(目前 18 个)
 ├── download.rs      # fetch_pdf、各源 pdf_bytes_<src> 解析函数、save_pdf
-├── read.rs          # PDF 文本提取(pdf_oxide):extract_text、extract_text_from_bytes、
-│                    #   extract_section
+├── read.rs          # PDF 文本(pdf_oxide):extract_document 按栏序重建页面,每行保留
+│                    #   字号;detect_headings 据此读出标题,find_section 切段
 ├── grep.rs          # 在文本中查找匹配,并在命中位置两侧截取上下文窗口
 ├── output.rs        # 渲染器:to_table、to_json、to_jsonl、to_csv、to_bibtex
 └── identifier.rs    # detect_id_type:Arxiv、ArxivOld、Doi、Pmc、Pmid、S2、Url、Unknown

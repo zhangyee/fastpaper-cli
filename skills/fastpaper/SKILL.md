@@ -42,6 +42,7 @@ fastpaper download <id> [-d <dir>] [--overwrite]
 fastpaper cite <id> [--direction incoming|outgoing] [-n 20]
 
 # extract text from a PDF already on disk
+fastpaper read papers/<id>.pdf --list-sections        # which sections are there
 fastpaper read papers/<id>.pdf [--section methods] [--max-length 4000]
 
 fastpaper sources --capabilities            # what each source supports, live
@@ -68,6 +69,20 @@ directly: `fastpaper get semantic DOI:<doi>`.
 
 `read` sections: abstract, introduction, methods, results, discussion,
 conclusion, references, full.
+
+**A PDF records no section structure** — `--section` infers it from the
+typography, so it can fail to find a section on an unusual layout. It exits 4
+rather than returning something else, but **check before you quote**: run
+`fastpaper read <pdf> --list-sections` first, and only ask for a section that
+appears in the list. Under `--format json` a section read reports the heading
+its slice began at (`heading.text`, `heading.offset`), which is what you
+verify a quotation against.
+
+Two limits to plan around. Running heads, folios and journal footers are left
+in the text and can land in the middle of a quoted sentence — strip them
+yourself if you are quoting. And "the section was found" is not "the section
+is right": if a passage matters, confirm it with
+`--section full --grep '<phrase>'`.
 
 **Search filters** — every one is validated per source. Asking for one a source
 cannot honour is a hard error that names what it *does* support **and which

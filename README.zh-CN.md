@@ -207,6 +207,7 @@ fastpaper read <PATH> [OPTIONS]
 选项:
       --section <SEC>    abstract, introduction, methods, results,
                          discussion, conclusion, references, full [默认: full]
+      --list-sections    列出 PDF 里能切出哪些段落,而不是读取内容
       --grep <PATTERN>   用正则表达式搜索文本。
                          默认不区分大小写;用 (?-i) 切换为区分大小写
       --context <N>      每个匹配两侧各保留多少字符的上下文
@@ -221,6 +222,33 @@ fastpaper download 2301.08745            # -> ./papers/2301.08745.pdf
 fastpaper read papers/2301.08745.pdf --section abstract
 fastpaper read papers/2301.08745.pdf --grep 'limitations?'
 ```
+
+PDF 本身不记录章节结构,所以 `--section` 读的是排版:标题就是那种独占一行、且字号
+不小于正文的行。期刊实际用的那些体例都能应付——带编号的 `II.METHODS`、写成
+`Materials and methods` 的、Nature 那种 Results 排在 Methods 前面的——但排版异常的
+论文可能切不出某一段,这时 `--section` 退出码为 4,而不是猜一个给你。要在开口要之前
+先看有哪些段,用 `--list-sections`:
+
+```sh
+fastpaper read papers/2301.08745.pdf --list-sections
+```
+```
+abstract       @104       12.0pt  Abstract
+introduction   @1761      12.0pt  1Introduction
+references     @31759     12.0pt  References
+```
+
+这篇实际不止三段。其中一段的标题叫 `Analysis`,不在 `--section` 收的名字里;而它的
+`5Conclusion` 被提取器和旁边那一栏的文字粘成了一行,于是没人能把它当成标题。核对只
+要一条命令,而引用了一段根本没切出来的内容,是不会自己报警的。
+
+加上 `--format json` 时,`--section` 的输出还会报出这一刀实际是从哪个标题起的——
+`heading.text`、`heading.offset`、`heading.font_size`。要引用某一段的调用方,可以拿
+它来核对切得对不对。
+
+有两件事 `read` 不做。它不剔除页眉、页码和期刊页脚,所以引用的段落里可能混进这类
+文字——只有在我们能实测的排版上才分得清它们和正文,靠猜会静默删掉真内容。它也不给
+置信度:切出来了不等于切对了。
 
 `--grep` 搜索的是 `--section` 选中的那部分,不给 `--section` 时就搜索全文,所以
 "先试某一节,不行就退回全文"只需要改一个参数就行。命中的位置以字符偏移量报告,
