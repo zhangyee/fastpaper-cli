@@ -284,6 +284,10 @@ pub struct ReadArgs {
     #[arg(long, default_value = "full")]
     pub section: Section,
 
+    /// List the sections found in the PDF instead of reading it
+    #[arg(long, conflicts_with_all = ["section", "grep"])]
+    pub list_sections: bool,
+
     /// Truncate output to N characters
     #[arg(long)]
     pub max_length: Option<usize>,

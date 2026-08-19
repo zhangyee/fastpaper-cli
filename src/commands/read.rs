@@ -14,6 +14,11 @@ pub fn run(args: &ReadArgs, global: &GlobalOpts) -> CommandResult {
     }
 
     let document = pdf::extract_document(&args.path).map_err(failed)?;
+
+    if args.list_sections {
+        return list_sections(args, global, &document);
+    }
+
     let section = section_name(args.section);
 
     // A section the heuristic could not find is an empty answer, not a
@@ -70,6 +75,53 @@ pub fn run(args: &ReadArgs, global: &GlobalOpts) -> CommandResult {
             emit(&rendered, args.output.as_deref(), &summary, global.quiet)
         }
     }
+}
+
+/// Report which sections the PDF turned out to have.
+///
+/// Section extraction is a reading of the typography, not a fact the PDF
+/// records, so it can come up short on a paper laid out unusually. A caller
+/// that is about to quote a section needs to be able to see what was found --
+/// and at what size, since that is the evidence the reading rests on -- rather
+/// than discover the gap in the text it quotes.
+fn list_sections(args: &ReadArgs, global: &GlobalOpts, document: &pdf::Document) -> CommandResult {
+    let headings = pdf::detect_headings(&document.lines);
+
+    if headings.is_empty() {
+        return Err(CommandError::NotFound(format!(
+            "No sections found in {}\nThe headings could not be told apart from the body text. `--section full` still reads the whole PDF.",
+            args.path.display()
+        )));
+    }
+
+    let rendered = match global.format {
+        OutputFormat::Json => serde_json::to_string_pretty(&serde_json::json!({
+            "path": args.path.to_string_lossy(),
+            "sections": headings
+                .iter()
+                .map(|h| serde_json::json!({
+                    "section": h.section,
+                    "heading": h.text,
+                    "offset": h.offset,
+                    "font_size": h.font_size,
+                }))
+                .collect::<Vec<_>>(),
+        }))
+        .unwrap(),
+        _ => headings
+            .iter()
+            .map(|h| {
+                format!(
+                    "{:<14} @{:<8} {:>5.1}pt  {}",
+                    h.section, h.offset, h.font_size, h.text
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("\n"),
+    };
+
+    let summary = format!("{} sections", headings.len());
+    emit(&rendered, args.output.as_deref(), &summary, global.quiet)
 }
 
 /// Search the extracted text and emit the matches.

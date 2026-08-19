@@ -1748,3 +1748,44 @@ fn read_section_json_names_the_heading_it_matched() {
         v
     );
 }
+
+// Sections a PDF does not have are the caller's problem to plan around, so
+// they need a way to ask before they slice.
+#[test]
+fn read_list_sections_reports_what_the_pdf_has() {
+    let output = cmd()
+        .args(["read", "tests/fixtures/test.pdf", "--list-sections"])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("abstract") && stdout.contains("introduction"),
+        "should list the sections it found, got: {}",
+        stdout
+    );
+}
+
+#[test]
+fn read_list_sections_json_carries_each_heading() {
+    let output = cmd()
+        .args([
+            "read",
+            "tests/fixtures/test.pdf",
+            "--list-sections",
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let v: serde_json::Value = serde_json::from_str(&stdout).expect("should be valid JSON");
+    let sections = v["sections"].as_array().expect("should list sections");
+    assert!(!sections.is_empty(), "got: {}", v);
+    assert!(
+        sections[0]["section"].is_string() && sections[0]["offset"].is_number(),
+        "each entry should name the section and where it starts, got: {}",
+        v
+    );
+}

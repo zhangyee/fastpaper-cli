@@ -139,11 +139,17 @@ fn canonical_section(text: &str) -> Option<&'static str> {
 ///
 /// One section goes by several names: EHJ Digital Health heads its methods
 /// section `Method`, Elsevier prints `Materials and methods`.
+///
+/// Only sections `--section` can ask for appear here. A heading that names no
+/// such section is left to fall inside the one above it, which is how a
+/// subsection like `Ethical approval` ends up part of the methods rather than
+/// cutting them short. `Background` is the case that makes this matter: some
+/// journals head the introduction with it, others head the introduction's
+/// first subsection with it, and both want the same answer.
 const HEADING_ALIASES: &[(&str, &str)] = &[
     ("abstract", "abstract"),
     ("introduction", "introduction"),
-    ("background", "background"),
-    ("related work", "background"),
+    ("background", "introduction"),
     ("method", "methods"),
     ("methods", "methods"),
     ("methodology", "methods"),
@@ -506,6 +512,26 @@ mod tests {
         let found = find_section(&doc, "abstract").unwrap();
         assert!(
             found.body.contains("Emerging evidence"),
+            "got: {:?}",
+            found.body
+        );
+    }
+
+    // Cardiovascular Diagnosis and Therapy heads the introduction, then heads
+    // its first subsection `Background` in the same type. Treating that as the
+    // start of a new section left the introduction empty.
+    #[test]
+    fn find_section_introduction_absorbs_a_background_subsection() {
+        let doc = document(&[
+            ("Introduction", 9.5, true),
+            ("Background", 9.5, true),
+            ("Acute myocardial infarction remains a major cause.", 9.5, false),
+            ("Methods", 9.5, true),
+            ("We did things.", 9.5, false),
+        ]);
+        let found = find_section(&doc, "introduction").unwrap();
+        assert!(
+            found.body.contains("Acute myocardial infarction"),
             "got: {:?}",
             found.body
         );
