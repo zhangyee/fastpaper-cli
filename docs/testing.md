@@ -50,6 +50,56 @@ cargo test --test cli -- --ignored     # run them manually
 
 They never run in CI. When one fails, first decide whether the provider's rate limiting / risk control is the cause (try another query, wait, retry once) before treating it as a regression.
 
+## Checking PDF layout against the page
+
+`read` infers a paper's structure from its typography, and the extracted text
+does not carry the evidence that reading rests on. Checking a layout change by
+reading the extracted text is how the wrong rule gets written down: in one
+paper `Introduction` and the `Background` subsection under it are set in the
+same size, and the extracted text shows nothing else to tell them apart. The
+page shows one blue upright and the other black italic.
+
+So a change to layout reading is checked against a render, not against the
+text. Install the renderer once:
+
+```bash
+brew install poppler imagemagick     # or apt-get install poppler-utils imagemagick
+```
+
+Two diagnostics in `tests/real_papers.rs` produce what to look at. Both are
+`#[ignore]`d, and both need a directory of PDFs that the repo does not carry:
+
+```bash
+FASTPAPER_PAPERS=/path/to/papers cargo test --test real_papers -- --ignored --nocapture
+```
+
+`report_heading_positions` prints every heading that was read, and every
+heading-shaped line that was not, with the page and baseline each sits on --
+enough to crop the strip of page it came from:
+
+```bash
+pdftoppm -png -r 130 -f "$PAGE" -l "$PAGE" -singlefile paper.pdf page
+# PDF y counts up from the foot of the page; image y counts down from its head
+TOP=$(awk -v h="$HEIGHT" -v y="$Y" 'BEGIN{print int((h-y-11)*130/72)}')
+magick page.png -crop "x72+0+$TOP" +repage strip.png
+```
+
+Stacking one strip per heading gives a sheet per paper, which is what makes
+"did it read every heading, and is every heading it read real" a question you
+can answer by looking. `report_detected_headings` and
+`report_unrecognised_heading_shapes` give the same information as text, which
+is how a publisher's wording variant gets found rather than guessed at.
+
+Two rules this practice exists to enforce:
+
+- **A threshold goes into the code as the value that was measured.** Copying a
+  measured 0.90 into the code as a mirrored 0.07 left a folio at 0.91 of the
+  page height in the text, and the tests written alongside did not catch it
+  because they used made-up coordinates.
+- **A corpus of one publisher proves nothing about publishers.** A rule that
+  deletes text needs to be right rather than usually right; when the evidence
+  cannot carry it, leave the text alone and say so in the docs.
+
 ## Conventions
 
 - One behavior per test; the test name states the behavior (`parse_empty_doi_becomes_none`).
