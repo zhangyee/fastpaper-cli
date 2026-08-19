@@ -63,6 +63,179 @@ pub fn extract_section_abstract(full_text: &str) -> Option<String> {
     extract_section(full_text, "abstract")
 }
 
+
+/// A PDF's text plus the typeset lines it was rebuilt from.
+///
+/// The two are built together so a line's `offset` always indexes into `text`;
+/// that is what lets a heading found by its typography be turned into a slice.
+pub struct Document {
+    pub text: String,
+    pub lines: Vec<Line>,
+}
+
+/// Read a PDF into text that remembers its own typography.
+pub fn extract_document(path: &Path) -> Result<Document, String> {
+    let bytes = std::fs::read(path).map_err(|e| format!("Failed to read file: {}", e))?;
+    extract_document_from_bytes(&bytes)
+}
+
+/// Read PDF bytes into text that remembers its own typography.
+///
+/// Spans come back in column-aware reading order rather than the order the
+/// content stream happened to draw them in: a two-column journal otherwise
+/// interleaves the columns, which strands headings in the middle of sentences.
+pub fn extract_document_from_bytes(bytes: &[u8]) -> Result<Document, String> {
+    let doc = pdf_oxide::PdfDocument::from_bytes(bytes.to_vec())
+        .map_err(|e| format!("Failed to open PDF: {}", e))?;
+    let pages = doc
+        .page_count()
+        .map_err(|e| format!("Failed to read page count: {}", e))?;
+
+    let mut text = String::new();
+    let mut lines = Vec::new();
+
+    for page in 0..pages {
+        let spans = doc
+            .extract_spans_with_reading_order(page, pdf_oxide::ReadingOrder::ColumnAware)
+            .map_err(|e| format!("Failed to extract text: {}", e))?;
+
+        let mut row: Vec<&pdf_oxide::layout::TextSpan> = Vec::new();
+        for span in &spans {
+            if span.text.trim().is_empty() {
+                continue;
+            }
+            // A new row starts when the baseline moves. The tolerance is a
+            // fraction of the type size so superscripts and inline maths stay
+            // on the line they belong to.
+            let moved = row.last().is_some_and(|last| {
+                (last.bbox.y - span.bbox.y).abs() > (span.font_size * 0.4).max(1.0)
+            });
+            if moved {
+                push_line(&mut text, &mut lines, &row);
+                row.clear();
+            }
+            row.push(span);
+        }
+        push_line(&mut text, &mut lines, &row);
+    }
+
+    Ok(Document { text, lines })
+}
+
+/// Append one rebuilt row to the text, recording where it landed.
+fn push_line(text: &mut String, lines: &mut Vec<Line>, row: &[&pdf_oxide::layout::TextSpan]) {
+    if row.is_empty() {
+        return;
+    }
+    let joined: String = row.iter().map(|s| s.text.as_str()).collect();
+    let trimmed = joined.trim();
+    if trimmed.is_empty() {
+        return;
+    }
+    // A heading's own span carries the display type; body spans on the same row
+    // (a running head, a superscript) must not drag the size back down.
+    let font_size = row.iter().fold(0.0f32, |acc, s| acc.max(s.font_size));
+    let bold = row
+        .iter()
+        .any(|s| matches!(s.font_weight, pdf_oxide::layout::FontWeight::Bold));
+
+    let offset = text.len();
+    text.push_str(trimmed);
+    text.push('\n');
+    lines.push(Line {
+        text: trimmed.to_string(),
+        font_size,
+        bold,
+        offset,
+    });
+}
+
+// ── layout-driven heading detection ──────────────
+
+/// One typeset line of a PDF, with the typography needed to tell a heading
+/// from a sentence that merely contains the same word.
+#[derive(Debug, Clone)]
+pub struct Line {
+    pub text: String,
+    pub font_size: f32,
+    pub bold: bool,
+    /// Byte offset of this line's first character in the rebuilt full text.
+    pub offset: usize,
+}
+
+/// A section heading located in a document.
+#[derive(Debug, Clone)]
+pub struct Heading {
+    /// Canonical section name, e.g. `"methods"` for a `Materials and Methods`.
+    pub section: &'static str,
+    /// The heading line as it appears in the PDF.
+    pub text: String,
+    /// Byte offset of the heading line itself.
+    pub offset: usize,
+    /// Byte offset where the body starts, just past the heading line.
+    pub body_start: usize,
+    pub font_size: f32,
+}
+
+/// The section a heading line names, or `None` if the line is not a heading.
+///
+/// Numbering is dropped first. It arrives in several shapes -- `2. Methods`,
+/// `3.1 Results`, `II.METHODS` -- and the numeral has to be split off at a
+/// delimiter rather than by consuming roman-numeral characters, or the `I` of
+/// `INTRODUCTION` gets eaten along with the `I.` in front of it.
+fn canonical_section(text: &str) -> Option<&'static str> {
+    let mut rest = text.trim();
+    while let Some(split) = rest.find(['.', ' ']) {
+        let (token, tail) = rest.split_at(split);
+        if token.is_empty() || !is_numbering(token) {
+            break;
+        }
+        rest = tail[1..].trim_start();
+    }
+    let normalised = rest.to_lowercase();
+    SECTION_HEADINGS.iter().find(|h| ***h == *normalised).copied()
+}
+
+/// Whether a token is a section number: `3`, `2`, `IV`.
+fn is_numbering(token: &str) -> bool {
+    token.chars().all(|c| c.is_ascii_digit())
+        || token
+            .chars()
+            .all(|c| matches!(c.to_ascii_uppercase(), 'I' | 'V' | 'X' | 'L' | 'C'))
+}
+
+/// Locate the real section headings among a document's typeset lines.
+///
+/// A heading owns its line. That single rule is what separates `Methods` the
+/// heading from `conventional interpretation methods has low reliability`, the
+/// sentence the old substring search used to match first.
+/// A structured abstract prints its labels on their own lines too, so owning a
+/// line only makes a candidate. The body heading is the one set in display
+/// type, so when a name repeats the largest type wins.
+pub fn detect_headings(lines: &[Line]) -> Vec<Heading> {
+    let mut best: Vec<Heading> = Vec::new();
+    for line in lines {
+        let text = line.text.trim();
+        let Some(section) = canonical_section(text) else {
+            continue;
+        };
+        let candidate = Heading {
+            section,
+            text: text.to_string(),
+            offset: line.offset,
+            body_start: line.offset + line.text.len(),
+            font_size: line.font_size,
+        };
+        match best.iter_mut().find(|h| h.section == candidate.section) {
+            Some(kept) if candidate.font_size > kept.font_size => *kept = candidate,
+            Some(_) => {}
+            None => best.push(candidate),
+        }
+    }
+    best.sort_by_key(|h| h.offset);
+    best
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -203,5 +376,89 @@ References
     fn extract_text_nonexistent_file_returns_err() {
         let result = extract_text(Path::new("/nonexistent/fake.pdf"));
         assert!(result.is_err());
+    }
+
+    // ── layout-driven heading detection ──────────
+
+    /// Lay out rows as consecutive lines, offsets as if joined by newlines.
+    fn lines(rows: &[(&str, f32, bool)]) -> Vec<Line> {
+        let mut offset = 0;
+        rows.iter()
+            .map(|(text, size, bold)| {
+                let line = Line {
+                    text: (*text).to_string(),
+                    font_size: *size,
+                    bold: *bold,
+                    offset,
+                };
+                offset += text.len() + 1;
+                line
+            })
+            .collect()
+    }
+
+    // The old extractor matched the bare substring "methods", so a Scientific
+    // Reports abstract reading "conventional interpretation methods has low
+    // reliability" beat the real heading eight pages later.
+    #[test]
+    fn detect_headings_ignores_a_heading_word_inside_a_sentence() {
+        let doc = lines(&[
+            (
+                "conventional interpretation methods has low reliability",
+                9.0,
+                true,
+            ),
+            ("Methods", 11.0, true),
+        ]);
+        let found = detect_headings(&doc);
+        assert_eq!(found.len(), 1, "got: {:?}", found);
+        assert_eq!(found[0].section, "methods");
+        assert_eq!(found[0].text, "Methods");
+    }
+
+    // European Heart Journal prints a structured abstract whose labels are
+    // their own lines too, so owning a line is not enough -- the body heading
+    // is the one set in display type.
+    #[test]
+    fn detect_headings_prefers_the_body_heading_over_the_abstract_label() {
+        let doc = lines(&[
+            ("Methods", 9.5, true),
+            ("Introduction", 15.0, true),
+            ("Methods", 15.0, true),
+        ]);
+        let found = detect_headings(&doc);
+        let methods: Vec<_> = found.iter().filter(|h| h.section == "methods").collect();
+        assert_eq!(methods.len(), 1, "got: {:?}", found);
+        assert_eq!(methods[0].font_size, 15.0);
+    }
+
+    // The whole scheme rests on this: a heading located by its type must be
+    // turnable into a slice of the text the caller reads.
+    #[test]
+    fn extract_document_line_offsets_index_into_its_text() {
+        let doc = extract_document(&fixture_path()).unwrap();
+        assert!(!doc.lines.is_empty(), "no lines rebuilt");
+        for line in &doc.lines {
+            let end = line.offset + line.text.len();
+            assert_eq!(
+                &doc.text[line.offset..end],
+                line.text,
+                "line at {} does not index into the text",
+                line.offset
+            );
+        }
+    }
+
+    // IEEE-style papers number their headings, and the extractor gets no space
+    // after the numeral: `II.METHODS`.
+    #[test]
+    fn detect_headings_strips_a_numbering_prefix() {
+        let doc = lines(&[
+            ("I.INTRODUCTION", 9.96, false),
+            ("2. Methods", 9.96, false),
+            ("3.1 Results", 9.96, false),
+        ]);
+        let found: Vec<&str> = detect_headings(&doc).iter().map(|h| h.section).collect();
+        assert_eq!(found, vec!["introduction", "methods", "results"]);
     }
 }
