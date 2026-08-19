@@ -207,6 +207,7 @@ fastpaper read <PATH> [OPTIONS]
 选项:
       --section <SEC>    abstract, introduction, methods, results,
                          discussion, conclusion, references, full [默认: full]
+      --list-sections    列出 PDF 里能切出哪些段落,而不是读取内容
       --grep <PATTERN>   用正则表达式搜索文本。
                          默认不区分大小写;用 (?-i) 切换为区分大小写
       --context <N>      每个匹配两侧各保留多少字符的上下文
@@ -221,6 +222,40 @@ fastpaper download 2301.08745            # -> ./papers/2301.08745.pdf
 fastpaper read papers/2301.08745.pdf --section abstract
 fastpaper read papers/2301.08745.pdf --grep 'limitations?'
 ```
+
+PDF 本身不记录章节结构,所以 `--section` 读的是排版:标题就是那种独占一行、且字号
+不小于正文的行。期刊实际用的那些体例都能应付——带编号的 `II.METHODS`、写成
+`Materials and methods` 的、Nature 那种 Results 排在 Methods 前面的——但排版异常的
+论文可能切不出某一段,这时 `--section` 退出码为 4,而不是猜一个给你。要在开口要之前
+先看有哪些段,用 `--list-sections`:
+
+```sh
+fastpaper read papers/2301.08745.pdf --list-sections
+```
+```
+abstract       p1    @105       12.0pt  Abstract
+introduction   p1    @1763      12.0pt  1Introduction
+conclusion     p8    @30510     12.0pt  5Conclusion
+references     p9    @31793     12.0pt  References
+```
+
+这篇实际不止四段:其中一段的标题叫 `Analysis`,不在 `--section` 收的名字里。页码是
+为了能拿去和印出来的页面对照——这是判断切得对不对的唯一办法。
+
+如果列表里没有 `abstract` 或 `introduction`,通常是论文本身如此而不是没读出来——
+Nature 系的摘要上面根本不印标题。这时直接读开头就行,拿到的还是那几千字:
+
+```sh
+fastpaper read papers/2301.08745.pdf --max-length 3000
+```
+
+加上 `--format json` 时,`--section` 的输出还会报出这一刀实际是从哪个标题起的——
+`heading.text`、`heading.offset`、`heading.font_size`。要引用某一段的调用方,可以拿
+它来核对切得对不对。
+
+有两件事 `read` 不做。它不剔除页眉、页码和期刊页脚,所以引用的段落里可能混进这类
+文字——只有在我们能实测的排版上才分得清它们和正文,靠猜会静默删掉真内容。它也不给
+置信度:切出来了不等于切对了。
 
 `--grep` 搜索的是 `--section` 选中的那部分,不给 `--section` 时就搜索全文,所以
 "先试某一节,不行就退回全文"只需要改一个参数就行。命中的位置以字符偏移量报告,

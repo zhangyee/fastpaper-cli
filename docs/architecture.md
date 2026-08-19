@@ -21,8 +21,9 @@ src/
 │   │                #   encode_query, validate_ymd, contact_email
 │   └── <source>.rs  # One fully self-contained module per source (18 today)
 ├── download.rs      # fetch_pdf, per-source pdf_bytes_<src> resolvers, save_pdf
-├── read.rs          # PDF text extraction (pdf_oxide): extract_text, extract_text_from_bytes,
-│                    #   extract_section
+├── read.rs          # PDF text (pdf_oxide): extract_document rebuilds the page in
+│                    #   column-aware reading order, keeping each line's type size;
+│                    #   detect_headings reads the headings off that, find_section cuts
 ├── grep.rs          # Finds a pattern in text and cuts context windows around the hits
 ├── output.rs        # Renderers: to_table, to_json, to_jsonl, to_csv, to_bibtex
 └── identifier.rs    # detect_id_type: Arxiv, ArxivOld, Doi, Pmc, Pmid, S2, Url, Unknown

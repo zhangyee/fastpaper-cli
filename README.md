@@ -215,6 +215,7 @@ fastpaper read <PATH> [OPTIONS]
 Options:
       --section <SEC>    abstract, introduction, methods, results,
                          discussion, conclusion, references, full [default: full]
+      --list-sections    List the sections found in the PDF instead of reading it
       --grep <PATTERN>   Search the text for a regular expression.
                          Case-insensitive; use (?-i) for a case-sensitive one
       --context <N>      Characters of context on each side of a match
@@ -229,6 +230,46 @@ fastpaper download 2301.08745            # -> ./papers/2301.08745.pdf
 fastpaper read papers/2301.08745.pdf --section abstract
 fastpaper read papers/2301.08745.pdf --grep 'limitations?'
 ```
+
+A PDF records no section structure, so `--section` reads the typography: a
+heading is a line that holds nothing else and is set no smaller than the body.
+That handles the layouts journals actually use — a numbered `II.METHODS`, a
+`Materials and methods`, Nature running results before methods — but a paper
+set unusually can leave a section unfound, and `--section` then exits 4 rather
+than guessing. `--list-sections` says what was found before you ask for one:
+
+```sh
+fastpaper read papers/2301.08745.pdf --list-sections
+```
+```
+abstract       p1    @105       12.0pt  Abstract
+introduction   p1    @1763      12.0pt  1Introduction
+conclusion     p8    @30510     12.0pt  5Conclusion
+references     p9    @31793     12.0pt  References
+```
+
+Four, on a paper that has more: one of its sections is headed `Analysis`,
+which `--section` does not take. The page is there so the reading can be
+checked against the print, which is the only way to know it is right.
+
+When the list has no `abstract` or `introduction`, that is usually the paper
+rather than the reading — Nature and its family print the abstract with no
+heading over it at all. Read the opening instead, which is the same few
+thousand characters the section would have given you:
+
+```sh
+fastpaper read papers/2301.08745.pdf --max-length 3000
+```
+
+With `--format json`, a `--section` read also reports the heading its slice
+started at, as `heading.text`, `heading.offset` and `heading.font_size`. That
+is what a caller quoting a section can check the slice against.
+
+Two things `read` does not do. It leaves running heads, folios and journal
+footers in the text, so a quoted passage can have one spliced through it — they
+are only reliably distinguishable from content on layouts we could measure, and
+guessing would delete real text silently. And it reports no confidence: a
+section that was found is not thereby the right one.
 
 `--grep` searches the section `--section` selected, or the whole paper when it
 is not given, so "try the section, fall back to full text" is one command with
