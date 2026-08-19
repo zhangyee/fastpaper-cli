@@ -242,16 +242,24 @@ than guessing. `--list-sections` says what was found before you ask for one:
 fastpaper read papers/2301.08745.pdf --list-sections
 ```
 ```
-abstract       @104       12.0pt  Abstract
-introduction   @1761      12.0pt  1Introduction
-references     @31759     12.0pt  References
+abstract       p1    @105       12.0pt  Abstract
+introduction   p1    @1763      12.0pt  1Introduction
+conclusion     p8    @30510     12.0pt  5Conclusion
+references     p9    @31793     12.0pt  References
 ```
 
-Three, on a paper that has more. One of its sections is headed `Analysis`,
-which `--section` does not take, and its `5Conclusion` came out of the
-extractor fused to the column beside it, so nothing could see it as a heading.
-Checking costs one command; quoting a section that was never found does not
-announce itself.
+Four, on a paper that has more: one of its sections is headed `Analysis`,
+which `--section` does not take. The page is there so the reading can be
+checked against the print, which is the only way to know it is right.
+
+When the list has no `abstract` or `introduction`, that is usually the paper
+rather than the reading — Nature and its family print the abstract with no
+heading over it at all. Read the opening instead, which is the same few
+thousand characters the section would have given you:
+
+```sh
+fastpaper read papers/2301.08745.pdf --max-length 3000
+```
 
 With `--format json`, a `--section` read also reports the heading its slice
 started at, as `heading.text`, `heading.offset` and `heading.font_size`. That

@@ -78,6 +78,19 @@ appears in the list. Under `--format json` a section read reports the heading
 its slice began at (`heading.text`, `heading.offset`), which is what you
 verify a quotation against.
 
+**When the list has no `abstract` or `introduction`**, that is usually the
+paper, not the tool: Nature and its family print the abstract with no heading
+over it at all. Read the opening instead — it is the same few thousand
+characters you were after:
+
+```
+fastpaper read papers/<id>.pdf --max-length 3000
+```
+
+The point of `--section` is to keep the paper out of your context, and the
+opening of a paper is its abstract and the start of its introduction. Falling
+back to it costs the same as the section would have.
+
 Two limits to plan around. Running heads, folios and journal footers are left
 in the text and can land in the middle of a quoted sentence — strip them
 yourself if you are quoting. And "the section was found" is not "the section

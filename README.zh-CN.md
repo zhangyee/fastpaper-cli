@@ -233,14 +233,21 @@ PDF 本身不记录章节结构,所以 `--section` 读的是排版:标题就是�
 fastpaper read papers/2301.08745.pdf --list-sections
 ```
 ```
-abstract       @104       12.0pt  Abstract
-introduction   @1761      12.0pt  1Introduction
-references     @31759     12.0pt  References
+abstract       p1    @105       12.0pt  Abstract
+introduction   p1    @1763      12.0pt  1Introduction
+conclusion     p8    @30510     12.0pt  5Conclusion
+references     p9    @31793     12.0pt  References
 ```
 
-这篇实际不止三段。其中一段的标题叫 `Analysis`,不在 `--section` 收的名字里;而它的
-`5Conclusion` 被提取器和旁边那一栏的文字粘成了一行,于是没人能把它当成标题。核对只
-要一条命令,而引用了一段根本没切出来的内容,是不会自己报警的。
+这篇实际不止四段:其中一段的标题叫 `Analysis`,不在 `--section` 收的名字里。页码是
+为了能拿去和印出来的页面对照——这是判断切得对不对的唯一办法。
+
+如果列表里没有 `abstract` 或 `introduction`,通常是论文本身如此而不是没读出来——
+Nature 系的摘要上面根本不印标题。这时直接读开头就行,拿到的还是那几千字:
+
+```sh
+fastpaper read papers/2301.08745.pdf --max-length 3000
+```
 
 加上 `--format json` 时,`--section` 的输出还会报出这一刀实际是从哪个标题起的——
 `heading.text`、`heading.offset`、`heading.font_size`。要引用某一段的调用方,可以拿
