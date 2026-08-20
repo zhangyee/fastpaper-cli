@@ -82,6 +82,46 @@ pub fn unzip_images(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, crate::downl
     Ok(out)
 }
 
+/// Pull the figure files out of a gzipped tarball (arXiv's e-print source).
+pub fn untar_gz_images(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, crate::download::FetchError> {
+    use crate::download::FetchError;
+    use std::io::Read;
+
+    let decoder = flate2::read::GzDecoder::new(std::io::Cursor::new(bytes));
+    let mut archive = tar::Archive::new(decoder);
+    let entries = archive
+        .entries()
+        .map_err(|e| FetchError::Failed(format!("Could not open the archive: {}", e)))?;
+
+    let mut out = Vec::new();
+    for entry in entries {
+        let mut entry =
+            entry.map_err(|e| FetchError::Failed(format!("Could not read the archive: {}", e)))?;
+        if !entry.header().entry_type().is_file() {
+            continue;
+        }
+        // `to_string_lossy` rather than a hard error: one undecodable name in
+        // an otherwise good tarball should cost that entry, not the request.
+        // `safe_entry_path` still has the last word on whether it is written.
+        let raw = entry
+            .path()
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        let Some(path) = safe_entry_path(&raw) else {
+            continue;
+        };
+        if !is_figure_file(&path) {
+            continue;
+        }
+        let mut body = Vec::new();
+        entry
+            .read_to_end(&mut body)
+            .map_err(|e| FetchError::Failed(format!("Could not read {} from the archive: {}", path, e)))?;
+        out.push((path, body));
+    }
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -192,6 +232,62 @@ mod tests {
     #[test]
     fn a_body_that_is_not_a_zip_is_a_failure_not_a_panic() {
         let err = unzip_images(b"<html>not a zip</html>").unwrap_err();
+        assert!(err.message().contains("archive"), "got: {}", err.message());
+    }
+
+    // `tar::Builder::append_data` routes through `Header::set_path`, which
+    // refuses `..` components -- exactly the kind of entry the traversal test
+    // below needs to construct. Write the raw name field and use the
+    // lower-level `append` instead so the test can build a malicious archive
+    // on purpose; production code never takes this path.
+    fn build_tar_gz(entries: &[(&str, &[u8])]) -> Vec<u8> {
+        let mut tar = tar::Builder::new(Vec::new());
+        for (name, body) in entries {
+            let mut header = tar::Header::new_gnu();
+            let name_bytes = name.as_bytes();
+            header.as_old_mut().name[..name_bytes.len()].copy_from_slice(name_bytes);
+            header.set_size(body.len() as u64);
+            header.set_mode(0o644);
+            header.set_cksum();
+            tar.append(&header, *body).unwrap();
+        }
+        let raw = tar.into_inner().unwrap();
+        let mut enc = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+        enc.write_all(&raw).unwrap();
+        enc.finish().unwrap()
+    }
+
+    #[test]
+    fn untar_keeps_figures_including_nested_pdfs() {
+        let tgz = build_tar_gz(&[
+            ("figs/architecture.pdf", b"pdf-bytes"),
+            ("figs/saliency.png", b"png-bytes"),
+            ("main.tex", b"latex"),
+            ("llncs.cls", b"class"),
+        ]);
+        let got = untar_gz_images(&tgz).unwrap();
+        let names: Vec<&str> = got.iter().map(|(n, _)| n.as_str()).collect();
+        assert_eq!(names, vec!["figs/architecture.pdf", "figs/saliency.png"]);
+        assert_eq!(got[0].1, b"pdf-bytes");
+    }
+
+    #[test]
+    fn untar_returns_empty_when_the_archive_has_no_figures() {
+        let tgz = build_tar_gz(&[("main.tex", b"latex")]);
+        assert!(untar_gz_images(&tgz).unwrap().is_empty());
+    }
+
+    #[test]
+    fn untar_skips_traversing_entries() {
+        let tgz = build_tar_gz(&[("../evil.png", b"bad"), ("ok.png", b"good")]);
+        let got = untar_gz_images(&tgz).unwrap();
+        let names: Vec<&str> = got.iter().map(|(n, _)| n.as_str()).collect();
+        assert_eq!(names, vec!["ok.png"]);
+    }
+
+    #[test]
+    fn a_body_that_is_not_a_tarball_is_a_failure_not_a_panic() {
+        let err = untar_gz_images(b"%PDF-1.7 not a tarball").unwrap_err();
         assert!(err.message().contains("archive"), "got: {}", err.message());
     }
 }
