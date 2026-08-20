@@ -44,15 +44,17 @@ fn suggested_limit(bytes: u64) -> u64 {
 /// the old `Failed to read PDF` was routinely taken to mean it. Naming the
 /// actual size matters too -- 11 MiB means "raise the limit", 500 MiB means
 /// "take another route", and the old message let you tell neither.
-fn over_limit(actual: Option<u64>, limit: u64) -> String {
+fn over_limit(actual: Option<u64>, limit: u64, what: &str) -> String {
     let head = match actual {
         Some(bytes) => format!(
-            "PDF is {}, over the {} download limit.",
+            "{} is {}, over the {} download limit.",
+            what,
             human_size(bytes),
             human_size(limit)
         ),
         None => format!(
-            "PDF exceeds the {} download limit (server did not report its size).",
+            "{} exceeds the {} download limit (server did not report its size).",
+            what,
             human_size(limit)
         ),
     };
@@ -148,10 +150,25 @@ pub fn fetch_pdf(url: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
 /// `fetch_pdf` with a caller-supplied 404 message.
 ///
 /// Sources that address papers by identifier can say which paper was missing;
-/// a bare URL fetch cannot. Everything else about the two is identical, and
-/// this is the only place in the crate that reads a PDF response body -- so the
-/// size limit cannot be forgotten on one path.
+/// a bare URL fetch cannot. See `fetch_limited` for the shared body-reading
+/// path both this and `fetch_archive` go through.
 pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>, FetchError> {
+    fetch_limited(url, limit, not_found, "PDF")
+}
+
+/// `fetch_limited` with a caller-supplied 404 message.
+///
+/// Sources that address papers by identifier can say which paper was missing;
+/// a bare URL fetch cannot. Everything else about the two is identical, and
+/// this is the only place in the crate that reads a response body -- so the
+/// size limit cannot be forgotten on one path. `what` names the thing being
+/// refused so an oversized tarball does not report itself as a PDF.
+fn fetch_limited(
+    url: &str,
+    limit: u64,
+    not_found: &str,
+    what: &str,
+) -> Result<Vec<u8>, FetchError> {
     // `--max-size` is there to bound memory, and compression is what stopped
     // it doing that: ureq's `.limit()` counts bytes inside its decompressor,
     // so a gzip response could inflate ~1000x under the 100 MiB default before
@@ -172,7 +189,7 @@ pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>
             if let Some(size) = resp.body().content_length()
                 && size > limit
             {
-                return Err(FetchError::Failed(over_limit(Some(size), limit)));
+                return Err(FetchError::Failed(over_limit(Some(size), limit, what)));
             }
             // `.limit()` also cannot be trusted alone: it wraps the reader
             // *inside* the decompressor, so for a compressed response it
@@ -188,8 +205,14 @@ pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>
                 .limit(limit.saturating_add(1))
                 .read_to_vec()
                 .map_err(|e| match e {
-                    ureq::Error::BodyExceedsLimit(_) => FetchError::Failed(over_limit(None, limit)),
-                    other => FetchError::Failed(format!("Could not fetch the PDF: {}", other)),
+                    ureq::Error::BodyExceedsLimit(_) => {
+                        FetchError::Failed(over_limit(None, limit, what))
+                    }
+                    other => FetchError::Failed(format!(
+                        "Could not fetch the {}: {}",
+                        what.to_lowercase(),
+                        other
+                    )),
                 })?;
             // The actual enforcement: bounds what is handed back to the
             // caller regardless of what Content-Length claimed or what
@@ -200,6 +223,7 @@ pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>
                 return Err(FetchError::Failed(over_limit(
                     Some(bytes.len() as u64),
                     limit,
+                    what,
                 )));
             }
             Ok(bytes)
@@ -214,6 +238,14 @@ pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>
         }
         Err(e) => Err(FetchError::Failed(format!("HTTP error: {}", e))),
     }
+}
+
+/// Fetch an archive (zip / tar.gz) under the same size limit as a PDF.
+///
+/// Kept alongside `fetch_pdf_named` rather than in `figures.rs` so both go
+/// through the one body-reading path that enforces `--max-size`.
+pub fn fetch_archive(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>, FetchError> {
+    fetch_limited(url, limit, not_found, "Archive")
 }
 
 // ── PDF byte fetchers ───────────────────────────
@@ -830,13 +862,13 @@ mod tests {
     // CLI that has one, the word cannot also mean "read the HTTP body".
     #[test]
     fn the_over_limit_message_never_says_read() {
-        let msg = over_limit(Some(233_000_000), 104_857_600);
+        let msg = over_limit(Some(233_000_000), 104_857_600, "PDF");
         assert!(!msg.to_lowercase().contains("read"), "got: {}", msg);
     }
 
     #[test]
     fn the_over_limit_message_gives_the_actual_size_and_a_fix() {
-        let msg = over_limit(Some(233_000_000), 104_857_600);
+        let msg = over_limit(Some(233_000_000), 104_857_600, "PDF");
         assert!(
             msg.contains("222.2 MiB"),
             "should name the actual size: {}",
@@ -855,15 +887,30 @@ mod tests {
     // message says so rather than repeating the limit as if it were the size.
     #[test]
     fn an_unknown_size_is_admitted_rather_than_guessed() {
-        let msg = over_limit(None, 104_857_600);
+        let msg = over_limit(None, 104_857_600, "PDF");
         assert!(msg.contains("did not report its size"), "got: {}", msg);
         assert!(msg.contains("--max-size"), "got: {}", msg);
     }
 
     #[test]
     fn the_suggested_limit_clears_the_actual_size() {
-        let msg = over_limit(Some(233_000_000), 104_857_600);
+        let msg = over_limit(Some(233_000_000), 104_857_600, "PDF");
         assert!(msg.contains("--max-size 500MiB"), "got: {}", msg);
+    }
+
+    #[test]
+    fn the_over_limit_message_names_what_was_refused() {
+        let pdf = over_limit(Some(233_000_000), 104_857_600, "PDF");
+        assert!(pdf.starts_with("PDF is 222.2 MiB"), "got: {}", pdf);
+
+        let archive = over_limit(Some(233_000_000), 104_857_600, "Archive");
+        assert!(
+            archive.starts_with("Archive is 222.2 MiB"),
+            "got: {}",
+            archive
+        );
+        // 名词变了,给出的修复办法不变。
+        assert!(archive.contains("--max-size"), "got: {}", archive);
     }
 
     #[test]
