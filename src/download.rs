@@ -156,11 +156,10 @@ pub fn fetch_pdf_named(url: &str, limit: u64, not_found: &str) -> Result<Vec<u8>
     fetch_limited(url, limit, not_found, "PDF")
 }
 
-/// `fetch_limited` with a caller-supplied 404 message.
+/// The shared implementation behind `fetch_pdf_named` and `fetch_archive`:
+/// downloads `url`, enforces `limit`, and turns a 404 into `not_found`.
 ///
-/// Sources that address papers by identifier can say which paper was missing;
-/// a bare URL fetch cannot. Everything else about the two is identical, and
-/// this is the only place in the crate that reads a response body -- so the
+/// This is the only place in the crate that reads a response body -- so the
 /// size limit cannot be forgotten on one path. `what` names the thing being
 /// refused so an oversized tarball does not report itself as a PDF.
 fn fetch_limited(

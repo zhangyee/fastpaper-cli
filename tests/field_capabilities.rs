@@ -150,9 +150,11 @@ fn each_field_column_actually_discriminates_between_sources() {
     }
 }
 
-// Only Europe PMC serves figure archives today. The bytes come from
-// ebi.ac.uk, so the capability sits on the source that actually serves them
-// rather than on `pmc` -- see the routing note in commands/figures.rs.
+// Only arXiv (source packages) and Europe PMC (supplementary packages) serve
+// figure archives today. The Europe PMC bytes come from ebi.ac.uk rather than
+// pmc.ncbi.nlm.nih.gov, so the capability sits on the source that actually
+// serves them rather than on `pmc` -- see the routing note in
+// commands/figures.rs.
 #[test]
 fn only_the_expected_sources_declare_a_figures_capability() {
     let with_figures: Vec<&str> = ALL
