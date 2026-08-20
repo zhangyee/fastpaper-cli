@@ -5,6 +5,8 @@
 //! to be cleverer than that costs accuracy. See
 //! `docs/superpowers/specs/2026-08-20-figures-command-design.md`.
 
+use std::path::{Path, PathBuf};
+
 /// Extensions worth pulling out of an archive.
 ///
 /// `pdf` is on the list because arXiv figures usually *are* PDFs -- of the ten
@@ -120,6 +122,46 @@ pub fn untar_gz_images(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, crate::do
         out.push((path, body));
     }
     Ok(out)
+}
+
+/// Write the figures under `<dir>/<identifier>/`, keeping the archive's own
+/// directory layout.
+///
+/// The identifier gets its own subdirectory because archive filenames are not
+/// unique across papers -- arXiv's are routinely just `1.pdf`, `2.pdf` -- so a
+/// flat layout would have two papers overwrite each other. `/` in the
+/// identifier is flattened to `_` exactly as `save_pdf` does, so a DOI names
+/// one directory rather than two levels.
+pub fn save_figures(
+    files: &[(String, Vec<u8>)],
+    dir: &Path,
+    identifier: &str,
+    overwrite: bool,
+) -> Result<(PathBuf, u64), String> {
+    let out = dir.join(identifier.replace('/', "_"));
+
+    // Check every target before writing any of them: a half-written directory
+    // after a collision is worse than writing nothing.
+    if !overwrite {
+        for (name, _) in files {
+            let path = out.join(name);
+            if path.exists() {
+                return Err(format!("File already exists: {}", path.display()));
+            }
+        }
+    }
+
+    let mut total = 0u64;
+    for (name, body) in files {
+        let path = out.join(name);
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to create directory: {}", e))?;
+        }
+        std::fs::write(&path, body).map_err(|e| format!("Failed to write file: {}", e))?;
+        total += body.len() as u64;
+    }
+    Ok((out, total))
 }
 
 #[cfg(test)]
@@ -289,5 +331,54 @@ mod tests {
     fn a_body_that_is_not_a_tarball_is_a_failure_not_a_panic() {
         let err = untar_gz_images(b"%PDF-1.7 not a tarball").unwrap_err();
         assert!(err.message().contains("archive"), "got: {}", err.message());
+    }
+
+    #[test]
+    fn figures_land_in_a_subdirectory_named_for_the_identifier() {
+        let dir = std::env::temp_dir().join(format!("fp_fig_{}_a", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let files = vec![
+            ("figs/architecture.pdf".to_string(), b"pdf".to_vec()),
+            ("saliency.png".to_string(), b"png".to_vec()),
+        ];
+        let (out, total) = save_figures(&files, &dir, "2408.05178", false).unwrap();
+
+        assert_eq!(out, dir.join("2408.05178"));
+        assert_eq!(total, 6);
+        assert_eq!(
+            std::fs::read(dir.join("2408.05178/figs/architecture.pdf")).unwrap(),
+            b"pdf"
+        );
+        assert!(dir.join("2408.05178/saliency.png").exists());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    // A DOI has a `/` in it and must not become a directory level.
+    #[test]
+    fn a_slash_in_the_identifier_is_flattened_like_download_does() {
+        let dir = std::env::temp_dir().join(format!("fp_fig_{}_b", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let files = vec![("f1.jpg".to_string(), b"x".to_vec())];
+        let (out, _) = save_figures(&files, &dir, "10.1038/s41586-025-09052-5", false).unwrap();
+        assert_eq!(out, dir.join("10.1038_s41586-025-09052-5"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn an_existing_file_is_refused_unless_overwrite_is_set() {
+        let dir = std::env::temp_dir().join(format!("fp_fig_{}_c", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("PMC1")).unwrap();
+        std::fs::write(dir.join("PMC1/f1.jpg"), b"old").unwrap();
+
+        let files = vec![("f1.jpg".to_string(), b"new".to_vec())];
+        let err = save_figures(&files, &dir, "PMC1", false).unwrap_err();
+        assert!(err.contains("already exists"), "got: {}", err);
+        // Refused means nothing changed.
+        assert_eq!(std::fs::read(dir.join("PMC1/f1.jpg")).unwrap(), b"old");
+
+        save_figures(&files, &dir, "PMC1", true).unwrap();
+        assert_eq!(std::fs::read(dir.join("PMC1/f1.jpg")).unwrap(), b"new");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }
