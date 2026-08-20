@@ -13,14 +13,19 @@ src/
 │                    #   OutputFormat / Section,以及 [source] <id> 的消歧逻辑
 ├── commands/        # 每条命令一个模块,各自负责校验、调用与渲染
 │   ├── mod.rs       # CommandError(自带退出码)、render、emit(+ -o 回执)
-│   └── search.rs · get.rs · download.rs · read.rs · sources.rs
+│   └── search.rs · get.rs · download.rs · figures.rs · read.rs · sources.rs
 ├── registry.rs      # Source 枚举,以及把每个源映射到其 base URL、Capabilities
-│                    #   和函数的唯一一张表(纯函数指针,不引入 trait)
+│                    #   和函数的唯一一张表(纯函数指针,不引入 trait);SourceEntry 的
+│                    #   `figures` 函数指针除 arXiv 与 Europe PMC 外全部为 `None`——
+│                    #   只有这两个源发布论文作者上传的原始插图文件
 ├── sources/
 │   ├── mod.rs       # Paper(共享数据契约)、SearchQuery、Capabilities / SearchCaps、
 │   │                #   encode_query、validate_ymd、contact_email
 │   └── <source>.rs  # 每个数据源一个完全自包含的模块(目前 18 个)
 ├── download.rs      # fetch_pdf、各源 pdf_bytes_<src> 解析函数、save_pdf
+├── figures.rs       # unzip_images / untar_gz_images 从源的压缩包里筛出插图扩展名的
+│                    #   文件;safe_entry_path 拒绝路径穿越;save_figures 把结果落盘到
+│                    #   以标识符命名的子目录
 ├── read.rs          # PDF 文本(pdf_oxide):extract_document 按栏序重建页面,每行保留
 │                    #   字号;detect_headings 据此读出标题,find_section 切段
 ├── grep.rs          # 在文本中查找匹配,并在命中位置两侧截取上下文窗口
@@ -50,6 +55,7 @@ src/
 其他命令:
 
 - **`download`** — 经该源的 `pdf` 函数把标识符解析成 PDF 字节,再由 `download::save_pdf` 落盘。给一个参数时数据源由标识符形状推断,给两个参数时是显式指定的。
+- **`figures`** — 经该源的 `figures` 函数(只有 `arxiv` 与 `europepmc` 提供)把标识符解析成一个压缩包,用 `figures::unzip_images` / `untar_gz_images` 解包,再由 `figures::save_figures` 落盘。与 `download` 同样的两种参数形态;DOI 会先经 `sources::pmc::pmcid_for_doi` 解析成 PMC ID。落盘的文件名沿用压缩包里的原名——不解析图号——所以文件名与图号并不对应。
 - **`read`** — 只读本地 PDF,完全不联网:`download` 负责取,`read` 负责抽。
 - **`get`** — 与 `download` 同样的两种参数形态。推断数据源时由 `identifier::detect_id_type` 把形状(DOI、arXiv ID、PMC ID、PMID、S2 ID)映射到源;注意它的路由与 `download` 不同——Crossref 掌管 DOI 元数据,但不提供文件。
 

@@ -91,26 +91,31 @@ wait
 `read` is not listed here: it works on a PDF already on disk, so it applies
 equally to anything the `download` column can fetch.
 
-| Source | Full name | search | get | download | cite | Domain |
-|--------|-----------|:------:|:---:|:--------:|:----:|--------|
-| `arxiv` | arXiv | yes | yes | yes | | Physics, math, CS, statistics, EE, q-bio, q-fin, econ |
-| `biorxiv` | bioRxiv | yes | yes | yes | | Life sciences |
-| `medrxiv` | medRxiv | yes | yes | | | Medical / health sciences (medRxiv blocks PDF fetches) |
-| `pubmed` | PubMed | yes | yes | | | Biomedical & life sciences (metadata only) |
-| `pmc` | PubMed Central | yes | yes | yes | | Biomedical & life sciences (full text) |
-| `europepmc` | Europe PMC | yes | yes | yes | | Life sciences superset of PMC; adds preprints, patents, guidelines |
-| `scholar` | Google Scholar | yes | | | | All disciplines (experimental, rate-limited) |
-| `xueshu` | Baidu Xueshu (百度学术) | yes | | | | All disciplines, strong Chinese-language coverage (experimental, unofficial API) |
-| `semantic` | Semantic Scholar | yes | yes | yes | yes | All disciplines, AI-powered citation graph |
-| `crossref` | CrossRef | yes | yes | | | DOI metadata, all disciplines |
-| `openalex` | OpenAlex | yes | yes | | yes | Open metadata index, 200M+ works |
-| `dblp` | DBLP | yes | | | | Computer science |
-| `core` | CORE | yes | yes | yes | | Open access aggregator (needs `CORE_API_KEY`) |
-| `openaire` | OpenAIRE | yes | yes | | | EU open science |
-| `doaj` | DOAJ | yes | yes | | | Open access journals, all subjects (links go to publisher pages, not PDFs) |
-| `unpaywall` | Unpaywall | | yes | | | OA link resolver (requires `UNPAYWALL_EMAIL`) |
-| `zenodo` | Zenodo | yes | yes | yes | | All disciplines (datasets, software, papers) |
-| `hal` | HAL | yes | yes | yes | | Multi-disciplinary, French national archive |
+| Source | Full name | search | get | download | cite | figures | Domain |
+|--------|-----------|:------:|:---:|:--------:|:----:|:-------:|--------|
+| `arxiv` | arXiv | yes | yes | yes | | yes | Physics, math, CS, statistics, EE, q-bio, q-fin, econ |
+| `biorxiv` | bioRxiv | yes | yes | yes | | | Life sciences |
+| `medrxiv` | medRxiv | yes | yes | | | | Medical / health sciences (medRxiv blocks PDF fetches) |
+| `pubmed` | PubMed | yes | yes | | | | Biomedical & life sciences (metadata only) |
+| `pmc` | PubMed Central | yes | yes | yes | | | Biomedical & life sciences (full text) |
+| `europepmc` | Europe PMC | yes | yes | yes | | yes | Life sciences superset of PMC; adds preprints, patents, guidelines |
+| `scholar` | Google Scholar | yes | | | | | All disciplines (experimental, rate-limited) |
+| `xueshu` | Baidu Xueshu (百度学术) | yes | | | | | All disciplines, strong Chinese-language coverage (experimental, unofficial API) |
+| `semantic` | Semantic Scholar | yes | yes | yes | yes | | All disciplines, AI-powered citation graph |
+| `crossref` | CrossRef | yes | yes | | | | DOI metadata, all disciplines |
+| `openalex` | OpenAlex | yes | yes | | yes | | Open metadata index, 200M+ works |
+| `dblp` | DBLP | yes | | | | | Computer science |
+| `core` | CORE | yes | yes | yes | | | Open access aggregator (needs `CORE_API_KEY`) |
+| `openaire` | OpenAIRE | yes | yes | | | | EU open science |
+| `doaj` | DOAJ | yes | yes | | | | Open access journals, all subjects (links go to publisher pages, not PDFs) |
+| `unpaywall` | Unpaywall | | yes | | | | OA link resolver (requires `UNPAYWALL_EMAIL`) |
+| `zenodo` | Zenodo | yes | yes | yes | | | All disciplines (datasets, software, papers) |
+| `hal` | HAL | yes | yes | yes | | | Multi-disciplinary, French national archive |
+
+`figures` fetches the authors' original figure files rather than PDF pages —
+see below. Only `arxiv` (its e-print source package) and `europepmc` (its
+supplementary package) can provide them; a PMC ID or a DOI both route to
+`europepmc`.
 
 Sources differ in which search filters they can honour, and in their per-request
 result caps. `fastpaper sources --capabilities` prints the full matrix along
@@ -185,6 +190,45 @@ Options:
                          A bare number is bytes, so `--max-size 10` means ten
                          bytes. 0 means unlimited [default: 100MiB]
       --overwrite        Overwrite an existing file
+```
+
+### `figures` -- Fetch a paper's original figure files
+
+Same two forms as `get`. Fetches a paper's original figure files — an arXiv
+source package or a Europe PMC supplementary package — and saves them under a
+subdirectory named for the identifier you typed (`/` flattened to `_`, same
+as `download`).
+
+```
+fastpaper figures <IDENTIFIER> [OPTIONS]
+fastpaper figures <SOURCE> <IDENTIFIER> [OPTIONS]
+
+Options:
+  -d, --dir <PATH>       Download directory [default: ./papers]
+  -s, --max-size <SIZE>  Largest archive to accept, e.g. 10MiB, 200MB.
+                         A bare number is bytes. 0 means unlimited [default: 100MiB]
+      --overwrite        Overwrite existing files
+```
+
+Only `arxiv` and `europepmc` can provide figures. A PMC ID or a DOI routes to
+`europepmc`; a DOI is resolved to a PMC ID via NCBI's ID converter first.
+Naming any other source fails with exit `1`. A paper that has no figure files
+at a supported source fails with exit `4`.
+
+This does not extract images from the PDF, render anything, or parse figure
+numbers — it saves exactly what is in the archive, under the name it has
+there. **Filenames do not correspond to figure numbers**: for `2511.11035`,
+the file `3.pdf` is actually Figure 1.
+
+Measured against a 39-paper corpus, verified end-to-end against the live
+services on 2026-08-20: 31 papers (79%) yielded figure files. The 8 misses
+were 4 HTTP 404s, 3 packages with no images (not open access), and 1 arXiv
+paper submitted as a PDF with no source package. All 22 DOIs in that corpus
+resolved to a PMC ID.
+
+```sh
+fastpaper figures 2511.11035 -d papers/       # -> papers/2511.11035/{1,2,3}.pdf
+fastpaper figures PMC7075534 -d papers/       # -> papers/PMC7075534/*.jpg
 ```
 
 ### `cite` -- Walk citation edges
@@ -325,7 +369,7 @@ Cloud Service on AWS Open Data, not the article pages).
 | `0` | Success |
 | `1` | General error (rejected arguments, parse failure, network failure) |
 | `2` | Usage error from argument parsing: unknown flag, bad value, or a flag whose partner is missing (`--context` without `--grep`) |
-| `4` | Nothing to return: no such paper, no `--grep` match, no such `--section`, no PDF for this paper at this source |
+| `4` | Nothing to return: no such paper, no `--grep` match, no such `--section`, no PDF for this paper at this source, no figure files for this paper |
 
 Those four are the whole set. Anything a caller can branch on lives here — a
 rate limit, a 403 and a refused `--max-size` all arrive as `1`, distinguished by

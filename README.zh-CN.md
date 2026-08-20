@@ -91,26 +91,30 @@ wait
 这里不列 `read`：它读的是已经落到磁盘上的 PDF，所以凡是 `download` 列能取到的，
 它都能读。
 
-| 数据源 | 全称 | search | get | download | cite | 覆盖领域 |
-|--------|------|:------:|:---:|:--------:|:----:|----------|
-| `arxiv` | arXiv | yes | yes | yes | | 物理、数学、计算机、统计、电子工程、量化生物/金融、经济学 |
-| `biorxiv` | bioRxiv | yes | yes | yes | | 生命科学 |
-| `medrxiv` | medRxiv | yes | yes | | | 医学 / 健康科学（medRxiv 拦截 PDF 抓取）|
-| `pubmed` | PubMed | yes | yes | | | 生物医学与生命科学（仅元数据） |
-| `pmc` | PubMed Central | yes | yes | yes | | 生物医学与生命科学（全文） |
-| `europepmc` | Europe PMC | yes | yes | yes | | PMC 的生命科学超集，另含预印本、专利、临床指南 |
-| `scholar` | Google Scholar | yes | | | | 全学科（实验性，有频率限制） |
-| `xueshu` | 百度学术 | yes | | | | 全学科，中文文献覆盖强（实验性，非官方接口） |
-| `semantic` | Semantic Scholar | yes | yes | yes | yes | 全学科，AI 驱动的引用图谱 |
-| `crossref` | CrossRef | yes | yes | | | DOI 元数据，全学科 |
-| `openalex` | OpenAlex | yes | yes | | yes | 开放元数据索引，2 亿+ 作品 |
-| `dblp` | DBLP | yes | | | | 计算机科学 |
-| `core` | CORE | yes | yes | yes | | 开放获取聚合器（需 `CORE_API_KEY`）|
-| `openaire` | OpenAIRE | yes | yes | | | 欧盟开放科学 |
-| `doaj` | DOAJ | yes | yes | | | 开放获取期刊，全学科（全文链接指向出版商页面而非 PDF）|
-| `unpaywall` | Unpaywall | | yes | | | OA 链接解析（需设置 `UNPAYWALL_EMAIL`） |
-| `zenodo` | Zenodo | yes | yes | yes | | 全学科（数据集、软件、论文） |
-| `hal` | HAL | yes | yes | yes | | 多学科，法国国家开放存档 |
+| 数据源 | 全称 | search | get | download | cite | figures | 覆盖领域 |
+|--------|------|:------:|:---:|:--------:|:----:|:-------:|----------|
+| `arxiv` | arXiv | yes | yes | yes | | yes | 物理、数学、计算机、统计、电子工程、量化生物/金融、经济学 |
+| `biorxiv` | bioRxiv | yes | yes | yes | | | 生命科学 |
+| `medrxiv` | medRxiv | yes | yes | | | | 医学 / 健康科学（medRxiv 拦截 PDF 抓取）|
+| `pubmed` | PubMed | yes | yes | | | | 生物医学与生命科学（仅元数据） |
+| `pmc` | PubMed Central | yes | yes | yes | | | 生物医学与生命科学（全文） |
+| `europepmc` | Europe PMC | yes | yes | yes | | yes | PMC 的生命科学超集，另含预印本、专利、临床指南 |
+| `scholar` | Google Scholar | yes | | | | | 全学科（实验性，有频率限制） |
+| `xueshu` | 百度学术 | yes | | | | | 全学科，中文文献覆盖强（实验性，非官方接口） |
+| `semantic` | Semantic Scholar | yes | yes | yes | yes | | 全学科，AI 驱动的引用图谱 |
+| `crossref` | CrossRef | yes | yes | | | | DOI 元数据，全学科 |
+| `openalex` | OpenAlex | yes | yes | | yes | | 开放元数据索引，2 亿+ 作品 |
+| `dblp` | DBLP | yes | | | | | 计算机科学 |
+| `core` | CORE | yes | yes | yes | | | 开放获取聚合器（需 `CORE_API_KEY`）|
+| `openaire` | OpenAIRE | yes | yes | | | | 欧盟开放科学 |
+| `doaj` | DOAJ | yes | yes | | | | 开放获取期刊，全学科（全文链接指向出版商页面而非 PDF）|
+| `unpaywall` | Unpaywall | | yes | | | | OA 链接解析（需设置 `UNPAYWALL_EMAIL`） |
+| `zenodo` | Zenodo | yes | yes | yes | | | 全学科（数据集、软件、论文） |
+| `hal` | HAL | yes | yes | yes | | | 多学科，法国国家开放存档 |
+
+`figures` 取的是作者的原始插图文件，而不是 PDF 页面——详见下文。只有 `arxiv`
+（其源码包）与 `europepmc`（其附件包）能提供；PMC ID 或 DOI 都会路由到
+`europepmc`。
 
 各源支持的检索过滤参数、以及单次请求的结果上限并不相同。
 `fastpaper sources --capabilities` 会打印完整矩阵和每个源的注意事项。
@@ -178,6 +182,41 @@ fastpaper download <SOURCE> <IDENTIFIER> [OPTIONS]
                          不带单位的数字按字节算,`--max-size 10` 就是 10 字节。
                          0 表示不限制 [默认: 100MiB]
       --overwrite        覆盖已有文件
+```
+
+### `figures` -- 取论文的原始插图文件
+
+与 `get` 相同的两种形式。取论文的原始插图文件——arXiv 源码包或 Europe PMC
+附件包——存到以你输入的标识符命名的子目录下(`/` 会被替换成 `_`,与
+`download` 一致)。
+
+```
+fastpaper figures <IDENTIFIER> [OPTIONS]
+fastpaper figures <SOURCE> <IDENTIFIER> [OPTIONS]
+
+选项:
+  -d, --dir <PATH>       下载目录 [默认: ./papers]
+  -s, --max-size <SIZE>  可接受的最大压缩包体积,如 10MiB、200MB。
+                         不带单位的数字按字节算。0 表示不限制 [默认: 100MiB]
+      --overwrite        覆盖已有文件
+```
+
+只有 `arxiv` 与 `europepmc` 能提供插图。PMC ID 或 DOI 都会路由到
+`europepmc`;DOI 会先经 NCBI 的 ID 转换服务解析成 PMC ID。指定其他源会以
+退出码 `1` 失败。在支持的源上没有插图文件的论文会以退出码 `4` 失败。
+
+它不从 PDF 里抽图,不做任何渲染,也不解析图号——落盘的就是压缩包里原样的
+文件,文件名也原样保留。**文件名与图号并不对应**:对 `2511.11035` 而言,
+文件 `3.pdf` 实际上是 Figure 1。
+
+在 39 篇论文的语料上实测,已于 2026-08-20 对活跃服务端到端验证:31 篇
+(79%)取到了插图文件。未取到的 8 篇中,4 篇是 HTTP 404,3 篇的压缩包里没有
+图片(非开放获取),1 篇 arXiv 论文提交的是 PDF,没有源码包。该语料里全部
+22 个 DOI 都解析出了 PMC ID。
+
+```sh
+fastpaper figures 2511.11035 -d papers/       # -> papers/2511.11035/{1,2,3}.pdf
+fastpaper figures PMC7075534 -d papers/       # -> papers/PMC7075534/*.jpg
 ```
 
 ### `cite` -- 遍历引用关系
@@ -307,7 +346,7 @@ fastpaper completions bash >> ~/.bashrc
 | `0` | 成功 |
 | `1` | 一般错误（参数被拒、解析失败、网络失败） |
 | `2` | 命令行解析层面的用法错误：未知参数、取值非法，或缺少配套参数（`--context` 没配 `--grep`） |
-| `4` | 没有东西可返回：论文不存在、`--grep` 零命中、`--section` 未命中、这个源没有这篇的 PDF |
+| `4` | 没有东西可返回：论文不存在、`--grep` 零命中、`--section` 未命中、这个源没有这篇的 PDF、这篇没有插图文件 |
 
 只有这四个。凡是调用方能据以分支的都在表里——频率限制、403、`--max-size` 拒绝，
 全都以 `1` 返回，靠错误信息而不是退出码区分。

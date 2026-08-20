@@ -13,14 +13,19 @@ src/
 │                    #   OutputFormat / Section, and the [source] <id> disambiguation
 ├── commands/        # One module per command; each owns its validation, calls and rendering
 │   ├── mod.rs       # CommandError (carries the exit code), render, emit (+ the -o receipt)
-│   └── search.rs · get.rs · download.rs · read.rs · sources.rs
+│   └── search.rs · get.rs · download.rs · figures.rs · read.rs · sources.rs
 ├── registry.rs      # The Source enum and the single table mapping each source to its
-│                    #   base URLs, Capabilities and functions (plain fn pointers, no trait)
+│                    #   base URLs, Capabilities and functions (plain fn pointers, no trait);
+│                    #   SourceEntry's `figures` fn pointer is `None` for every source except
+│                    #   arXiv and Europe PMC, the only two that publish original figure files
 ├── sources/
 │   ├── mod.rs       # Paper (shared data contract), SearchQuery, Capabilities / SearchCaps,
 │   │                #   encode_query, validate_ymd, contact_email
 │   └── <source>.rs  # One fully self-contained module per source (18 today)
 ├── download.rs      # fetch_pdf, per-source pdf_bytes_<src> resolvers, save_pdf
+├── figures.rs       # unzip_images / untar_gz_images pull figure-extension files out of a
+│                    #   source's archive; safe_entry_path rejects path traversal; save_figures
+│                    #   writes them under a subdirectory named for the identifier
 ├── read.rs          # PDF text (pdf_oxide): extract_document rebuilds the page in
 │                    #   column-aware reading order, keeping each line's type size;
 │                    #   detect_headings reads the headings off that, find_section cuts
@@ -53,6 +58,7 @@ right and are not.
 Other commands:
 
 - **`download`** — resolves the identifier to PDF bytes via the source's `pdf` function, then `download::save_pdf` writes them. One argument means the source is inferred from the identifier shape; two means it was named.
+- **`figures`** — resolves the identifier to an archive via the source's `figures` function (only `arxiv` and `europepmc` have one), unpacks it with `figures::unzip_images` / `untar_gz_images`, and writes the result with `figures::save_figures`. Same two argument forms as `download`; a DOI is first resolved to a PMC ID via `sources::pmc::pmcid_for_doi`. It saves the archive's own filenames verbatim — no figure-number parsing — so they do not correspond to figure numbers.
 - **`read`** — reads a local PDF only. It never touches the network: `download` fetches, `read` extracts.
 - **`get`** — same two argument forms as `download`. When the source is inferred, `identifier::detect_id_type` maps the shape (DOI, arXiv ID, PMC ID, PMID, S2 ID) to a source; note the routing differs from `download`'s, because Crossref owns DOI metadata but serves no files.
 

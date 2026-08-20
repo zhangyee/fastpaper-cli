@@ -1,6 +1,6 @@
 ---
 name: fastpaper
-description: Use when the user asks to find academic papers or patents, survey a literature, look up a paper by DOI, arXiv id, PMID or PMC id, trace who cites what, get a paper's PDF, or read one. Covers 18 sources — arXiv, PubMed, PMC, Europe PMC, bioRxiv, medRxiv, Semantic Scholar, OpenAlex, Crossref, DBLP, CORE, OpenAIRE, DOAJ, HAL, Zenodo, Unpaywall, Google Scholar, Baidu Xueshu.
+description: Use when the user asks to find academic papers or patents, survey a literature, look up a paper by DOI, arXiv id, PMID or PMC id, trace who cites what, get a paper's PDF, fetch its original figure files, or read one. Covers 18 sources — arXiv, PubMed, PMC, Europe PMC, bioRxiv, medRxiv, Semantic Scholar, OpenAlex, Crossref, DBLP, CORE, OpenAIRE, DOAJ, HAL, Zenodo, Unpaywall, Google Scholar, Baidu Xueshu.
 ---
 
 # fastpaper
@@ -11,7 +11,8 @@ A pre-installed CLI for academic search, download and reading. Verify once with
 Pass `--format json` on every call. Output is `{"source": "...", "results": [...]}`
 — the papers are under `results`. Exit codes are `0` success, `2` a malformed
 command, `4` **nothing to return** — no such paper, no `--grep` match, no PDF
-for this paper at this source — and `1` for everything else. Branch on `4`: it
+for this paper at this source, no figure files for this paper — and `1` for
+everything else. Branch on `4`: it
 means the request was fine and this source simply has nothing, so retry
 elsewhere rather than rewording. Any field
 the source did not supply is `null`, meaning **unknown**; report it as unknown
@@ -37,6 +38,9 @@ fastpaper get <source> <id>                 # or name the source
 
 # save a PDF (default ./papers/<id>.pdf)
 fastpaper download <id> [-d <dir>] [--overwrite]
+
+# save the authors' original figure files (default ./papers/<id>/)
+fastpaper figures <id> -d papers/ [--overwrite]
 
 # citation edges — who cites this, or what it cites
 fastpaper cite <id> [--direction incoming|outgoing] [-n 20]
@@ -66,6 +70,18 @@ directly: `fastpaper get semantic DOI:<doi>`.
 
 `cite` routes a bare DOI→`openalex` (no key needed), and arXiv or `S2:` ids→
 `semantic`. Those two are the only sources here that carry citation edges.
+
+`figures` fetches the authors' **original** figure files — an arXiv source
+package or a Europe PMC supplementary package — it does not extract images
+from the PDF, render anything, or parse figure numbers. Only `arxiv` and
+`europepmc` can provide them; a PMC ID or a DOI both route to `europepmc` (a
+DOI is resolved to a PMC ID first). Naming any other source is exit `1`; a
+paper with no figure files at a supported source is exit `4`. **Filenames are
+kept exactly as they appear in the archive, so they do not correspond to
+figure numbers** — for `2511.11035`, the file `3.pdf` is actually Figure 1;
+do not assume `1.pdf` is Figure 1. Measured on a 39-paper corpus, verified
+end-to-end on 2026-08-20: 31 papers (79%) yielded figure files, so treat a
+`4` here as normal, not as a sign something is broken.
 
 `read` sections: abstract, introduction, methods, results, discussion,
 conclusion, references, full.
