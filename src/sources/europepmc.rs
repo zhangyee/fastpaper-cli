@@ -217,7 +217,12 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
 /// Fetch Europe PMC's supplementary package and hand back its figure files.
 ///
 /// The package holds the images the authors uploaded, at full resolution --
-/// no PDF parsing, and no quality lost to a second extraction.
+/// no PDF parsing, and no quality lost to a second extraction. Deliberately
+/// does not special-case an empty extraction (a package that exists but holds
+/// no image-extension entries): `commands::figures::run` owns that check
+/// centrally, so "no figure files" reads the same regardless of which source
+/// produced it. See `arxiv::figures`, which returns the same `Ok(vec![])`
+/// shape for the same reason.
 pub fn figures(
     base_url: &str,
     identifier: &str,
@@ -231,14 +236,7 @@ pub fn figures(
     let not_found = format!("Europe PMC has no supplementary package for {}", identifier);
     let bytes = crate::download::fetch_archive(&url, limit, &not_found)?;
 
-    let files = crate::figures::unzip_images(&bytes)?;
-    if files.is_empty() {
-        return Err(FetchError::NotFound(format!(
-            "Europe PMC's package for {} holds no figure files.\nThe article may not be in the open access subset.",
-            identifier
-        )));
-    }
-    Ok(files)
+    crate::figures::unzip_images(&bytes)
 }
 
 #[cfg(test)]
@@ -505,9 +503,13 @@ mod tests {
 
     // Measured on a 39-paper corpus: 3 of 36 PMC-routed papers answer 200 with
     // a package that holds no images at all. That is an empty answer, not a
-    // broken request.
+    // broken request -- `figures` hands it back as `Ok(vec![])` rather than
+    // guessing at a cause, and `commands::figures::run` is what turns "no
+    // figure files" into exit 4 for every source alike. See
+    // `figures_with_no_figures_in_the_package_exits_4` in `tests/cli.rs` for
+    // the exit-4 coverage.
     #[test]
-    fn a_package_without_images_is_reported_as_not_found() {
+    fn a_package_without_images_yields_an_empty_list() {
         let zip = zip_with(&[("readme.txt", b"text")]);
         let mut server = mockito::Server::new();
         server
@@ -519,9 +521,11 @@ mod tests {
             .with_body(zip)
             .create();
 
-        let err = figures(&server.url(), "PMC9724911", 100 * 1024 * 1024).unwrap_err();
-        assert!(matches!(err, FetchError::NotFound(_)));
-        assert!(err.message().contains("no figure"), "got: {}", err.message());
+        assert!(
+            figures(&server.url(), "PMC9724911", 100 * 1024 * 1024)
+                .unwrap()
+                .is_empty()
+        );
     }
 
     #[test]
