@@ -37,12 +37,12 @@ pub fn run(args: &FiguresArgs) -> CommandResult {
         FetchError::Failed(m) => CommandError::Failed(m),
     })?;
 
-    // Not every source guards against an empty extraction itself --
-    // `europepmc::figures` turns an empty archive into `NotFound`, but
-    // `arxiv::figures` hands back `Ok(vec![])` for a source package that has
-    // no figure-extension files in it (e.g. a single-file .tex submission).
-    // Catch it here so "no figure files" is `NotFound` regardless of source,
-    // rather than a false "Saved: 0 figure files" success.
+    // No source decides this for itself: both `unzip_images` and
+    // `untar_gz_images` hand back `Ok(vec![])` for an archive that holds no
+    // figure-extension files (e.g. an arXiv source package that is a single
+    // .tex, or a Europe PMC package that carries only tables). Owning the
+    // case here is what makes "no figure files" the same `NotFound` for
+    // every source, instead of a false "Saved: 0 figure files" success.
     if files.is_empty() {
         return Err(CommandError::NotFound(format!(
             "No figure files were found for {}.",

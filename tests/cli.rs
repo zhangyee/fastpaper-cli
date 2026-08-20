@@ -1882,11 +1882,10 @@ fn figures_with_no_figures_in_the_package_exits_4() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
-// europepmc::figures already turns an empty extraction into NotFound itself.
-// arxiv::figures does not -- it hands back Ok(vec![]) for a source tarball
-// with no figure-extension files. The `run()` guard has to catch that case
-// too, or a no-figures arXiv package would print "Saved: 0 figure files"
-// and exit 0.
+// Neither source turns an empty extraction into NotFound on its own -- both
+// hand back Ok(vec![]) for an archive with no figure-extension files. The
+// `run()` guard owns the case, so a no-figures package exits 4 rather than
+// printing "Saved: 0 figure files" and exiting 0.
 //
 // This also pins down which base URL arXiv figures use: `pdf_base_url()`
 // (the e-print host), not `base_url()` (the Atom API host). The two mock
