@@ -154,7 +154,6 @@ fn each_field_column_actually_discriminates_between_sources() {
 // ebi.ac.uk, so the capability sits on the source that actually serves them
 // rather than on `pmc` -- see the routing note in commands/figures.rs.
 #[test]
-#[ignore] // Task 8 removes this ignore once europepmc's figures fn is wired up
 fn only_the_expected_sources_declare_a_figures_capability() {
     let with_figures: Vec<&str> = ALL
         .iter()

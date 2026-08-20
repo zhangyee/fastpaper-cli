@@ -361,7 +361,7 @@ static EUROPEPMC: SourceEntry = SourceEntry {
     get: Some(sources::europepmc::get_by_id),
     pdf: Some(download::pdf_bytes_europepmc),
     cite: None,
-    figures: None,
+    figures: Some(sources::europepmc::figures),
 };
 
 static SCHOLAR: SourceEntry = SourceEntry {

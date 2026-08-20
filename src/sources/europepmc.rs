@@ -1,3 +1,5 @@
+use crate::download::FetchError;
+
 use super::Paper;
 
 /// Europe PMC's REST service lives under this path on the EBI host; `base_url`
@@ -210,6 +212,33 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
     }
 
     Ok(papers)
+}
+
+/// Fetch Europe PMC's supplementary package and hand back its figure files.
+///
+/// The package holds the images the authors uploaded, at full resolution --
+/// no PDF parsing, and no quality lost to a second extraction.
+pub fn figures(
+    base_url: &str,
+    identifier: &str,
+    limit: u64,
+) -> Result<Vec<(String, Vec<u8>)>, FetchError> {
+    let url = format!(
+        "{}/europepmc/webservices/rest/{}/supplementaryFiles",
+        base_url.trim_end_matches('/'),
+        identifier
+    );
+    let not_found = format!("Europe PMC has no supplementary package for {}", identifier);
+    let bytes = crate::download::fetch_archive(&url, limit, &not_found)?;
+
+    let files = crate::figures::unzip_images(&bytes)?;
+    if files.is_empty() {
+        return Err(FetchError::NotFound(format!(
+            "Europe PMC's package for {} holds no figure files.\nThe article may not be in the open access subset.",
+            identifier
+        )));
+    }
+    Ok(files)
 }
 
 #[cfg(test)]
@@ -440,6 +469,74 @@ mod tests {
             &crate::sources::SearchQuery::simple("test", 3),
         );
         mock.assert();
+    }
+
+    fn zip_with(entries: &[(&str, &[u8])]) -> Vec<u8> {
+        let mut buf = std::io::Cursor::new(Vec::new());
+        {
+            let mut w = zip::ZipWriter::new(&mut buf);
+            let opts: zip::write::FileOptions<()> = zip::write::FileOptions::default();
+            for (name, body) in entries {
+                w.start_file(*name, opts).unwrap();
+                std::io::Write::write_all(&mut w, body).unwrap();
+            }
+            w.finish().unwrap();
+        }
+        buf.into_inner()
+    }
+
+    #[test]
+    fn the_supplementary_package_yields_its_figure_files() {
+        let zip = zip_with(&[("ocz228f1.jpg", b"fig"), ("readme.txt", b"text")]);
+        let mut server = mockito::Server::new();
+        server
+            .mock(
+                "GET",
+                "/europepmc/webservices/rest/PMC7075534/supplementaryFiles",
+            )
+            .with_status(200)
+            .with_body(zip)
+            .create();
+
+        let got = figures(&server.url(), "PMC7075534", 100 * 1024 * 1024).unwrap();
+        assert_eq!(got.len(), 1);
+        assert_eq!(got[0].0, "ocz228f1.jpg");
+    }
+
+    // Measured on a 39-paper corpus: 3 of 36 PMC-routed papers answer 200 with
+    // a package that holds no images at all. That is an empty answer, not a
+    // broken request.
+    #[test]
+    fn a_package_without_images_is_reported_as_not_found() {
+        let zip = zip_with(&[("readme.txt", b"text")]);
+        let mut server = mockito::Server::new();
+        server
+            .mock(
+                "GET",
+                "/europepmc/webservices/rest/PMC9724911/supplementaryFiles",
+            )
+            .with_status(200)
+            .with_body(zip)
+            .create();
+
+        let err = figures(&server.url(), "PMC9724911", 100 * 1024 * 1024).unwrap_err();
+        assert!(matches!(err, FetchError::NotFound(_)));
+        assert!(err.message().contains("no figure"), "got: {}", err.message());
+    }
+
+    #[test]
+    fn a_404_is_reported_as_not_found() {
+        let mut server = mockito::Server::new();
+        server
+            .mock(
+                "GET",
+                "/europepmc/webservices/rest/PMC13409230/supplementaryFiles",
+            )
+            .with_status(404)
+            .create();
+
+        let err = figures(&server.url(), "PMC13409230", 100 * 1024 * 1024).unwrap_err();
+        assert!(matches!(err, FetchError::NotFound(_)));
     }
 }
 
