@@ -51,6 +51,37 @@ pub fn safe_entry_path(name: &str) -> Option<String> {
     Some(name.to_string())
 }
 
+/// Pull the figure files out of a zip (Europe PMC's supplementary package).
+pub fn unzip_images(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, crate::download::FetchError> {
+    use crate::download::FetchError;
+    use std::io::Read;
+
+    let mut archive = zip::ZipArchive::new(std::io::Cursor::new(bytes))
+        .map_err(|e| FetchError::Failed(format!("Could not open the archive: {}", e)))?;
+
+    let mut out = Vec::new();
+    for i in 0..archive.len() {
+        let mut entry = archive
+            .by_index(i)
+            .map_err(|e| FetchError::Failed(format!("Could not read the archive: {}", e)))?;
+        if !entry.is_file() {
+            continue;
+        }
+        let Some(path) = safe_entry_path(entry.name()) else {
+            continue;
+        };
+        if !is_figure_file(&path) {
+            continue;
+        }
+        let mut body = Vec::new();
+        entry
+            .read_to_end(&mut body)
+            .map_err(|e| FetchError::Failed(format!("Could not read {} from the archive: {}", path, e)))?;
+        out.push((path, body));
+    }
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -110,5 +141,57 @@ mod tests {
     #[test]
     fn empty_paths_are_refused() {
         assert_eq!(safe_entry_path(""), None);
+    }
+
+    use std::io::Write;
+
+    fn build_zip(entries: &[(&str, &[u8])]) -> Vec<u8> {
+        let mut buf = std::io::Cursor::new(Vec::new());
+        {
+            let mut w = zip::ZipWriter::new(&mut buf);
+            let opts: zip::write::FileOptions<()> = zip::write::FileOptions::default();
+            for (name, body) in entries {
+                w.start_file(*name, opts).unwrap();
+                w.write_all(body).unwrap();
+            }
+            w.finish().unwrap();
+        }
+        buf.into_inner()
+    }
+
+    #[test]
+    fn unzip_keeps_figures_and_drops_everything_else() {
+        let zip = build_zip(&[
+            ("ocz228f1.jpg", b"jpeg-bytes"),
+            ("ocz228f1.gif", b"gif-bytes"),
+            ("ocz228-supplementary_data.zip", b"zip-bytes"),
+            ("readme.txt", b"text"),
+        ]);
+        let got = unzip_images(&zip).unwrap();
+        let names: Vec<&str> = got.iter().map(|(n, _)| n.as_str()).collect();
+        // The thumbnail stays: the design keeps every image file rather than
+        // guessing which of a jpg/gif pair is the real one.
+        assert_eq!(names, vec!["ocz228f1.jpg", "ocz228f1.gif"]);
+        assert_eq!(got[0].1, b"jpeg-bytes");
+    }
+
+    #[test]
+    fn unzip_returns_empty_when_the_archive_has_no_figures() {
+        let zip = build_zip(&[("readme.txt", b"text")]);
+        assert!(unzip_images(&zip).unwrap().is_empty());
+    }
+
+    #[test]
+    fn unzip_skips_traversing_entries() {
+        let zip = build_zip(&[("../evil.png", b"bad"), ("ok.png", b"good")]);
+        let got = unzip_images(&zip).unwrap();
+        let names: Vec<&str> = got.iter().map(|(n, _)| n.as_str()).collect();
+        assert_eq!(names, vec!["ok.png"]);
+    }
+
+    #[test]
+    fn a_body_that_is_not_a_zip_is_a_failure_not_a_panic() {
+        let err = unzip_images(b"<html>not a zip</html>").unwrap_err();
+        assert!(err.message().contains("archive"), "got: {}", err.message());
     }
 }
