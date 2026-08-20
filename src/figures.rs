@@ -124,6 +124,49 @@ pub fn untar_gz_images(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, crate::do
     Ok(out)
 }
 
+/// Why [`save_figures`] failed to write.
+///
+/// Typed rather than `String` so the caller can distinguish "a target file is
+/// already there" (not an error worth a non-zero exit) from every other
+/// failure without string-matching a formatted message -- see the incident
+/// this guarded against: a hostile entry-name rejection whose message
+/// happened to contain the substring "already exists" and so was reported as
+/// success.
+#[derive(Debug)]
+pub enum SaveError {
+    /// A target file already exists and `overwrite` was not set.
+    AlreadyExists(PathBuf),
+    /// The identifier itself (after flattening `/` to `_`) is not a single
+    /// safe path component -- `.`, `..`, or an absolute/drive path.
+    UnsafeIdentifier,
+    /// An archive entry name failed `safe_entry_path` validation.
+    HostileEntry,
+    /// A filesystem operation failed.
+    Io(String),
+}
+
+impl std::fmt::Display for SaveError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SaveError::AlreadyExists(path) => {
+                write!(f, "File already exists: {}", path.display())
+            }
+            SaveError::UnsafeIdentifier => {
+                write!(f, "Rejected an identifier that would escape the target directory.")
+            }
+            // Deliberately does not include the rejected name: it is
+            // attacker-controlled bytes from an archive entry, and echoing it
+            // verbatim to a terminal is its own hazard.
+            SaveError::HostileEntry => {
+                write!(f, "Rejected an archive entry with an unsafe path.")
+            }
+            SaveError::Io(m) => write!(f, "{}", m),
+        }
+    }
+}
+
+impl std::error::Error for SaveError {}
+
 /// Write the figures under `<dir>/<identifier>/`, keeping the archive's own
 /// directory layout.
 ///
@@ -133,6 +176,13 @@ pub fn untar_gz_images(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, crate::do
 /// identifier is flattened to `_` exactly as `save_pdf` does, so a DOI names
 /// one directory rather than two levels.
 ///
+/// The identifier is attacker-influenced too -- the explicit-source CLI form
+/// (`figures europepmc <id>`) skips `detect_id_type` entirely, so a value
+/// like `..` or `.` reaches here unchecked. It is validated with the same
+/// `safe_entry_path` used for archive entries before it becomes a directory
+/// component: unlike a *filename*, where `..` merely becomes the harmless
+/// `...pdf`, a `..` *directory* component is a real traversal.
+///
 /// Entry names are re-validated here with `safe_entry_path` to reject hostile
 /// paths (absolute paths, `..` traversals) regardless of upstream filtering.
 pub fn save_figures(
@@ -140,14 +190,18 @@ pub fn save_figures(
     dir: &Path,
     identifier: &str,
     overwrite: bool,
-) -> Result<(PathBuf, u64), String> {
-    let out = dir.join(identifier.replace('/', "_"));
+) -> Result<(PathBuf, u64), SaveError> {
+    let sanitized = identifier.replace('/', "_");
+    if safe_entry_path(&sanitized).is_none() {
+        return Err(SaveError::UnsafeIdentifier);
+    }
+    let out = dir.join(&sanitized);
 
     // Re-validate all entry names to reject hostile paths: absolute paths,
     // `..` traversals, and other attacks. Do this before writing anything.
     for (name, _) in files {
         if safe_entry_path(name).is_none() {
-            return Err(format!("Rejected hostile entry name: {}", name));
+            return Err(SaveError::HostileEntry);
         }
     }
 
@@ -157,7 +211,7 @@ pub fn save_figures(
         for (name, _) in files {
             let path = out.join(name);
             if path.exists() {
-                return Err(format!("File already exists: {}", path.display()));
+                return Err(SaveError::AlreadyExists(path));
             }
         }
     }
@@ -167,9 +221,10 @@ pub fn save_figures(
         let path = out.join(name);
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)
-                .map_err(|e| format!("Failed to create directory: {}", e))?;
+                .map_err(|e| SaveError::Io(format!("Failed to create directory: {}", e)))?;
         }
-        std::fs::write(&path, body).map_err(|e| format!("Failed to write file: {}", e))?;
+        std::fs::write(&path, body)
+            .map_err(|e| SaveError::Io(format!("Failed to write file: {}", e)))?;
         total += body.len() as u64;
     }
     Ok((out, total))
@@ -384,7 +439,12 @@ mod tests {
 
         let files = vec![("f1.jpg".to_string(), b"new".to_vec())];
         let err = save_figures(&files, &dir, "PMC1", false).unwrap_err();
-        assert!(err.contains("already exists"), "got: {}", err);
+        assert!(
+            matches!(err, SaveError::AlreadyExists(_)),
+            "got: {:?}",
+            err
+        );
+        assert!(err.to_string().contains("already exists"), "got: {}", err);
         // Refused means nothing changed.
         assert_eq!(std::fs::read(dir.join("PMC1/f1.jpg")).unwrap(), b"old");
 
@@ -402,18 +462,62 @@ mod tests {
         // Absolute path would write outside the target directory if not rejected.
         let files = vec![("/etc/cron.d/evil".to_string(), b"hostile".to_vec())];
         let err = save_figures(&files, &dir, "test", false).unwrap_err();
-        assert!(err.contains("hostile"), "got: {}", err);
+        assert!(matches!(err, SaveError::HostileEntry), "got: {:?}", err);
 
         // `..` traversal would write outside the target directory if not rejected.
         let files = vec![("../../../etc/passwd".to_string(), b"hostile".to_vec())];
         let err = save_figures(&files, &dir, "test", false).unwrap_err();
-        assert!(err.contains("hostile"), "got: {}", err);
+        assert!(matches!(err, SaveError::HostileEntry), "got: {:?}", err);
 
         // Verify nothing was written outside the target directory.
         assert!(!std::path::Path::new("/etc/cron.d/evil").exists()
             || std::fs::read("/etc/cron.d/evil").is_err(),
             "hostile absolute path should not be written");
 
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    // A hostile-entry rejection must never collide, by substring, with the
+    // "already exists" message -- that collision once made a security
+    // rejection report itself as success. `Display` producing a fixed string
+    // with no attacker-controlled bytes and no shared substring is the fix;
+    // this pins both properties down.
+    #[test]
+    fn the_hostile_entry_message_does_not_collide_with_already_exists() {
+        let msg = SaveError::HostileEntry.to_string();
+        assert!(!msg.contains("already exists"), "got: {}", msg);
+    }
+
+    // The identifier reaches `save_figures` unchecked when the CLI's
+    // explicit-source form is used (`figures europepmc <id>` skips
+    // `detect_id_type`), so `..`, `.`, and an absolute/drive path must all be
+    // refused here rather than trusted from a routing step that never ran.
+    #[test]
+    fn the_identifier_cannot_escape_dir() {
+        let dir = std::env::temp_dir().join(format!("fp_fig_{}_e", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let files = vec![("f1.jpg".to_string(), b"x".to_vec())];
+
+        // `..` as the whole identifier would land the subdirectory a level
+        // above `--dir`.
+        assert!(matches!(
+            save_figures(&files, &dir, "..", false),
+            Err(SaveError::UnsafeIdentifier)
+        ));
+        // `.` would collapse the per-identifier subdirectory into `--dir`
+        // itself, breaking the no-collision guarantee that subdirectory
+        // exists to provide.
+        assert!(matches!(
+            save_figures(&files, &dir, ".", false),
+            Err(SaveError::UnsafeIdentifier)
+        ));
+        // A Windows drive path is absolute regardless of `dir`.
+        assert!(matches!(
+            save_figures(&files, &dir, "C:\\evil", false),
+            Err(SaveError::UnsafeIdentifier)
+        ));
+
+        assert!(!dir.exists() || std::fs::read_dir(&dir).unwrap().next().is_none());
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

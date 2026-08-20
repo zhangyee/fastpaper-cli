@@ -1,7 +1,7 @@
 use super::{CommandError, CommandResult, failed};
 use crate::cli::FiguresArgs;
 use crate::download::{FetchError, human_size};
-use crate::figures::save_figures;
+use crate::figures::{SaveError, save_figures};
 use crate::identifier::{IdType, detect_id_type};
 use crate::registry::Source;
 
@@ -62,8 +62,11 @@ pub fn run(args: &FiguresArgs) -> CommandResult {
             );
             Ok(())
         }
-        Err(e) if e.contains("already exists") => Err(CommandError::AlreadyExists(e)),
-        Err(e) => Err(CommandError::Failed(e)),
+        // Matched on the typed variant, not by string-searching the message:
+        // a hostile-entry rejection's text must never be able to collide
+        // with "already exists" and get reported as success.
+        Err(e @ SaveError::AlreadyExists(_)) => Err(CommandError::AlreadyExists(e.to_string())),
+        Err(e) => Err(CommandError::Failed(e.to_string())),
     }
 }
 

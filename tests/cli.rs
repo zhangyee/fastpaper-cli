@@ -1998,6 +1998,34 @@ fn figures_existing_file_exits_0_with_stderr() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+// The identifier is attacker-influenced: the explicit-source CLI form
+// (`figures <source> <id>`) skips `detect_id_type`/`route()` entirely, so an
+// identifier of `..` reaches `save_figures` completely unchecked -- exactly
+// `fastpaper figures europepmc .. -d out/` from the review. Unlike an archive
+// entry name, nothing upstream filters the identifier, so this is a real
+// reachable path, not defense-in-depth for a case that can't occur.
+#[test]
+fn a_traversing_identifier_is_refused() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(zip_bytes(&[("f1.jpg", b"fig")]))
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["figures", "europepmc", "..", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_EUROPEPMC_URL", server.url())
+        .assert()
+        .failure()
+        .code(1);
+    // Refused means the intended target directory stays empty -- nothing
+    // landed in `dir`, let alone escaped above it.
+    assert!(!dir.exists() || std::fs::read_dir(&dir).unwrap().next().is_none());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 // A run of zero bytes is what `vec![0u8; N]` would give here, and DEFLATE
 // collapses that to a couple hundred bytes -- well under the 1024-byte limit
 // this test needs to trigger, since the limit checks the archive's own wire
