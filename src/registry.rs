@@ -194,7 +194,7 @@ static ARXIV: SourceEntry = SourceEntry {
     get: Some(sources::arxiv::get_by_id),
     pdf: Some(download::pdf_bytes_arxiv),
     cite: None,
-    figures: None,
+    figures: Some(sources::arxiv::figures),
 };
 
 static BIORXIV: SourceEntry = SourceEntry {

@@ -1,6 +1,8 @@
 use quick_xml::Reader;
 use quick_xml::events::Event;
 
+use crate::download::FetchError;
+
 use super::Paper;
 
 /// Download PDF bytes from arXiv.
@@ -15,6 +17,32 @@ pub fn download_pdf(
     let url = format!("{}/pdf/{}.pdf", base_url, identifier);
     let not_found = format!("Paper not found: {}", identifier);
     crate::download::fetch_pdf_named(&url, limit, &not_found)
+}
+
+/// Fetch the paper's e-print source package and hand back its figure files.
+///
+/// `base_url` is the *PDF* base (`https://arxiv.org`), not the API host: the
+/// e-print endpoint lives with the files, not with the Atom API.
+pub fn figures(
+    base_url: &str,
+    identifier: &str,
+    limit: u64,
+) -> Result<Vec<(String, Vec<u8>)>, FetchError> {
+    let url = format!("{}/e-print/{}", base_url.trim_end_matches('/'), identifier);
+    let not_found = format!("Not found on arXiv: {}", identifier);
+    let bytes = crate::download::fetch_archive(&url, limit, &not_found)?;
+
+    // A PDF body means a PDF-only submission: there is no source package, so
+    // there are no original figure files to hand back. Said plainly here
+    // rather than letting the gzip reader call it a corrupt archive.
+    if bytes.starts_with(b"%PDF") {
+        return Err(FetchError::NotFound(format!(
+            "arXiv has no source package for {} (it was submitted as a PDF), so there are no original figure files.\nTo get the paper itself: fastpaper download arxiv {}",
+            identifier, identifier
+        )));
+    }
+
+    crate::figures::untar_gz_images(&bytes)
 }
 
 /// Fetch a single paper by arXiv ID.
@@ -607,6 +635,56 @@ mod tests {
         let result = download_pdf(&server.url(), "9999.99999", 10 * 1024 * 1024);
         assert!(result.is_err());
         assert!(result.unwrap_err().message().contains("not found"));
+    }
+
+    // arXiv answers `e-print` with the paper's own PDF when the submission had
+    // no TeX source (2405.09567 is one). Unpacking that as a tarball would
+    // report a corrupt archive; the truth is that there are no source figures.
+    #[test]
+    fn a_pdf_only_submission_reports_no_source_package() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", "/e-print/2405.09567")
+            .with_status(200)
+            .with_body(b"%PDF-1.7 the paper itself".as_slice())
+            .create();
+
+        let err = figures(&server.url(), "2405.09567", 100 * 1024 * 1024).unwrap_err();
+        assert!(matches!(err, FetchError::NotFound(_)));
+        assert!(
+            err.message().contains("no source package"),
+            "got: {}",
+            err.message()
+        );
+    }
+
+    #[test]
+    fn a_source_tarball_yields_its_figure_files() {
+        let mut tar = tar::Builder::new(Vec::new());
+        for (name, body) in [("1.pdf", &b"fig-one"[..]), ("main.tex", &b"latex"[..])] {
+            let mut h = tar::Header::new_gnu();
+            h.set_size(body.len() as u64);
+            h.set_mode(0o644);
+            h.set_cksum();
+            tar.append_data(&mut h, name, body).unwrap();
+        }
+        let raw = tar.into_inner().unwrap();
+        let mut enc =
+            flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+        std::io::Write::write_all(&mut enc, &raw).unwrap();
+        let tgz = enc.finish().unwrap();
+
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", "/e-print/2511.11035")
+            .with_status(200)
+            .with_body(tgz)
+            .create();
+
+        let got = figures(&server.url(), "2511.11035", 100 * 1024 * 1024).unwrap();
+        assert_eq!(got.len(), 1);
+        assert_eq!(got[0].0, "1.pdf");
+        assert_eq!(got[0].1, b"fig-one");
     }
 }
 
