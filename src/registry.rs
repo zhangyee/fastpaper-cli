@@ -81,6 +81,14 @@ pub struct SourceEntry {
     pub get: Option<fn(&str, &str) -> Result<Option<Paper>, String>>,
     pub pdf: Option<fn(&str, &str, u64) -> Result<Vec<u8>, FetchError>>,
     pub cite: Option<fn(&str, &str, Direction, u32) -> Result<Vec<Paper>, String>>,
+    /// Fetch the source's own archive of original figure files, already
+    /// unpacked to `(path within the archive, bytes)`.
+    ///
+    /// `None` is the honest answer for most sources: only arXiv and Europe PMC
+    /// publish the files the authors uploaded. It is what produces the
+    /// "this source cannot provide figures" error, so it needs no separate
+    /// capability flag.
+    pub figures: Option<fn(&str, &str, u64) -> Result<Vec<(String, Vec<u8>)>, FetchError>>,
 }
 
 impl Source {
@@ -186,6 +194,7 @@ static ARXIV: SourceEntry = SourceEntry {
     get: Some(sources::arxiv::get_by_id),
     pdf: Some(download::pdf_bytes_arxiv),
     cite: None,
+    figures: None,
 };
 
 static BIORXIV: SourceEntry = SourceEntry {
@@ -218,6 +227,7 @@ static BIORXIV: SourceEntry = SourceEntry {
     get: Some(sources::biorxiv::get_by_id),
     pdf: Some(download::pdf_bytes_biorxiv),
     cite: None,
+    figures: None,
 };
 
 static MEDRXIV: SourceEntry = SourceEntry {
@@ -251,6 +261,7 @@ static MEDRXIV: SourceEntry = SourceEntry {
     get: Some(sources::medrxiv::get_by_id),
     pdf: None,
     cite: None,
+    figures: None,
 };
 
 static PUBMED: SourceEntry = SourceEntry {
@@ -283,6 +294,7 @@ static PUBMED: SourceEntry = SourceEntry {
     get: Some(sources::pubmed::get_by_pmid),
     pdf: None,
     cite: None,
+    figures: None,
 };
 
 static PMC: SourceEntry = SourceEntry {
@@ -316,6 +328,7 @@ static PMC: SourceEntry = SourceEntry {
     get: Some(sources::pmc::get_by_pmc_id),
     pdf: Some(download::pdf_bytes_pmc),
     cite: None,
+    figures: None,
 };
 
 static EUROPEPMC: SourceEntry = SourceEntry {
@@ -348,6 +361,7 @@ static EUROPEPMC: SourceEntry = SourceEntry {
     get: Some(sources::europepmc::get_by_id),
     pdf: Some(download::pdf_bytes_europepmc),
     cite: None,
+    figures: None,
 };
 
 static SCHOLAR: SourceEntry = SourceEntry {
@@ -376,6 +390,7 @@ static SCHOLAR: SourceEntry = SourceEntry {
     get: None,
     pdf: None,
     cite: None,
+    figures: None,
 };
 
 static XUESHU: SourceEntry = SourceEntry {
@@ -406,6 +421,7 @@ static XUESHU: SourceEntry = SourceEntry {
     get: None,
     pdf: None,
     cite: None,
+    figures: None,
 };
 
 static SEMANTIC: SourceEntry = SourceEntry {
@@ -439,6 +455,7 @@ static SEMANTIC: SourceEntry = SourceEntry {
     get: Some(sources::semantic::get_by_id),
     pdf: Some(download::pdf_bytes_semantic),
     cite: Some(sources::semantic::cite),
+    figures: None,
 };
 
 static CROSSREF: SourceEntry = SourceEntry {
@@ -475,6 +492,7 @@ static CROSSREF: SourceEntry = SourceEntry {
     get: Some(sources::crossref::get_by_doi),
     pdf: None,
     cite: None,
+    figures: None,
 };
 
 static OPENALEX: SourceEntry = SourceEntry {
@@ -507,6 +525,7 @@ static OPENALEX: SourceEntry = SourceEntry {
     get: Some(sources::openalex::get_by_id),
     pdf: None,
     cite: Some(sources::openalex::cite),
+    figures: None,
 };
 
 static DBLP: SourceEntry = SourceEntry {
@@ -533,6 +552,7 @@ static DBLP: SourceEntry = SourceEntry {
     get: None,
     pdf: None,
     cite: None,
+    figures: None,
 };
 
 static CORE: SourceEntry = SourceEntry {
@@ -560,6 +580,7 @@ static CORE: SourceEntry = SourceEntry {
     get: Some(sources::core::get_by_id),
     pdf: Some(download::pdf_bytes_core),
     cite: None,
+    figures: None,
 };
 
 static OPENAIRE: SourceEntry = SourceEntry {
@@ -591,6 +612,7 @@ static OPENAIRE: SourceEntry = SourceEntry {
     get: Some(sources::openaire::get_by_id),
     pdf: None,
     cite: None,
+    figures: None,
 };
 
 static DOAJ: SourceEntry = SourceEntry {
@@ -629,6 +651,7 @@ static DOAJ: SourceEntry = SourceEntry {
     get: Some(sources::doaj::get_by_id),
     pdf: None,
     cite: None,
+    figures: None,
 };
 
 static UNPAYWALL: SourceEntry = SourceEntry {
@@ -651,6 +674,7 @@ static UNPAYWALL: SourceEntry = SourceEntry {
     get: Some(g_unpaywall),
     pdf: None,
     cite: None,
+    figures: None,
 };
 
 static ZENODO: SourceEntry = SourceEntry {
@@ -682,6 +706,7 @@ static ZENODO: SourceEntry = SourceEntry {
     get: Some(sources::zenodo::get_by_id),
     pdf: Some(download::pdf_bytes_zenodo),
     cite: None,
+    figures: None,
 };
 
 static HAL: SourceEntry = SourceEntry {
@@ -715,6 +740,7 @@ static HAL: SourceEntry = SourceEntry {
     get: Some(sources::hal::get_by_id),
     pdf: Some(download::pdf_bytes_hal),
     cite: None,
+    figures: None,
 };
 
 #[cfg(test)]
