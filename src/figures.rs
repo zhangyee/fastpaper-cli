@@ -132,6 +132,9 @@ pub fn untar_gz_images(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, crate::do
 /// flat layout would have two papers overwrite each other. `/` in the
 /// identifier is flattened to `_` exactly as `save_pdf` does, so a DOI names
 /// one directory rather than two levels.
+///
+/// Entry names are re-validated here with `safe_entry_path` to reject hostile
+/// paths (absolute paths, `..` traversals) regardless of upstream filtering.
 pub fn save_figures(
     files: &[(String, Vec<u8>)],
     dir: &Path,
@@ -139,6 +142,14 @@ pub fn save_figures(
     overwrite: bool,
 ) -> Result<(PathBuf, u64), String> {
     let out = dir.join(identifier.replace('/', "_"));
+
+    // Re-validate all entry names to reject hostile paths: absolute paths,
+    // `..` traversals, and other attacks. Do this before writing anything.
+    for (name, _) in files {
+        if safe_entry_path(name).is_none() {
+            return Err(format!("Rejected hostile entry name: {}", name));
+        }
+    }
 
     // Check every target before writing any of them: a half-written directory
     // after a collision is worse than writing nothing.
@@ -379,6 +390,30 @@ mod tests {
 
         save_figures(&files, &dir, "PMC1", true).unwrap();
         assert_eq!(std::fs::read(dir.join("PMC1/f1.jpg")).unwrap(), b"new");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn hostile_entry_names_are_rejected() {
+        let dir = std::env::temp_dir().join(format!("fp_fig_{}_d", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+
+        // Absolute path would write outside the target directory if not rejected.
+        let files = vec![("/etc/cron.d/evil".to_string(), b"hostile".to_vec())];
+        let err = save_figures(&files, &dir, "test", false).unwrap_err();
+        assert!(err.contains("hostile"), "got: {}", err);
+
+        // `..` traversal would write outside the target directory if not rejected.
+        let files = vec![("../../../etc/passwd".to_string(), b"hostile".to_vec())];
+        let err = save_figures(&files, &dir, "test", false).unwrap_err();
+        assert!(err.contains("hostile"), "got: {}", err);
+
+        // Verify nothing was written outside the target directory.
+        assert!(!std::path::Path::new("/etc/cron.d/evil").exists()
+            || std::fs::read("/etc/cron.d/evil").is_err(),
+            "hostile absolute path should not be written");
+
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
