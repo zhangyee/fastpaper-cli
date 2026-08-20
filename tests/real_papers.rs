@@ -15,6 +15,17 @@ fn papers_dir() -> Option<PathBuf> {
     std::env::var_os("FASTPAPER_PAPERS").map(PathBuf::from)
 }
 
+fn temp_dir(name: &str) -> PathBuf {
+    let dir = std::env::temp_dir().join(format!(
+        "{}_{}_{:?}",
+        name,
+        std::process::id(),
+        std::thread::current().id()
+    ));
+    let _ = std::fs::remove_dir_all(&dir);
+    dir
+}
+
 fn read(dir: &Path, name: &str) -> Option<fastpaper::read::Document> {
     let path = dir.join(name);
     if !path.exists() {
@@ -234,7 +245,7 @@ fn report_unrecognised_heading_shapes() {
 #[test]
 #[ignore]
 fn real_europepmc_figures() {
-    let dir = std::env::temp_dir().join("fastpaper_real_figures_pmc");
+    let dir = temp_dir("fastpaper_real_figures_pmc");
     let _ = std::fs::remove_dir_all(&dir);
     Command::cargo_bin("fastpaper")
         .unwrap()
@@ -250,7 +261,7 @@ fn real_europepmc_figures() {
 #[test]
 #[ignore]
 fn real_arxiv_figures() {
-    let dir = std::env::temp_dir().join("fastpaper_real_figures_arxiv");
+    let dir = temp_dir("fastpaper_real_figures_arxiv");
     let _ = std::fs::remove_dir_all(&dir);
     Command::cargo_bin("fastpaper")
         .unwrap()
