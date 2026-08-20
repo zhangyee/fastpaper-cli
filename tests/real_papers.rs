@@ -8,6 +8,7 @@
 //! FASTPAPER_PAPERS=/path/to/papers cargo test --test real_papers -- --ignored --nocapture
 //! ```
 
+use assert_cmd::Command;
 use std::path::{Path, PathBuf};
 
 fn papers_dir() -> Option<PathBuf> {
@@ -227,6 +228,52 @@ fn report_unrecognised_heading_shapes() {
             }
         }
     }
+}
+
+// Verified 2026-08-20: 6 figure images plus 6 gif thumbnails.
+#[test]
+#[ignore]
+fn real_europepmc_figures() {
+    let dir = std::env::temp_dir().join("fastpaper_real_figures_pmc");
+    let _ = std::fs::remove_dir_all(&dir);
+    Command::cargo_bin("fastpaper")
+        .unwrap()
+        .args(["figures", "PMC7075534", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .assert()
+        .success();
+    assert!(dir.join("PMC7075534/ocz228f1.jpg").exists());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// Verified 2026-08-20: 3 figure PDFs named 1.pdf, 2.pdf, 3.pdf.
+#[test]
+#[ignore]
+fn real_arxiv_figures() {
+    let dir = std::env::temp_dir().join("fastpaper_real_figures_arxiv");
+    let _ = std::fs::remove_dir_all(&dir);
+    Command::cargo_bin("fastpaper")
+        .unwrap()
+        .args(["figures", "2511.11035", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .assert()
+        .success();
+    assert!(dir.join("2511.11035/1.pdf").exists());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// Verified 2026-08-20: 2405.09567 was submitted as a PDF, so `e-print`
+// answers with the paper rather than a source package.
+#[test]
+#[ignore]
+fn real_arxiv_pdf_only_submission_has_no_figures() {
+    Command::cargo_bin("fastpaper")
+        .unwrap()
+        .args(["figures", "2405.09567"])
+        .assert()
+        .failure()
+        .code(4)
+        .stderr(predicates::str::contains("no source package"));
 }
 
 /// Not an assertion -- a triage aid. Prints every detected heading with the
