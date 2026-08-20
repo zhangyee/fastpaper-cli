@@ -1828,9 +1828,15 @@ fn tar_gz_bytes(entries: &[(&str, &[u8])]) -> Vec<u8> {
 fn figures_europepmc_saves_into_an_identifier_subdirectory() {
     let mut server = mockito::Server::new();
     server
-        .mock("GET", mockito::Matcher::Any)
+        .mock(
+            "GET",
+            "/europepmc/webservices/rest/PMC7075534/supplementaryFiles",
+        )
         .with_status(200)
-        .with_body(zip_bytes(&[("ocz228f1.jpg", b"fig"), ("readme.txt", b"no")]))
+        .with_body(zip_bytes(&[
+            ("ocz228f1.jpg", b"fig"),
+            ("readme.txt", b"no"),
+        ]))
         .create();
     let dir = temp_dir();
     cmd()
@@ -1881,22 +1887,79 @@ fn figures_with_no_figures_in_the_package_exits_4() {
 // with no figure-extension files. The `run()` guard has to catch that case
 // too, or a no-figures arXiv package would print "Saved: 0 figure files"
 // and exit 0.
+//
+// This also pins down which base URL arXiv figures use: `pdf_base_url()`
+// (the e-print host), not `base_url()` (the Atom API host). The two mock
+// servers are deliberately different -- `FASTPAPER_ARXIV_PDF_URL` holds the
+// real archive, `FASTPAPER_ARXIV_URL` is left unmocked, so a regression
+// reading `base_url()` instead hits an unmatched mockito server (501 ->
+// exit 1) rather than quietly resolving to the same host. The path is
+// matched exactly too, so a wrong URL shape or a wrong identifier in the
+// path also fails rather than passing silently.
 #[test]
 fn figures_arxiv_with_no_figure_files_in_the_tarball_exits_4() {
-    let mut server = mockito::Server::new();
-    server
-        .mock("GET", mockito::Matcher::Any)
+    let mut pdf_server = mockito::Server::new();
+    pdf_server
+        .mock("GET", "/e-print/2301.08745")
         .with_status(200)
         .with_body(tar_gz_bytes(&[("main.tex", b"\\documentclass{article}")]))
         .create();
+    // Never mocked: any request landing here is the wrong host and gets
+    // mockito's unmatched-request response, not the archive above.
+    let wrong_server = mockito::Server::new();
     let dir = temp_dir();
     cmd()
         .args(["figures", "arxiv", "2301.08745", "--dir"])
         .arg(dir.to_str().unwrap())
-        .env("FASTPAPER_ARXIV_URL", server.url())
+        .env("FASTPAPER_ARXIV_PDF_URL", pdf_server.url())
+        .env("FASTPAPER_ARXIV_URL", wrong_server.url())
         .assert()
         .failure()
         .code(4);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// A bare DOI names no archive on either source: `run()` resolves it to a PMC
+// ID first (via `pmcid_for_doi`), fetches from Europe PMC under that PMC ID,
+// but must save under a directory named for the DOI the user actually typed
+// -- not the PMC ID the DOI got resolved to. Exact path matchers on both
+// mock servers also confirm the DOI (not something else) went into the
+// idconv query and the resolved PMC ID (not the DOI) went into the
+// supplementaryFiles path.
+#[test]
+fn figures_doi_resolves_via_pmc_and_names_the_directory_for_the_doi() {
+    let mut idconv_server = mockito::Server::new();
+    idconv_server
+        .mock("GET", "/tools/idconv/api/v1/articles/")
+        .match_query(mockito::Matcher::UrlEncoded(
+            "ids".into(),
+            "10.1038/nature12373".into(),
+        ))
+        .with_status(200)
+        .with_body(r#"{"records":[{"doi":"10.1038/nature12373","pmcid":"PMC7075534"}]}"#)
+        .create();
+
+    let mut europepmc_server = mockito::Server::new();
+    europepmc_server
+        .mock(
+            "GET",
+            "/europepmc/webservices/rest/PMC7075534/supplementaryFiles",
+        )
+        .with_status(200)
+        .with_body(zip_bytes(&[("ocz228f1.jpg", b"fig")]))
+        .create();
+
+    let dir = temp_dir();
+    cmd()
+        .args(["figures", "10.1038/nature12373", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_IDCONV_URL", idconv_server.url())
+        .env("FASTPAPER_EUROPEPMC_URL", europepmc_server.url())
+        .assert()
+        .success();
+
+    assert!(dir.join("10.1038_nature12373/ocz228f1.jpg").exists());
+    assert!(!dir.join("PMC7075534").exists());
     let _ = std::fs::remove_dir_all(&dir);
 }
 
