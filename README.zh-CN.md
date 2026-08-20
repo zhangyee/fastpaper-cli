@@ -326,7 +326,7 @@ fastpaper completions bash >> ~/.bashrc
 | 变量 | 用途 |
 |------|------|
 | `FASTPAPER_DOWNLOAD_DIR` | 默认下载目录（未设置则为 `./papers`） |
-| `FASTPAPER_MAX_DOWNLOAD_SIZE` | `download` 可接受的最大响应体（未设置则为 `100MiB`）；`0` 表示不限制 |
+| `FASTPAPER_MAX_DOWNLOAD_SIZE` | `download` 可接受的最大响应体，以及 `figures` 可接受的最大压缩包（未设置则为 `100MiB`）；`0` 表示不限制 |
 | `FASTPAPER_EMAIL` | 发给 CrossRef、OpenAlex 和 NCBI 的联系邮箱。不设置就不发这个参数，三者都接受 |
 | `SEMANTIC_SCHOLAR_API_KEY` | 提升 Semantic Scholar 频率限制 |
 | `OPENALEX_API_KEY` | OpenAlex 自 2026-02 起按用量计费，设置后可用更大的免费额度 |
@@ -338,6 +338,10 @@ fastpaper completions bash >> ~/.bashrc
 `FASTPAPER_PUBMED_URL` 等等——测试就是靠它指向本地 mock 服务器的。文件与 API 不在同一
 主机的源另有一个文件主机的覆盖项：`FASTPAPER_ARXIV_PDF_URL`、`FASTPAPER_BIORXIV_DL_URL`、
 `FASTPAPER_PMC_DL_URL`（指向 AWS Open Data 上的 PMC Cloud Service，不是文章页）。
+
+有一个覆盖项不符合这个模式，因为它不是数据源：`FASTPAPER_IDCONV_URL` 指向 NCBI 的
+ID 转换服务（默认 `https://pmc.ncbi.nlm.nih.gov`），`figures` 用它把 DOI 换成
+PMC ID。只有 DOI 那条路会用到它——arXiv ID 和 PMC ID 都不碰。
 
 ## 退出码
 
@@ -357,9 +361,13 @@ fastpaper completions bash >> ~/.bashrc
 `Saved: results.json (12 results)`——调用方不用回读文件就知道落地了什么。
 `-q` 会抑制这行输出。零结果时也照样打印,因为这恰恰是最该被看见的情况。
 
-`download` 同样会向 stderr 打一行 `Saved: papers/2301.08745.pdf (2.2 MiB)`。
-这一行 `-q` 不会抑制:`download` 不往标准输出写任何东西,而落盘路径也没法由参数推出来
-——DOI 里的 `/` 在文件名里会变成 `_`。
+`download` 同样会向 stderr 打一行 `Saved: papers/2301.08745.pdf (2.2 MiB)`，
+`figures` 则打 `Saved: 3 figure files to papers/2511.11035 (382.2 KiB)`。
+这两行 `-q` 都不会抑制:两条命令都不往标准输出写任何东西,而落盘路径也没法由参数
+推出来——DOI 里的 `/` 会变成 `_`。
+
+这两条命令在目标文件已存在时也都返回 `0` 而不是报错,只打印 `File already exists: ...`
+——重复运行是安全的,`1` 留给真正出问题的情况。要覆盖已有文件请加 `--overwrite`。
 
 ## 参与贡献
 

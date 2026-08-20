@@ -11,23 +11,31 @@ pub fn run(args: &SourcesArgs) -> CommandResult {
 /// cannot drift from what the commands actually do.
 fn render(detailed: bool) -> String {
     let mut out = String::new();
-    out.push_str("Source      search  get  download  cite   pdf_url  open_access  citations\n");
-    out.push_str("────────────────────────────────────────────────────────────────────────\n");
+    out.push_str(
+        "Source      search  get  download  cite  figures   pdf_url  open_access  citations\n",
+    );
+    out.push_str(
+        "─────────────────────────────────────────────────────────────────────────────────\n",
+    );
     for source in registry::ALL {
         let caps = source.caps();
         out.push_str(&format!(
-            "{:<11} {:^6}  {:^3}  {:^8}  {:^4}  {:^7}  {:^11}  {:^9}\n",
+            "{:<11} {:^6}  {:^3}  {:^8}  {:^4}  {:^7}  {:^7}  {:^11}  {:^9}\n",
             source.name(),
             mark(caps.search.is_some()),
             mark(caps.get),
             mark(caps.download),
             mark(caps.cite),
+            // Read straight off the capability slot rather than a bool
+            // mirrored into `Capabilities`, so this column cannot fall out
+            // of step with the function the command actually calls.
+            mark(source.entry().figures.is_some()),
             mark(caps.fields.pdf_url),
             mark(caps.fields.open_access),
             mark(caps.fields.citations),
         ));
     }
-    // The first four columns say which commands work; the last three say which
+    // The first five columns say which commands work; the last three say which
     // fields come back filled. Both are needed to pick a source: `crossref`
     // answers `get` but never carries a PDF link, so a caller who reads only
     // the left half asks it for something it structurally cannot supply.
@@ -84,6 +92,37 @@ fn mark(supported: bool) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // The figures column is derived from the registry's capability slot, so
+    // this pins the derivation rather than a copy of it: wiring a new source
+    // for figures moves this listing without anyone editing it, and dropping
+    // the column shows up here rather than in a user's terminal.
+    #[test]
+    fn the_figures_column_tracks_the_registry() {
+        let out = render(false);
+        assert!(out.contains("figures"), "header lost the column:\n{}", out);
+
+        for source in registry::ALL {
+            let row = out
+                .lines()
+                .find(|l| l.starts_with(source.name()))
+                .unwrap_or_else(|| panic!("no row for {}", source.name()));
+            let marks: Vec<&str> = row.split_whitespace().skip(1).collect();
+            // search, get, download, cite, figures -- figures is the fifth.
+            let shown = marks[4];
+            let expected = if source.entry().figures.is_some() {
+                "\u{2713}"
+            } else {
+                "\u{2717}"
+            };
+            assert_eq!(
+                shown,
+                expected,
+                "{} figures column disagrees with the registry",
+                source.name()
+            );
+        }
+    }
 
     #[test]
     fn lists_every_registered_source() {

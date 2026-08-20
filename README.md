@@ -347,7 +347,7 @@ All optional except where noted. 17 of 18 sources work with zero configuration.
 | Variable | Purpose |
 |----------|---------|
 | `FASTPAPER_DOWNLOAD_DIR` | Default download directory (otherwise `./papers`) |
-| `FASTPAPER_MAX_DOWNLOAD_SIZE` | Largest response body `download` will accept (otherwise `100MiB`); `0` means unlimited |
+| `FASTPAPER_MAX_DOWNLOAD_SIZE` | Largest response body `download` will accept, and the largest archive `figures` will accept (otherwise `100MiB`); `0` means unlimited |
 | `FASTPAPER_EMAIL` | Contact address sent to CrossRef, OpenAlex and NCBI. Unset means the parameter is omitted, which all three accept |
 | `SEMANTIC_SCHOLAR_API_KEY` | Higher rate limit for Semantic Scholar |
 | `OPENALEX_API_KEY` | Larger free tier for OpenAlex, which has metered usage since 2026-02 |
@@ -361,6 +361,11 @@ tests point at a local mock server. Sources whose files live on a different host
 than their API have a second override for that host: `FASTPAPER_ARXIV_PDF_URL`,
 `FASTPAPER_BIORXIV_DL_URL`, `FASTPAPER_PMC_DL_URL` (which points at the PMC
 Cloud Service on AWS Open Data, not the article pages).
+
+One override does not fit that pattern, because it is not a source:
+`FASTPAPER_IDCONV_URL` points at NCBI's ID converter (default
+`https://pmc.ncbi.nlm.nih.gov`), which `figures` uses to turn a DOI into a
+PMC ID. Only the DOI route touches it — an arXiv ID or a PMC ID never does.
 
 ## Exit codes
 
@@ -384,10 +389,15 @@ Commands that take `-o` print a receipt to stderr once the file is written —
 to find out what landed. `-q` suppresses it. Zero results still print, since
 that is the case most worth seeing.
 
-`download` prints `Saved: papers/2301.08745.pdf (2.2 MiB)` on stderr as well.
-`-q` does not suppress that one: `download` writes nothing to stdout, and the
-saved path is not derivable from the arguments, since a `/` in a DOI becomes
-`_` in the filename.
+`download` prints `Saved: papers/2301.08745.pdf (2.2 MiB)` on stderr as well,
+and `figures` prints `Saved: 3 figure files to papers/2511.11035 (382.2 KiB)`.
+`-q` suppresses neither: both write nothing to stdout, and neither path is
+derivable from the arguments, since a `/` in a DOI becomes `_`.
+
+Both also exit `0` rather than failing when a target file is already there,
+printing `File already exists: ...` instead — rerunning is safe, and `1`
+stays reserved for something actually going wrong. Pass `--overwrite` to
+replace what is on disk.
 
 ## Contributing
 
