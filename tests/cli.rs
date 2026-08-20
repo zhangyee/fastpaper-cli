@@ -1789,3 +1789,194 @@ fn read_list_sections_json_carries_each_heading() {
         v
     );
 }
+
+// ── figures integration tests ───────────────────
+
+fn zip_bytes(entries: &[(&str, &[u8])]) -> Vec<u8> {
+    let mut buf = std::io::Cursor::new(Vec::new());
+    {
+        let mut w = zip::ZipWriter::new(&mut buf);
+        let opts: zip::write::FileOptions<()> = zip::write::FileOptions::default();
+        for (name, body) in entries {
+            w.start_file(*name, opts).unwrap();
+            std::io::Write::write_all(&mut w, body).unwrap();
+        }
+        w.finish().unwrap();
+    }
+    buf.into_inner()
+}
+
+// A gzipped tarball with no figure-extension entries, the shape arXiv's
+// e-print endpoint returns for a source package that has no image/pdf/etc
+// files in it (e.g. a single-file .tex submission with no separate figures).
+fn tar_gz_bytes(entries: &[(&str, &[u8])]) -> Vec<u8> {
+    let mut tar = tar::Builder::new(Vec::new());
+    for (name, body) in entries {
+        let mut header = tar::Header::new_gnu();
+        header.set_size(body.len() as u64);
+        header.set_mode(0o644);
+        header.set_cksum();
+        tar.append_data(&mut header, name, *body).unwrap();
+    }
+    let raw = tar.into_inner().unwrap();
+    let mut enc = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+    std::io::Write::write_all(&mut enc, &raw).unwrap();
+    enc.finish().unwrap()
+}
+
+#[test]
+fn figures_europepmc_saves_into_an_identifier_subdirectory() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(zip_bytes(&[("ocz228f1.jpg", b"fig"), ("readme.txt", b"no")]))
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["figures", "europepmc", "PMC7075534", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_EUROPEPMC_URL", server.url())
+        .assert()
+        .success()
+        .stderr(contains("PMC7075534"));
+    assert!(dir.join("PMC7075534/ocz228f1.jpg").exists());
+    assert!(!dir.join("PMC7075534/readme.txt").exists());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// The two errors the user asked for: "there are none" and "this source
+// cannot do that" must not read the same.
+#[test]
+fn figures_from_a_source_without_the_capability_exits_1() {
+    cmd()
+        .args(["figures", "crossref", "10.1038/nature12373"])
+        .assert()
+        .failure()
+        .code(1)
+        .stderr(contains("cannot provide figures"));
+}
+
+#[test]
+fn figures_with_no_figures_in_the_package_exits_4() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(zip_bytes(&[("readme.txt", b"no images here")]))
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["figures", "europepmc", "PMC9724911", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_EUROPEPMC_URL", server.url())
+        .assert()
+        .failure()
+        .code(4);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// europepmc::figures already turns an empty extraction into NotFound itself.
+// arxiv::figures does not -- it hands back Ok(vec![]) for a source tarball
+// with no figure-extension files. The `run()` guard has to catch that case
+// too, or a no-figures arXiv package would print "Saved: 0 figure files"
+// and exit 0.
+#[test]
+fn figures_arxiv_with_no_figure_files_in_the_tarball_exits_4() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(tar_gz_bytes(&[("main.tex", b"\\documentclass{article}")]))
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["figures", "arxiv", "2301.08745", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .failure()
+        .code(4);
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn figures_pmid_is_rejected_with_a_hint() {
+    cmd()
+        .args(["figures", "PMID:12345678"])
+        .assert()
+        .failure()
+        .code(1)
+        .stderr(contains("PMC"));
+}
+
+#[test]
+fn figures_existing_file_exits_0_with_stderr() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(zip_bytes(&[("ocz228f1.jpg", b"new")]))
+        .create();
+    let dir = temp_dir();
+    std::fs::create_dir_all(dir.join("PMC7075534")).unwrap();
+    std::fs::write(dir.join("PMC7075534/ocz228f1.jpg"), b"old").unwrap();
+    cmd()
+        .args(["figures", "europepmc", "PMC7075534", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_EUROPEPMC_URL", server.url())
+        .assert()
+        .success()
+        .stderr(contains("already exists"));
+    assert_eq!(
+        std::fs::read(dir.join("PMC7075534/ocz228f1.jpg")).unwrap(),
+        b"old"
+    );
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+// A run of zero bytes is what `vec![0u8; N]` would give here, and DEFLATE
+// collapses that to a couple hundred bytes -- well under the 1024-byte limit
+// this test needs to trigger, since the limit checks the archive's own wire
+// size, not the size of what is inside it. High-entropy bytes so the zip
+// itself lands over the limit.
+fn incompressible_bytes(n: usize, seed: u64) -> Vec<u8> {
+    let mut state = seed;
+    (0..n)
+        .map(|_| {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            (state & 0xff) as u8
+        })
+        .collect()
+}
+
+// The size limit reaches archives too, and says "Archive" rather than "PDF".
+#[test]
+fn figures_over_the_size_limit_exits_1_and_names_the_archive() {
+    let big = incompressible_bytes(4096, 0x9E3779B97F4A7C15);
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(zip_bytes(&[("big.jpg", &big)]))
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args([
+            "figures",
+            "europepmc",
+            "PMC7075534",
+            "--max-size",
+            "1024",
+            "--dir",
+        ])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_EUROPEPMC_URL", server.url())
+        .assert()
+        .failure()
+        .code(1)
+        .stderr(contains("Archive").and(contains("--max-size")));
+    let _ = std::fs::remove_dir_all(&dir);
+}

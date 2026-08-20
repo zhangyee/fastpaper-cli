@@ -12,6 +12,7 @@ fn main() {
         cli::Commands::Download(args) => commands::download::run(args),
         cli::Commands::Cite(args) => commands::cite::run(args, &cli.global),
         cli::Commands::Read(args) => commands::read::run(args, &cli.global),
+        cli::Commands::Figures(args) => commands::figures::run(args),
         cli::Commands::Sources(args) => commands::sources::run(args),
         cli::Commands::Completions { shell } => {
             clap_complete::generate(

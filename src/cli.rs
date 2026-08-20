@@ -50,6 +50,9 @@ pub enum Commands {
     /// Extract text from a local PDF file
     Read(ReadArgs),
 
+    /// Fetch a paper's original figure files from its source
+    Figures(FiguresArgs),
+
     /// List available sources and what each can do
     Sources(SourcesArgs),
 
@@ -223,6 +226,50 @@ pub struct DownloadArgs {
 }
 
 impl DownloadArgs {
+    pub fn resolve(&self) -> Result<(Option<Source>, &str), String> {
+        resolve_source_and_id(&self.first, self.second.as_deref())
+    }
+}
+
+// ── figures ─────────────────────────────────────
+
+#[derive(clap::Args)]
+pub struct FiguresArgs {
+    /// Source name, or the identifier itself when no source is given
+    #[arg(value_name = "SOURCE_OR_ID")]
+    pub first: String,
+
+    /// Identifier when a source is given
+    #[arg(value_name = "ID")]
+    pub second: Option<String>,
+
+    /// Directory to save into; figures land in a subdirectory named for the ID
+    #[arg(
+        short,
+        long,
+        env = "FASTPAPER_DOWNLOAD_DIR",
+        default_value = "./papers"
+    )]
+    pub dir: PathBuf,
+
+    /// Maximum archive to accept, e.g. 10MiB, 200MB, 0 = unlimited; a bare
+    /// number is bytes
+    #[arg(
+        short = 's',
+        long,
+        env = "FASTPAPER_MAX_DOWNLOAD_SIZE",
+        default_value = "100MiB",
+        value_parser = parse_max_size
+    )]
+    pub max_size: u64,
+
+    /// Overwrite existing files
+    #[arg(long)]
+    pub overwrite: bool,
+}
+
+impl FiguresArgs {
+    /// Same `[source] <id>` disambiguation as `download`.
     pub fn resolve(&self) -> Result<(Option<Source>, &str), String> {
         resolve_source_and_id(&self.first, self.second.as_deref())
     }

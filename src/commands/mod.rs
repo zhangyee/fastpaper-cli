@@ -3,6 +3,7 @@
 
 pub mod cite;
 pub mod download;
+pub mod figures;
 pub mod get;
 pub mod read;
 pub mod search;
