@@ -82,7 +82,7 @@ Add CLI integration tests in `tests/cli.rs` (mockito server + `FASTPAPER_<SOURCE
 
 - [ ] `README.md` — source count (two places: "N academic sources" and "N of M sources work with zero configuration") + table row
 - [ ] `README.zh-CN.md` — the same three updates
-- [ ] `skills/fastpaper/SKILL.md` — source count in the frontmatter description **and** in the body, plus a bullet in the domain list; a source without an author filter also joins the exception list in the `--author` row
+- [ ] `skills/fastpaper/SKILL.md` **and** `skills/fastpaper/SKILL.en.md` (both languages) — source count in the frontmatter description **and** in the body, plus a bullet in the domain list; a source without an author filter also joins the exception list in the `--author` row
 - [ ] `docs/sources/` — add your research note and a line in its README index
 - [ ] Shell completions regenerate from the enum automatically, but users must re-run `fastpaper completions <shell>` after upgrading — no file to edit
 

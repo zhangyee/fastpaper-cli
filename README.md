@@ -2,7 +2,7 @@
 
 # fastpaper CLI with Skill
 
-A CLI tool that gives AI agents (Claude Code, Codex, Opencode, etc.) the ability to search, download, and read academic papers and scientific literature. Ships with a [SKILL](skills/fastpaper/SKILL.md) that teaches agents how to pick sources and construct commands.
+A CLI tool that gives AI agents (Claude Code, Codex, Opencode, etc.) the ability to search, download, and read academic papers and scientific literature. Ships with a [SKILL](skills/fastpaper/SKILL.en.md) that teaches agents how to pick sources and construct commands.
 
 One command, one source, zero configuration. Parallel multi-source search is handled by the agent spawning multiple processes.
 
