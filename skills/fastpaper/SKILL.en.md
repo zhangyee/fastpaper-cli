@@ -123,7 +123,8 @@ run these commands with `2>/dev/null`, or an exit code is all you get back:
 |---|---|
 | `-n <N>` | max results (per-source caps differ; zenodo is 25, xueshu ~10) |
 | `--offset <N>` | skip N; several sources require a multiple of `-n` |
-| `--sort relevance\|date\|citations` + `--order asc\|desc` | ordering |
+| `--sort relevance\|date` + `--order asc\|desc` | ordering — not every source accepts `--sort`; those that do not raise an explicit error |
+| `--sort citations` | **only `europepmc`, `semantic`, `crossref`, `openalex`, `openaire` have citation counts to order by** — that is the complete list; every other source either raises an explicit error (`arxiv`, `pubmed`, `pmc`, `zenodo`, `hal`) or does not accept `--sort` at all. When unsure run `fastpaper sources --capabilities`, whose Notes section spells it out source by source |
 | `--year <YYYY>` · `--after <YYYY-MM-DD>` · `--before <YYYY-MM-DD>` | dates |
 | `--author "<name>"` | author — *not* on `semantic`, `dblp`, `scholar`, `xueshu`, `biorxiv`, `medrxiv`; put the name in the query there |
 | `--field <code>` | subject/category — takes a *source-specific code*, see below |
@@ -237,8 +238,10 @@ Report the URL to the user instead; exit is `1`, not `4`.
 | `xueshu` | — | — | 0 | **Chinese literature** — journals, master's/PhD theses, conference papers, patents, standards; 700M+ records over 500+ subjects. Indexes English work too, but other sources serve that better | unofficial endpoint with bot detection; search only, no `get`. **One request per search, first page only** — the page holds 10 records, so `-n` above ~10 silently returns fewer, and `--offset` past that page returns nothing. `pdf_url` is rare and `doi` present on about half, though validated, so a patent number or bare URL never masquerades as one |
 
 **Two fields that lie.** `core` and `xueshu` return `citations` but leave it 0 on
-most records, so sorting by it appears to work while silently burying the
-well-cited papers. And `arxiv` carries a DOI on only about half its records, so
+most records. Neither source accepts `--sort` in the first place (both raise an
+explicit error), so what this catches is **ranking the returned JSON yourself**:
+it looks sorted while silently burying the well-cited papers.
+And `arxiv` carries a DOI on only about half its records, so
 a DOI is not a stable key across sources.
 
 ### Content types worth routing on

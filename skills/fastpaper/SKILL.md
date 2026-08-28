@@ -107,7 +107,8 @@ fastpaper read papers/<id>.pdf --max-length 3000
 |---|---|
 | `-n <N>` | 最多返回多少条(各来源上限不同;zenodo 是 25,xueshu 约 10) |
 | `--offset <N>` | 跳过 N 条;若干来源要求它是 `-n` 的整数倍 |
-| `--sort relevance\|date\|citations` + `--order asc\|desc` | 排序 |
+| `--sort relevance\|date` + `--order asc\|desc` | 排序 —— 并非所有来源都接 `--sort`,不接的会明确报错 |
+| `--sort citations` | **只有 `europepmc`、`semantic`、`crossref`、`openalex`、`openaire` 有引用数可排**,这就是完整清单;其余来源要么明确报错(`arxiv`、`pubmed`、`pmc`、`zenodo`、`hal`),要么根本不接 `--sort`。拿不准就跑一次 `fastpaper sources --capabilities`,Notes 段落逐来源写明 |
 | `--year <YYYY>` · `--after <YYYY-MM-DD>` · `--before <YYYY-MM-DD>` | 日期 |
 | `--author "<name>"` | 作者 —— `semantic`、`dblp`、`scholar`、`xueshu`、`biorxiv`、`medrxiv` 上*没有*这个参数;在这些来源上把人名写进 query |
 | `--field <code>` | 学科/分类 —— 取的是*各来源自己的代码*,见下文 |
@@ -215,7 +216,8 @@ block here -- they look the same from outside. ...
 | `xueshu` | — | — | 0 | **中文文献** —— 期刊、硕博学位论文、会议论文、专利、标准;700M+ 条记录,覆盖 500+ 个学科。它也索引英文工作,但那些别的来源做得更好 | 非官方端点,有机器人检测;只有搜索,没有 `get`。**一次搜索一个请求,只有第一页** —— 一页 10 条记录,所以 `-n` 超过 ~10 会悄悄返回更少,`--offset` 翻过这一页就什么都没有了。`pdf_url` 很少见,`doi` 大约一半的记录有,不过是经过校验的,所以专利号或裸 URL 绝不会冒充成 DOI |
 
 **两个会骗人的字段。** `core` 和 `xueshu` 会返回 `citations`,但在大多数记录上
-留成 0,所以按它排序看起来像是生效了,实际上悄悄把被引多的论文埋了。另外
+留成 0。这两个源本来就不接 `--sort`(会明确报错),所以坑的是**你自己拿返回的
+JSON 去排**:看起来像是排出来了,实际上悄悄把被引多的论文埋了。另外
 `arxiv` 只有大约一半的记录带 DOI,所以 DOI 不是一个跨来源稳定的键。
 
 ### Content types worth routing on
