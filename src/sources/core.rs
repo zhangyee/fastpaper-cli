@@ -31,13 +31,20 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
         terms.push(format!("yearPublished:{}", year));
     }
     Ok(format!(
-        "{}/v3/search/works/?q={}&limit={}&offset={}",
+        "{}/v3/search/works/?q={}&limit={}&offset={}&exclude={}",
         base_url,
         terms.join("+AND+"),
         q.limit,
-        q.offset
+        q.offset,
+        EXCLUDED_FIELDS
     ))
 }
+
+/// Left out of every response. `fullText` is CORE's own extraction of the
+/// whole paper and comes back by default on both endpoints: 825K characters
+/// on one record, 424 KB against 59 KB for a ten-result page, 1.22 MB against
+/// 64 KB for a single work. Nothing in this crate reads it.
+const EXCLUDED_FIELDS: &str = "fullText";
 
 /// Beyond this CORE answers 504; 100 is the largest verified working value.
 const MAX_LIMIT: u32 = 100;
@@ -47,7 +54,12 @@ const MAX_LIMIT: u32 = 100;
 /// `GET /v3/works/{identifier}` returns one work object rather than the
 /// `{results: [...]}` envelope the search endpoint uses.
 pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, String> {
-    let url = format!("{}/v3/works/{}", base_url, super::encode_query(identifier));
+    let url = format!(
+        "{}/v3/works/{}?exclude={}",
+        base_url,
+        super::encode_query(identifier),
+        EXCLUDED_FIELDS
+    );
     let api_key = std::env::var("CORE_API_KEY").ok();
     match http_get_core(&url, api_key.as_deref()) {
         Ok(body) => {
@@ -422,6 +434,24 @@ mod get_tests {
             .create();
         assert!(get_by_id(&server.url(), "nope").unwrap().is_none());
     }
+
+    // A single work carries the same `fullText` blob a search hit does:
+    // measured at 1.22 MB against 64 KB without it, for a record whose every
+    // parsed field is identical either way.
+    #[test]
+    fn get_by_id_excludes_the_full_text_field() {
+        let mut server = mockito::Server::new();
+        let mock = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("exclude=fullText".to_string()),
+            )
+            .with_status(200)
+            .with_body(WORK)
+            .create();
+        let _ = get_by_id(&server.url(), "12345678");
+        mock.assert();
+    }
 }
 
 #[cfg(test)]
@@ -437,6 +467,14 @@ mod url_tests {
     #[test]
     fn search_path_carries_the_trailing_slash() {
         assert!(url(&SearchQuery::simple("crispr", 10)).contains("/v3/search/works/?"));
+    }
+
+    // Every hit carries `fullText`, CORE's own extraction of the whole paper:
+    // 424 KB for a ten-result page against 59 KB without it. Nothing here reads
+    // the field, so it is excluded server-side rather than downloaded and dropped.
+    #[test]
+    fn search_excludes_the_full_text_field() {
+        assert!(url(&SearchQuery::simple("crispr", 10)).contains("exclude=fullText"));
     }
 
     // `authors:"X"` widens the result set instead of narrowing it; the field is
