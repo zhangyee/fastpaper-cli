@@ -1976,3 +1976,192 @@ fn figures_over_the_size_limit_exits_1_and_names_the_archive() {
         .stderr(contains("Archive").and(contains("--max-size")));
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+// ── the 2026-09 source additions ────────────────
+//
+// One mocked search per source proves the whole path — URL built, request
+// issued, response parsed, row printed — against its captured fixture. The
+// real-API checks below are the counterpart: mockito matches loosely, so only
+// a live call catches an endpoint that moved.
+
+fn search_against_fixture(source: &str, env_var: &str, fixture: &str, expect: &str) {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(fixture)
+        .create();
+    let output = cmd()
+        .args(["search", source, "learning", "-n", "3"])
+        .env(env_var, server.url())
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{source} failed, stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains(expect), "{source} got: {stdout}");
+}
+
+#[test]
+fn search_osf_mock_outputs_title() {
+    search_against_fixture(
+        "osf",
+        "FASTPAPER_OSF_URL",
+        include_str!("fixtures/osf_search.json"),
+        "Estimating Dimensional Structure",
+    );
+}
+
+#[test]
+fn search_inspire_mock_outputs_title() {
+    search_against_fixture(
+        "inspire",
+        "FASTPAPER_INSPIRE_URL",
+        include_str!("fixtures/inspire_search.json"),
+        "Lorentz violation",
+    );
+}
+
+#[test]
+fn search_zbmath_mock_outputs_title() {
+    search_against_fixture(
+        "zbmath",
+        "FASTPAPER_ZBMATH_URL",
+        include_str!("fixtures/zbmath_search.json"),
+        "Ricci curvatures",
+    );
+}
+
+#[test]
+fn search_eric_mock_outputs_title() {
+    search_against_fixture(
+        "eric",
+        "FASTPAPER_ERIC_URL",
+        include_str!("fixtures/eric_search.json"),
+        "Phonics",
+    );
+}
+
+#[test]
+fn search_osti_mock_outputs_title() {
+    search_against_fixture(
+        "osti",
+        "FASTPAPER_OSTI_URL",
+        include_str!("fixtures/osti_search.json"),
+        "Perovskite",
+    );
+}
+
+#[test]
+fn search_ntrs_mock_outputs_title() {
+    search_against_fixture(
+        "ntrs",
+        "FASTPAPER_NTRS_URL",
+        include_str!("fixtures/ntrs_search.json"),
+        "Mars",
+    );
+}
+
+#[test]
+fn search_datacite_mock_outputs_title() {
+    search_against_fixture(
+        "datacite",
+        "FASTPAPER_DATACITE_URL",
+        include_str!("fixtures/datacite_search.json"),
+        "Pollution and climate",
+    );
+}
+
+#[test]
+fn sources_lists_the_new_sources() {
+    let output = cmd().arg("sources").output().unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    for name in [
+        "osf", "inspire", "zbmath", "eric", "osti", "ntrs", "datacite",
+    ] {
+        assert!(
+            stdout.contains(name),
+            "{name} missing from sources: {stdout}"
+        );
+    }
+}
+
+// A metadata-only source must say so rather than failing obscurely.
+#[test]
+fn download_datacite_rejects_with_hint() {
+    cmd()
+        .args(["download", "datacite", "10.5281/zenodo.1"])
+        .assert()
+        .failure()
+        .stderr(contains("cannot provide PDFs"));
+}
+
+#[test]
+fn download_zbmath_rejects_with_hint() {
+    cmd()
+        .args(["download", "zbmath", "3339084"])
+        .assert()
+        .failure()
+        .stderr(contains("cannot provide PDFs"));
+}
+
+// A 500 must surface as a clear error, not an empty result set.
+#[test]
+fn search_osf_server_error_exits_nonzero() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(500)
+        .create();
+    cmd()
+        .args(["search", "osf", "test"])
+        .env("FASTPAPER_OSF_URL", server.url())
+        .assert()
+        .failure();
+}
+
+// 真实接口健康检查(手动:cargo test --test cli -- --ignored)。
+#[test]
+#[ignore]
+fn real_osf_search_works() {
+    real_search_returns_results("osf");
+}
+
+#[test]
+#[ignore]
+fn real_inspire_search_works() {
+    real_search_returns_results("inspire");
+}
+
+#[test]
+#[ignore]
+fn real_zbmath_search_works() {
+    real_search_returns_results("zbmath");
+}
+
+#[test]
+#[ignore]
+fn real_eric_search_works() {
+    real_search_returns_results("eric");
+}
+
+#[test]
+#[ignore]
+fn real_osti_search_works() {
+    real_search_returns_results("osti");
+}
+
+#[test]
+#[ignore]
+fn real_ntrs_search_works() {
+    real_search_returns_results("ntrs");
+}
+
+#[test]
+#[ignore]
+fn real_datacite_search_works() {
+    real_search_returns_results("datacite");
+}

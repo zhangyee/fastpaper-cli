@@ -86,7 +86,7 @@ wait
 
 ## Sources
 
-16 academic sources, each accessed independently per command.
+23 academic sources, each accessed independently per command.
 
 `read` is not listed here: it works on a PDF already on disk, so it applies
 equally to anything the `download` column can fetch.
@@ -109,6 +109,13 @@ equally to anything the `download` column can fetch.
 | `unpaywall` | Unpaywall | | yes | | | | OA link resolver (requires `UNPAYWALL_EMAIL`) |
 | `zenodo` | Zenodo | yes | yes | yes | | | All disciplines (datasets, software, papers) |
 | `hal` | HAL | yes | yes | yes | | | Multi-disciplinary, French national archive |
+| `osf` | OSF Preprints | yes | yes | yes | | | Social science, psychology, education, law preprints (~32 communities; title-only search) |
+| `inspire` | INSPIRE-HEP | yes | yes | | | | High-energy physics (reliable citation counts; files live on arXiv) |
+| `zbmath` | zbMATH Open | yes | yes | | | | Mathematics (published record + reviews; no abstracts or files) |
+| `eric` | ERIC | yes | yes | yes | | | Education research (files for the ERIC-hosted subset) |
+| `osti` | OSTI.GOV | yes | yes | yes | | | US Dept. of Energy technical reports |
+| `ntrs` | NASA NTRS | yes | yes | yes | | | NASA aerospace reports |
+| `datacite` | DataCite | yes | yes | | | | DOI registry for datasets, software and theses (complements crossref) |
 
 `figures` fetches the authors' original figure files rather than PDF pages —
 see below. Only `arxiv` (its e-print source package) and `europepmc` (its
@@ -340,7 +347,7 @@ fastpaper completions bash >> ~/.bashrc
 
 ## Environment variables
 
-All optional except where noted. 15 of 16 sources work with zero configuration.
+All optional except where noted. 22 of 23 sources work with zero configuration.
 
 | Variable | Purpose |
 |----------|---------|

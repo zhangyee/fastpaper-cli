@@ -2,7 +2,7 @@
 
 These are the research notes each source implementation was built from — endpoints, parameters, response shapes, auth, and rate-limit behavior. **They are written in Chinese**; this page is the English index. When adding a source, contribute your note here following the same format (see [../adding-a-source.md](../adding-a-source.md), Step 0).
 
-The sources fall into a few families: open preprint servers with free full text (arXiv, bioRxiv, medRxiv), biomedical databases run by NLM/EMBL-EBI (PubMed metadata, PMC/Europe PMC full text), academic search engines that index rather than host (Semantic Scholar), metadata registries (CrossRef, OpenAlex, DBLP), and open-access aggregators/archives (CORE, OpenAIRE, DOAJ, Unpaywall, Zenodo, HAL).
+The sources fall into a few families: open preprint servers with free full text (arXiv, bioRxiv, medRxiv), biomedical databases run by NLM/EMBL-EBI (PubMed metadata, PMC/Europe PMC full text), academic search engines that index rather than host (Semantic Scholar), metadata registries (CrossRef, OpenAlex, DBLP), open-access aggregators/archives (CORE, OpenAIRE, DOAJ, Unpaywall, Zenodo, HAL, OSF Preprints), discipline indexes (INSPIRE-HEP for high-energy physics, zbMATH Open for mathematics, ERIC for education), and technical-report archives (OSTI.GOV, NASA NTRS) alongside the DataCite DOI registry.
 
 [base.md](base.md) documents the shared `Paper` contract and cross-source HTTP conventions.
 
@@ -24,4 +24,11 @@ The sources fall into a few families: open preprint servers with free full text 
 | [unpaywall](unpaywall.md) | Unpaywall | REST JSON | **required** `UNPAYWALL_EMAIL` | free; email required by API terms |
 | [zenodo](zenodo.md) | Zenodo | REST JSON | none | |
 | [hal](hal.md) | HAL | REST JSON (Solr) | none | |
+| [osf](osf.md) | OSF Preprints | REST JSON:API | none | title-only search; ~32 preprint communities |
+| [inspire](inspire.md) | INSPIRE-HEP | REST JSON | none | filters go through its own query language |
+| [zbmath](zbmath.md) | zbMATH Open | REST JSON | none | metadata + reviews only; no abstracts or files |
+| [eric](eric.md) | ERIC | REST JSON (Solr) | none | files only for the ERIC-hosted subset |
+| [osti](osti.md) | OSTI.GOV | REST JSON | none | US-format dates (MM/DD/YYYY) on date filters |
+| [ntrs](ntrs.md) | NASA NTRS | REST JSON | none | ignores page size; always 10 per page |
+| [datacite](datacite.md) | DataCite | REST JSON:API | none | publication-year param is silently ignored |
 

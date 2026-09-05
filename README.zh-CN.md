@@ -86,7 +86,7 @@ wait
 
 ## 数据源
 
-16 个学术数据源，每条命令独立访问单个数据源。
+23 个学术数据源，每条命令独立访问单个数据源。
 
 这里不列 `read`：它读的是已经落到磁盘上的 PDF，所以凡是 `download` 列能取到的，
 它都能读。
@@ -109,6 +109,13 @@ wait
 | `unpaywall` | Unpaywall | | yes | | | | OA 链接解析（需设置 `UNPAYWALL_EMAIL`） |
 | `zenodo` | Zenodo | yes | yes | yes | | | 全学科（数据集、软件、论文） |
 | `hal` | HAL | yes | yes | yes | | | 多学科，法国国家开放存档 |
+| `osf` | OSF Preprints | yes | yes | yes | | | 社科、心理、教育、法学预印本（约 32 个社区；仅标题检索） |
+| `inspire` | INSPIRE-HEP | yes | yes | | | | 高能物理（引用数可靠；文件在 arXiv 上） |
+| `zbmath` | zbMATH Open | yes | yes | | | | 数学（已发表文献与评论；无摘要、无全文） |
+| `eric` | ERIC | yes | yes | yes | | | 教育学研究（ERIC 自托管的那部分有全文） |
+| `osti` | OSTI.GOV | yes | yes | yes | | | 美国能源部科技报告 |
+| `ntrs` | NASA NTRS | yes | yes | yes | | | NASA 航空航天报告 |
+| `datacite` | DataCite | yes | yes | | | | 数据集、软件、学位论文的 DOI 注册库（与 crossref 互补） |
 
 `figures` 取的是作者的原始插图文件，而不是 PDF 页面——详见下文。只有 `arxiv`
 （其源码包）与 `europepmc`（其附件包）能提供；PMC ID 或 DOI 都会路由到
@@ -319,7 +326,7 @@ fastpaper completions bash >> ~/.bashrc
 
 ## 环境变量
 
-除特别标注外均为可选。16 个数据源中有 15 个无需任何配置即可使用。
+除特别标注外均为可选。23 个数据源中有 22 个无需任何配置即可使用。
 
 | 变量 | 用途 |
 |------|------|

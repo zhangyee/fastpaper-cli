@@ -1,6 +1,6 @@
 ---
 name: fastpaper
-description: 当用户要查找学术论文或专利、做文献调研、按 DOI / arXiv id / PMID / PMC id 查某篇论文、追踪谁引用了谁、获取论文 PDF、抓取论文原始图片文件,或阅读论文时使用。覆盖 16 个来源 —— arXiv、PubMed、PMC、Europe PMC、bioRxiv、medRxiv、Semantic Scholar、OpenAlex、Crossref、DBLP、CORE、OpenAIRE、DOAJ、HAL、Zenodo、Unpaywall。
+description: 当用户要查找学术论文或专利、做文献调研、按 DOI / arXiv id / PMID / PMC id 查某篇论文、追踪谁引用了谁、获取论文 PDF、抓取论文原始图片文件,或阅读论文时使用。覆盖 23 个来源 —— arXiv、PubMed、PMC、Europe PMC、bioRxiv、medRxiv、OSF Preprints、Semantic Scholar、OpenAlex、Crossref、DataCite、DBLP、CORE、OpenAIRE、DOAJ、HAL、Zenodo、Unpaywall、INSPIRE-HEP、zbMATH Open、ERIC、OSTI.GOV、NASA NTRS。
 ---
 
 # fastpaper
@@ -108,9 +108,9 @@ fastpaper read papers/<id>.pdf --max-length 3000
 | `-n <N>` | 最多返回多少条(各来源上限不同;zenodo 是 25) |
 | `--offset <N>` | 跳过 N 条;若干来源要求它是 `-n` 的整数倍 |
 | `--sort relevance\|date` + `--order asc\|desc` | 排序 —— 并非所有来源都接 `--sort`,不接的会明确报错 |
-| `--sort citations` | **只有 `europepmc`、`semantic`、`crossref`、`openalex`、`openaire` 有引用数可排**,这就是完整清单;其余来源要么明确报错(`arxiv`、`pubmed`、`pmc`、`zenodo`、`hal`),要么根本不接 `--sort`。拿不准就跑一次 `fastpaper sources --capabilities`,Notes 段落逐来源写明 |
+| `--sort citations` | **只有 `europepmc`、`semantic`、`crossref`、`openalex`、`openaire`、`inspire` 有引用数可排**,这就是完整清单;其余来源要么明确报错(`arxiv`、`pubmed`、`pmc`、`zenodo`、`hal`、`osf`、`osti`),要么根本不接 `--sort`。拿不准就跑一次 `fastpaper sources --capabilities`,Notes 段落逐来源写明 |
 | `--year <YYYY>` · `--after <YYYY-MM-DD>` · `--before <YYYY-MM-DD>` | 日期 |
-| `--author "<name>"` | 作者 —— `semantic`、`dblp`、`biorxiv`、`medrxiv` 上*没有*这个参数;在这些来源上把人名写进 query |
+| `--author "<name>"` | 作者 —— `semantic`、`dblp`、`biorxiv`、`medrxiv`、`osf`、`eric`、`osti`、`ntrs`、`datacite` 上*没有*这个参数;在这些来源上把人名写进 query |
 | `--field <code>` | 学科/分类 —— 取的是*各来源自己的代码*,见下文 |
 | `--open-access` | 只要开放获取的 |
 | `--patents` | **只要专利**(europepmc) |
@@ -157,10 +157,16 @@ OA 全文命中率最高(`core`)—— 所以它们不是排在专门来源后�
 |---|---|---|
 | CS · AI · ML | `arxiv`(`cs.*`)、`dblp` | `semantic`(三者里 CS 覆盖最好,还带引用数)、`openalex` |
 | 数学 · 物理 · 统计 · 量化生物/金融/经济 | `arxiv`(`math.*` `physics.*` `stat.*` `q-bio.*` `q-fin.*` `econ.*` `eess.*`) | `openalex` `core` `hal` |
+| 数学(已发表文献) | `zbmath`(MSC 分类 + 评论,1868 年至今) | `crossref` `openalex` |
+| 高能物理 | `inspire`(引用数最可靠,可 `--sort citations`) | `arxiv` `openalex` |
 | 生物医学 · 临床 | `pubmed` `pmc` `europepmc` `biorxiv` `medrxiv` | `semantic` `openalex` |
 | 化学 · 材料 · 工程 | — | `openalex` `semantic` `crossref` `core` |
 | 地球 · 环境 · 农业 | `europepmc 'SRC:AGR'`(Agricola) | `openalex` `core` `doaj` |
 | 人文 · 社会科学 | — | `openalex` `core` `doaj` `hal`(法语/欧洲研究上很强) |
+| 心理 · 社会 · 教育 · 法学(预印本) | `osf --field psyarxiv`(或 `socarxiv` / `edarxiv` / `lawarxiv`) | `openalex` `core` |
+| 教育学 | `eric` | `openalex` `core` `doaj` |
+| 科技报告 · 灰色文献 | `osti`(美国能源部)、`ntrs`(NASA 航空航天) | `core` |
+| 数据集 · 软件 · 学位论文 | `datacite` `zenodo` | `openaire` |
 | 中文文献 | — | `europepmc 'SRC:CBA'`(中国生物医学文摘,仅生物医学) |
 | 专利 | `europepmc --patents` | — |
 
@@ -206,6 +212,13 @@ block here -- they look the same from outside. ...
 | `openaire` | — | — | ✓ | **跨学科**欧盟开放科学图谱 | `download` 在这里用不了,但在少数记录上确实有出版商文件链接时会返回 `pdf_url` —— 它的链接大多是 DOI 解析器,不会被当作 PDF 提供。`get` 要的是 OpenAIRE id,不是 DOI |
 | `doaj` | — | — | — | **跨学科**同行评议 OA 期刊 —— 元数据完整,几乎每条命中都有期刊名和摘要 | **它的 `pdf_url` 是落地页,不是文件** —— 去抓会拿回 HTML。日期只到年份粒度,不能排序 |
 | `hal` | ✓ | — | — | **跨学科**法国国家档案库,几乎每条命中都有摘要,大多数有全文 | `--field` 取的是学科代码:`math` `phys` `chim` `sdv` `shs` `spi` `info` `sde`。没有期刊名,而且有些记录只有元数据 —— 下载前先按 `pdf_url` 过滤 |
+| `osf` | ✓ | — | — | **社科 · 心理 · 教育 · 法学预印本** —— 一个接口覆盖约 32 个社区(PsyArXiv、SocArXiv、EdArXiv、EcoEvoRxiv、engrXiv、MetaArXiv、Thesis Commons…),这些学科别处都没有 | **只按标题检索**,接口没有全文检索(`filter[q]` 直接 400)。每条都有 DOI 和可下载 PDF。`--field` 取 provider id,`--offset` 必须是 `-n` 的整数倍 |
+| `inspire` | — | — | ✓ | **高能物理** —— 引用数在这里最可靠,`--sort citations` 真的生效 | 与 arXiv 重叠极高,增量是引用与作者消歧。`pdf_url` 指向 arXiv(文件在那边),所以 `download` 用不了 —— 拿 arXiv id 去下 |
+| `zbmath` | — | — | — | **数学已发表文献** —— 1868 年至今,带 MSC 分类号和评论;arXiv 只有预印本,这里是互补 | **没有摘要**(出的是评论不是作者摘要)、没有全文、没有引用数。`--author` 用 `au:` 前缀,`--offset` 必须是 `-n` 的整数倍 |
+| `eric` | ~ | ~ | — | **教育学** —— 美国教育部索引,这个学科别处基本是空白 | 只有 ERIC 自托管的那部分(`e_fulltextauth=1`)有 `pdf_url` 和 `open_access`,其余两个字段都是 null。**恒无 DOI**。`--offset` 是真实记录偏移 |
+| `osti` | ~ | ~ | — | **美国能源部科技报告** —— 技术报告这类灰色文献别处完全没有 | `open_access` 跟随记录有没有 fulltext 链接。日期过滤内部转成 `MM/DD/YYYY`。`--offset` 必须是 `-n` 的整数倍 |
+| `ntrs` | ~ | ~ | — | **NASA 航空航天报告** | 接口**忽略一切页大小参数,恒 10 条/页**,所以 `-n` 越大请求越多(每 10 条一次)。**恒无 DOI**(报告号不是 DOI)。`--offset` 是真实记录偏移 |
+| `datacite` | — | — | — | **数据集、软件、学位论文的 DOI 注册库** —— crossref 覆盖不到的那半边,含大量高校学位论文和机构库存缴 | 只登记元数据:没有全文、没有 OA 状态。`--year` 走 query 语法,因为它自己的 `publication-year` 参数**会被静默忽略**。`--offset` 必须是 `-n` 的整数倍 |
 | `zenodo` | ✓ | — | — | **跨学科** CERN 通用仓储 —— 论文、数据集和软件,几乎每条命中都带 DOI | `-n` 上限 25。没有期刊名,而且有些记录只有元数据 |
 | `unpaywall` | — | — | — | **DOI → 一个可下载的 URL。**没有搜索,不分学科 —— 一个解析器 | 需要 `UNPAYWALL_EMAIL`;一次一个 DOI,而且那个 URL 得另外去抓 |
 
@@ -258,7 +271,7 @@ query 原样透传**,所以它们自己的字段语法是能用的:
 
 | 档位 | 来源 | 限制 |
 |---|---|---|
-| **A —— 宽松** | `arxiv` `europepmc` `crossref` `openalex` `dblp` `doaj` `zenodo` `hal` `openaire` | 不需要认证;arXiv 希望请求之间隔 ~3s |
+| **A —— 宽松** | `arxiv` `europepmc` `crossref` `openalex` `dblp` `doaj` `zenodo` `hal` `openaire` `osf` `inspire` `zbmath` `eric` `osti` `ntrs` `datacite` | 不需要认证;arXiv 希望请求之间隔 ~3s |
 | **A —— 带 key** | `semantic`(`SEMANTIC_SCHOLAR_API_KEY`:1 req/s → 100)、`core`(`CORE_API_KEY`) | 不带 key 这两个都得当作只能串行来用 —— 匿名的 `semantic` 已被观察到直接失败并报 "rate limited after 5 retries" |
 | **B —— 共享额度** | `pubmed` + `pmc` | 两者共用一份 NCBI E-utilities 额度:3 req/s,带 `NCBI_API_KEY` 是 10 |
 

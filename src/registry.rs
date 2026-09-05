@@ -30,6 +30,13 @@ pub enum Source {
     Unpaywall,
     Zenodo,
     Hal,
+    Osf,
+    Inspire,
+    Zbmath,
+    Eric,
+    Osti,
+    Ntrs,
+    Datacite,
 }
 
 /// Every source, in the order `fastpaper sources` lists them.
@@ -50,6 +57,13 @@ pub const ALL: &[Source] = &[
     Source::Unpaywall,
     Source::Zenodo,
     Source::Hal,
+    Source::Osf,
+    Source::Inspire,
+    Source::Zbmath,
+    Source::Eric,
+    Source::Osti,
+    Source::Ntrs,
+    Source::Datacite,
 ];
 
 /// The sources whose search honours `flag`, in `ALL` order.
@@ -145,6 +159,13 @@ impl Source {
             Source::Unpaywall => &UNPAYWALL,
             Source::Zenodo => &ZENODO,
             Source::Hal => &HAL,
+            Source::Osf => &OSF,
+            Source::Inspire => &INSPIRE,
+            Source::Zbmath => &ZBMATH,
+            Source::Eric => &ERIC,
+            Source::Osti => &OSTI,
+            Source::Ntrs => &NTRS,
+            Source::Datacite => &DATACITE,
         }
     }
 }
@@ -673,6 +694,245 @@ static HAL: SourceEntry = SourceEntry {
     search: Some(sources::hal::search),
     get: Some(sources::hal::get_by_id),
     pdf: Some(download::pdf_bytes_hal),
+    cite: None,
+    figures: None,
+};
+
+static OSF: SourceEntry = SourceEntry {
+    name: "osf",
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            date_range: true,
+            // The API exposes no author filter at all.
+            author: false,
+            // `--field` selects an OSF provider (psyarxiv, socarxiv, ...).
+            field: true,
+            // Every OSF preprint is freely readable, so the filter is
+            // trivially satisfied rather than unsupported.
+            open_access: true,
+            patents: false,
+        }),
+        get: true,
+        download: true,
+        cite: false,
+        max_limit: None,
+        fields: FieldCaps::OPEN_FILES,
+        notes: "the query matches titles only: the API has no full-text search. \
+                --offset must be a multiple of -n, since OSF pages by number",
+    },
+    env_var: "FASTPAPER_OSF_URL",
+    default_base: "https://api.osf.io",
+    pdf_env_var: Some("FASTPAPER_OSF_DL_URL"),
+    pdf_default_base: Some("https://osf.io"),
+    search: Some(sources::osf::search),
+    get: Some(sources::osf::get_by_id),
+    pdf: Some(download::pdf_bytes_osf),
+    cite: None,
+    figures: None,
+};
+
+static INSPIRE: SourceEntry = SourceEntry {
+    name: "inspire",
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            date_range: false,
+            author: true,
+            field: false,
+            open_access: false,
+            patents: false,
+        }),
+        get: true,
+        download: false,
+        cite: false,
+        max_limit: None,
+        fields: FieldCaps {
+            pdf_url: true,
+            open_access: false,
+            citations: true,
+        },
+        notes: "--author and --year go through INSPIRE's own query language. \
+                pdf_url points at the arXiv copy, which is where the file is; \
+                download it with `fastpaper download <arxiv id>`. \
+                --offset must be a multiple of -n",
+    },
+    env_var: "FASTPAPER_INSPIRE_URL",
+    default_base: "https://inspirehep.net",
+    pdf_env_var: None,
+    pdf_default_base: None,
+    search: Some(sources::inspire::search),
+    get: Some(sources::inspire::get_by_id),
+    pdf: None,
+    cite: None,
+    figures: None,
+};
+
+static ZBMATH: SourceEntry = SourceEntry {
+    name: "zbmath",
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: false,
+            year: false,
+            date_range: false,
+            author: true,
+            field: false,
+            open_access: false,
+            patents: false,
+        }),
+        get: true,
+        download: false,
+        cite: false,
+        max_limit: None,
+        fields: FieldCaps::NONE,
+        notes: "reviews and metadata only: no abstracts, no files, no citation \
+                counts. --offset must be a multiple of -n",
+    },
+    env_var: "FASTPAPER_ZBMATH_URL",
+    default_base: "https://api.zbmath.org",
+    pdf_env_var: None,
+    pdf_default_base: None,
+    search: Some(sources::zbmath::search),
+    get: Some(sources::zbmath::get_by_id),
+    pdf: None,
+    cite: None,
+    figures: None,
+};
+
+static ERIC: SourceEntry = SourceEntry {
+    name: "eric",
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: false,
+            year: false,
+            date_range: false,
+            author: false,
+            field: false,
+            open_access: false,
+            patents: false,
+        }),
+        get: true,
+        download: true,
+        cite: false,
+        max_limit: None,
+        fields: FieldCaps::OPEN_FILES,
+        notes: "education research. Only the ERIC-hosted subset has a file: \
+                records without one report no pdf_url and no open_access. \
+                Carries no DOIs",
+    },
+    env_var: "FASTPAPER_ERIC_URL",
+    default_base: "https://api.ies.ed.gov/eric",
+    pdf_env_var: Some("FASTPAPER_ERIC_DL_URL"),
+    pdf_default_base: Some("https://files.eric.ed.gov"),
+    search: Some(sources::eric::search),
+    get: Some(sources::eric::get_by_id),
+    pdf: Some(download::pdf_bytes_eric),
+    cite: None,
+    figures: None,
+};
+
+static OSTI: SourceEntry = SourceEntry {
+    name: "osti",
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            date_range: true,
+            author: false,
+            field: false,
+            open_access: false,
+            patents: false,
+        }),
+        get: true,
+        download: true,
+        cite: false,
+        max_limit: None,
+        fields: FieldCaps::OPEN_FILES,
+        notes: "US Department of Energy technical reports. open_access follows \
+                the record's fulltext link. --offset must be a multiple of -n",
+    },
+    env_var: "FASTPAPER_OSTI_URL",
+    default_base: "https://www.osti.gov",
+    pdf_env_var: None,
+    pdf_default_base: None,
+    search: Some(sources::osti::search),
+    get: Some(sources::osti::get_by_id),
+    pdf: Some(download::pdf_bytes_osti),
+    cite: None,
+    figures: None,
+};
+
+static NTRS: SourceEntry = SourceEntry {
+    name: "ntrs",
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: false,
+            year: false,
+            date_range: false,
+            author: false,
+            field: false,
+            open_access: false,
+            patents: false,
+        }),
+        get: true,
+        download: true,
+        cite: false,
+        max_limit: None,
+        fields: FieldCaps::OPEN_FILES,
+        notes: "NASA aerospace reports. The API ignores every page-size \
+                parameter and always returns 10 per page, so a larger -n costs \
+                one request per 10. Carries no DOIs",
+    },
+    env_var: "FASTPAPER_NTRS_URL",
+    default_base: "https://ntrs.nasa.gov",
+    pdf_env_var: None,
+    pdf_default_base: None,
+    search: Some(sources::ntrs::search),
+    get: Some(sources::ntrs::get_by_id),
+    pdf: Some(download::pdf_bytes_ntrs),
+    cite: None,
+    figures: None,
+};
+
+static DATACITE: SourceEntry = SourceEntry {
+    name: "datacite",
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: false,
+            year: true,
+            date_range: false,
+            author: false,
+            field: false,
+            open_access: false,
+            patents: false,
+        }),
+        get: true,
+        download: false,
+        cite: false,
+        max_limit: None,
+        fields: FieldCaps::NONE,
+        notes: "the DOI registry for datasets, software and theses -- the \
+                complement to crossref. Metadata only: no files, no access \
+                status. --year rides in the query because DataCite's own \
+                publication-year parameter is silently ignored. \
+                --offset must be a multiple of -n",
+    },
+    env_var: "FASTPAPER_DATACITE_URL",
+    default_base: "https://api.datacite.org",
+    pdf_env_var: None,
+    pdf_default_base: None,
+    search: Some(sources::datacite::search),
+    get: Some(sources::datacite::get_by_id),
+    pdf: None,
     cite: None,
     figures: None,
 };

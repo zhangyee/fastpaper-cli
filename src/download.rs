@@ -399,6 +399,36 @@ pub fn pdf_bytes_hal(base_url: &str, identifier: &str, limit: u64) -> Result<Vec
     )
 }
 
+/// Fetch an ERIC-hosted PDF. Only records ERIC hosts itself have one.
+pub fn pdf_bytes_eric(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
+    fetch_pdf(&format!("{}/fulltext/{}.pdf", base_url, identifier), limit)
+}
+
+/// Fetch an OSTI full-text PDF from its stable purl path.
+pub fn pdf_bytes_osti(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
+    fetch_pdf(&format!("{}/servlets/purl/{}", base_url, identifier), limit)
+}
+
+/// Fetch an NTRS PDF.
+///
+/// The file name is not derivable from the id, so this reads the record first
+/// and follows the download link it advertises.
+pub fn pdf_bytes_ntrs(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
+    resolve_and_fetch(
+        &format!("{}/api/citations/{}", base_url, identifier),
+        sources::ntrs::parse_citation_response,
+        limit,
+    )
+}
+
+/// Fetch an OSF preprint PDF.
+///
+/// OSF serves files from osf.io while its API lives on api.osf.io, so this
+/// builds the path off the PDF base rather than reading a URL out of the record.
+pub fn pdf_bytes_osf(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
+    fetch_pdf(&format!("{}/download/{}/", base_url, identifier), limit)
+}
+
 // The identifier reaches these straight from the command line, so it has to be
 // encoded: a multi-word one used to produce an invalid URI rather than a query.
 

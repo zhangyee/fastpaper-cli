@@ -76,6 +76,17 @@ fn papers(source: Source) -> Vec<Paper> {
         Source::Doaj => sources::doaj::parse_search_response(&f("doaj_search.json")).unwrap(),
         Source::Zenodo => sources::zenodo::parse_search_response(&f("zenodo_search.json")).unwrap(),
         Source::Hal => sources::hal::parse_search_response(&f("hal_search.json")).unwrap(),
+        Source::Osf => sources::osf::parse_search_response(&f("osf_search.json")).unwrap(),
+        Source::Inspire => {
+            sources::inspire::parse_search_response(&f("inspire_search.json")).unwrap()
+        }
+        Source::Zbmath => sources::zbmath::parse_search_response(&f("zbmath_search.json")).unwrap(),
+        Source::Eric => sources::eric::parse_search_response(&f("eric_search.json")).unwrap(),
+        Source::Osti => sources::osti::parse_search_response(&f("osti_search.json")).unwrap(),
+        Source::Ntrs => sources::ntrs::parse_search_response(&f("ntrs_search.json")).unwrap(),
+        Source::Datacite => {
+            sources::datacite::parse_search_response(&f("datacite_search.json")).unwrap()
+        }
         Source::Unpaywall => {
             vec![sources::unpaywall::parse_response(&f("unpaywall_lookup.json")).unwrap()]
         }
