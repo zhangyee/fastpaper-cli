@@ -34,6 +34,10 @@
 
 `https://osf.io/download/{id}/`,见 `src/download.rs::pdf_bytes_osf`。注意文件在 `osf.io`,API 在 `api.osf.io`,所以 `pdf_default_base` 与 `default_base` 是分开的。
 
+## 注意
+
+接口响应慢:2026-09-05 实测单次检索 12–16 秒(裸 curl 同样如此,不是客户端问题),偶发到 ~50 秒。调用方要按这个量级设超时,不要当成挂起。
+
 ## CLI 过滤参数映射
 
 | CLI 参数 | 映射 |

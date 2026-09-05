@@ -212,7 +212,7 @@ block here -- they look the same from outside. ...
 | `openaire` | — | — | ✓ | **跨学科**欧盟开放科学图谱 | `download` 在这里用不了,但在少数记录上确实有出版商文件链接时会返回 `pdf_url` —— 它的链接大多是 DOI 解析器,不会被当作 PDF 提供。`get` 要的是 OpenAIRE id,不是 DOI |
 | `doaj` | — | — | — | **跨学科**同行评议 OA 期刊 —— 元数据完整,几乎每条命中都有期刊名和摘要 | **它的 `pdf_url` 是落地页,不是文件** —— 去抓会拿回 HTML。日期只到年份粒度,不能排序 |
 | `hal` | ✓ | — | — | **跨学科**法国国家档案库,几乎每条命中都有摘要,大多数有全文 | `--field` 取的是学科代码:`math` `phys` `chim` `sdv` `shs` `spi` `info` `sde`。没有期刊名,而且有些记录只有元数据 —— 下载前先按 `pdf_url` 过滤 |
-| `osf` | ✓ | — | — | **社科 · 心理 · 教育 · 法学预印本** —— 一个接口覆盖约 32 个社区(PsyArXiv、SocArXiv、EdArXiv、EcoEvoRxiv、engrXiv、MetaArXiv、Thesis Commons…),这些学科别处都没有 | **只按标题检索**,接口没有全文检索(`filter[q]` 直接 400)。每条都有 DOI 和可下载 PDF。`--field` 取 provider id,`--offset` 必须是 `-n` 的整数倍 |
+| `osf` | ✓ | — | — | **社科 · 心理 · 教育 · 法学预印本** —— 一个接口覆盖约 32 个社区(PsyArXiv、SocArXiv、EdArXiv、EcoEvoRxiv、engrXiv、MetaArXiv、Thesis Commons…),这些学科别处都没有 | **只按标题检索**,接口没有全文检索(`filter[q]` 直接 400)。每条都有 DOI 和可下载 PDF。`--field` 取 provider id,`--offset` 必须是 `-n` 的整数倍。**接口本身慢,一次检索实测 12–16 秒**,不是卡住了 |
 | `inspire` | — | — | ✓ | **高能物理** —— 引用数在这里最可靠,`--sort citations` 真的生效 | 与 arXiv 重叠极高,增量是引用与作者消歧。`pdf_url` 指向 arXiv(文件在那边),所以 `download` 用不了 —— 拿 arXiv id 去下 |
 | `zbmath` | — | — | — | **数学已发表文献** —— 1868 年至今,带 MSC 分类号和评论;arXiv 只有预印本,这里是互补 | **没有摘要**(出的是评论不是作者摘要)、没有全文、没有引用数。`--author` 用 `au:` 前缀,`--offset` 必须是 `-n` 的整数倍 |
 | `eric` | ~ | ~ | — | **教育学** —— 美国教育部索引,这个学科别处基本是空白 | 只有 ERIC 自托管的那部分(`e_fulltextauth=1`)有 `pdf_url` 和 `open_access`,其余两个字段都是 null。**恒无 DOI**。`--offset` 是真实记录偏移 |
