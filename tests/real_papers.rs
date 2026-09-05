@@ -96,7 +96,9 @@ fn known_sections_start_where_the_publisher_prints_them() {
         return;
     };
     for (name, section, opening) in KNOWN_SECTIONS {
-        let Some(doc) = read(&dir, name) else { continue };
+        let Some(doc) = read(&dir, name) else {
+            continue;
+        };
         let found = fastpaper::read::find_section(&doc, section)
             .unwrap_or_else(|| panic!("{}: no '{}' section found", name, section));
         assert!(
@@ -304,8 +306,14 @@ fn report_heading_positions() {
     entries.sort();
 
     const WORDS: &[&str] = &[
-        "abstract", "introduction", "background", "method", "result",
-        "discussion", "conclusion", "reference",
+        "abstract",
+        "introduction",
+        "background",
+        "method",
+        "result",
+        "discussion",
+        "conclusion",
+        "reference",
     ];
 
     for path in entries {
@@ -353,7 +361,11 @@ fn report_heading_positions() {
                     None => tally.push((size, line.text.len())),
                 }
             }
-            tally.iter().max_by_key(|(_, c)| *c).map(|(s, _)| *s).unwrap_or(0.0)
+            tally
+                .iter()
+                .max_by_key(|(_, c)| *c)
+                .map(|(s, _)| *s)
+                .unwrap_or(0.0)
         };
         for line in &document.lines {
             let lower = line.text.to_lowercase();
@@ -374,5 +386,3 @@ fn report_heading_positions() {
         }
     }
 }
-
-

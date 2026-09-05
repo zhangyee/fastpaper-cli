@@ -76,16 +76,18 @@ pub fn unzip_images(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, crate::downl
             continue;
         }
         let mut body = Vec::new();
-        entry
-            .read_to_end(&mut body)
-            .map_err(|e| FetchError::Failed(format!("Could not read {} from the archive: {}", path, e)))?;
+        entry.read_to_end(&mut body).map_err(|e| {
+            FetchError::Failed(format!("Could not read {} from the archive: {}", path, e))
+        })?;
         out.push((path, body));
     }
     Ok(out)
 }
 
 /// Pull the figure files out of a gzipped tarball (arXiv's e-print source).
-pub fn untar_gz_images(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, crate::download::FetchError> {
+pub fn untar_gz_images(
+    bytes: &[u8],
+) -> Result<Vec<(String, Vec<u8>)>, crate::download::FetchError> {
     use crate::download::FetchError;
     use std::io::Read;
 
@@ -116,9 +118,9 @@ pub fn untar_gz_images(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, crate::do
             continue;
         }
         let mut body = Vec::new();
-        entry
-            .read_to_end(&mut body)
-            .map_err(|e| FetchError::Failed(format!("Could not read {} from the archive: {}", path, e)))?;
+        entry.read_to_end(&mut body).map_err(|e| {
+            FetchError::Failed(format!("Could not read {} from the archive: {}", path, e))
+        })?;
         out.push((path, body));
     }
     Ok(out)
@@ -152,7 +154,10 @@ impl std::fmt::Display for SaveError {
                 write!(f, "File already exists: {}", path.display())
             }
             SaveError::UnsafeIdentifier => {
-                write!(f, "Rejected an identifier that would escape the target directory.")
+                write!(
+                    f,
+                    "Rejected an identifier that would escape the target directory."
+                )
             }
             // Deliberately does not include the rejected name: it is
             // attacker-controlled bytes from an archive entry, and echoing it
@@ -439,11 +444,7 @@ mod tests {
 
         let files = vec![("f1.jpg".to_string(), b"new".to_vec())];
         let err = save_figures(&files, &dir, "PMC1", false).unwrap_err();
-        assert!(
-            matches!(err, SaveError::AlreadyExists(_)),
-            "got: {:?}",
-            err
-        );
+        assert!(matches!(err, SaveError::AlreadyExists(_)), "got: {:?}", err);
         assert!(err.to_string().contains("already exists"), "got: {}", err);
         // Refused means nothing changed.
         assert_eq!(std::fs::read(dir.join("PMC1/f1.jpg")).unwrap(), b"old");
@@ -470,9 +471,11 @@ mod tests {
         assert!(matches!(err, SaveError::HostileEntry), "got: {:?}", err);
 
         // Verify nothing was written outside the target directory.
-        assert!(!std::path::Path::new("/etc/cron.d/evil").exists()
-            || std::fs::read("/etc/cron.d/evil").is_err(),
-            "hostile absolute path should not be written");
+        assert!(
+            !std::path::Path::new("/etc/cron.d/evil").exists()
+                || std::fs::read("/etc/cron.d/evil").is_err(),
+            "hostile absolute path should not be written"
+        );
 
         let _ = std::fs::remove_dir_all(&dir);
     }

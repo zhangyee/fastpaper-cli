@@ -669,8 +669,7 @@ mod tests {
             tar.append_data(&mut h, name, body).unwrap();
         }
         let raw = tar.into_inner().unwrap();
-        let mut enc =
-            flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+        let mut enc = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
         std::io::Write::write_all(&mut enc, &raw).unwrap();
         let tgz = enc.finish().unwrap();
 

@@ -40,9 +40,11 @@ pub fn extract_document_from_bytes(bytes: &[u8]) -> Result<Document, String> {
             if span.text.trim().is_empty() {
                 continue;
             }
-            let broke = row.last().is_some_and(|last: &&pdf_oxide::layout::TextSpan| {
-                starts_new_row(placed_at(last), placed_at(span))
-            });
+            let broke = row
+                .last()
+                .is_some_and(|last: &&pdf_oxide::layout::TextSpan| {
+                    starts_new_row(placed_at(last), placed_at(span))
+                });
             if broke {
                 push_line(&mut text, &mut lines, page + 1, &row);
                 row.clear();
@@ -199,7 +201,12 @@ fn canonical_section(text: &str) -> Option<&'static str> {
     // other letter -- and none of them are meant to be read.
     let visible: String = text
         .chars()
-        .filter(|c| !matches!(c, '\u{ad}' | '\u{200b}' | '\u{200c}' | '\u{200d}' | '\u{2060}' | '\u{feff}'))
+        .filter(|c| {
+            !matches!(
+                c,
+                '\u{ad}' | '\u{200b}' | '\u{200c}' | '\u{200d}' | '\u{2060}' | '\u{feff}'
+            )
+        })
         .collect();
     let mut rest = visible.trim();
     loop {
@@ -341,7 +348,6 @@ pub fn detect_headings(lines: &[Line]) -> Vec<Heading> {
     best.sort_by_key(|h| h.offset);
     best
 }
-
 
 /// A located section: the heading that names it and the body beneath it.
 #[derive(Debug, Clone)]
@@ -620,7 +626,11 @@ mod tests {
         let doc = document(&[
             ("Abstract", 9.5, true),
             ("Background and Aims", 9.5, true),
-            ("Emerging evidence supports AI-ECG for detecting AMI.", 8.7, false),
+            (
+                "Emerging evidence supports AI-ECG for detecting AMI.",
+                8.7,
+                false,
+            ),
             ("Introduction", 15.0, true),
             ("Acute myocardial infarction is common.", 8.7, false),
         ]);
@@ -640,7 +650,11 @@ mod tests {
         let doc = document(&[
             ("Introduction", 9.5, true),
             ("Background", 9.5, true),
-            ("Acute myocardial infarction remains a major cause.", 9.5, false),
+            (
+                "Acute myocardial infarction remains a major cause.",
+                9.5,
+                false,
+            ),
             ("Methods", 9.5, true),
             ("We did things.", 9.5, false),
         ]);
@@ -683,7 +697,12 @@ mod tests {
     // ── rows ─────────────────────────────────────
 
     fn placed(x: f32, y: f32, width: f32, font_size: f32) -> Placed {
-        Placed { x, y, width, font_size }
+        Placed {
+            x,
+            y,
+            width,
+            font_size,
+        }
     }
 
     #[test]
@@ -736,7 +755,10 @@ mod tests {
     fn table_cells_stay_on_one_row() {
         let last = placed(100.0, 400.0, 40.0, 9.0);
         let next = placed(180.0, 400.0, 30.0, 9.0);
-        assert!(!starts_new_row(last, next), "40pt is 4.4x the type, still a cell gap");
+        assert!(
+            !starts_new_row(last, next),
+            "40pt is 4.4x the type, still a cell gap"
+        );
     }
 
     // IEEE Transactions on Biomedical Engineering heads the section
@@ -788,7 +810,10 @@ mod tests {
     #[test]
     fn extract_document_reports_where_on_the_page_each_line_sits() {
         let doc = extract_document(&fixture_path()).unwrap();
-        assert!(doc.lines.iter().all(|l| l.y > 0.0), "baselines should be set");
+        assert!(
+            doc.lines.iter().all(|l| l.y > 0.0),
+            "baselines should be set"
+        );
         let first_page: Vec<&Line> = doc.lines.iter().filter(|l| l.page == 1).collect();
         assert!(
             first_page.windows(2).all(|w| w[0].y >= w[1].y),
