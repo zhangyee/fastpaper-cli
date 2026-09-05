@@ -87,4 +87,4 @@ struct Capabilities {
 
 - 发送项目 User-Agent:`fastpaper-cli/<version> (+https://github.com/zhangyee/fastpaper-cli)`;
 - 429 → 退避重试或返回明确的限频错误;5xx → 明确的服务端错误;
-- 需要请求头/风控配合的源,把相关常量集中定义并注释来源(参考 `src/sources/xueshu.rs` 的 `ACS_TOKEN_FALLBACK`)。
+- 需要额外请求头的源,把相关常量集中定义并注释其出处,不要散落在请求构造里。

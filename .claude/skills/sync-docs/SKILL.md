@@ -26,7 +26,7 @@ description: 审核本仓库文档的漂移时使用——英文与中文版本�
 - **没有语言切换头**:下游按用户语言把整棵 `skills/fastpaper/` 投影成单语言树,变体文件不落盘,用户目录里只会有一个 `SKILL.md`。指向另一版的链接在那边必然是死链;何况 `SKILL.md` 开头是 YAML frontmatter,切换头也无处安放。
 
 **有意单语**(**不要**当成"缺翻译"来标记):
-- `docs/sources/00_base.md` … `18_xueshu.md`——中文调研笔记。
+- `docs/sources/` 下的逐源笔记(`00_base.md` 是共用契约,其余每个源一篇)——中文调研笔记。
 - `docs/sources/README.md`——仅英文索引。
 
 ## Pass A — 中英文一致性
@@ -42,7 +42,7 @@ description: 审核本仓库文档的漂移时使用——英文与中文版本�
 
 | 文档中的声明 | 事实来源 | 如何检查 |
 |---|---|---|
-| 源计数("N academic sources"、表格行、SKILL ×2 个语言版本各 2 处、零配置计数) | `ls src/sources/*.rs \| grep -v mod.rs \| wc -l`(18) | README×2 + `SKILL.md` 与 `SKILL.en.md` 各自的 description 和正文计数必须一致 |
+| 源计数("N academic sources"、表格行、SKILL ×2 个语言版本各 2 处、零配置计数) | `ls src/sources/*.rs \| grep -v mod.rs \| wc -l`(16) | README×2 + `SKILL.md` 与 `SKILL.en.md` 各自的 description 和正文计数必须一致 |
 | 各源 search/get/download 能力 | `registry.rs` 里各 `SourceEntry` 的 `Capabilities`(**唯一事实来源**;`cli.rs::supports_*` 已删除) | 能力声明有 **3 处**,都要对齐代码:①README 能力表各列(中英)②SKILL 的 download-capable 汇总列表 ③SKILL 领域列表里**每个源条目末尾**的 `search / get / download` 标注(易漏,必查)。②③在 `SKILL.md` 和 `SKILL.en.md` 里各有一份,两份都要查。注意 `read` 已不是按源能力——它只读本地 PDF |
 | 各源支持的 search 过滤参数 | `registry.rs` 各源的 `SearchCaps`,以及该源的 `build_*_url` | `docs/sources/<n>_<src>.md` 的「CLI 过滤参数映射」表逐行核对;声明为支持的参数必须真的落到了原生参数上 |
 | 模块地图 / 数据流(`architecture.md`) | `src/` 布局、`sources::*::search` 签名 | 文件清单与函数名确实如所写存在 |

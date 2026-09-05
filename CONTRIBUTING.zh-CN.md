@@ -24,7 +24,7 @@ cargo test
 ## 提交改动
 
 - **测试先行。**每个 PR 都必须附带测试。解析逻辑用 fixture 测试,HTTP 行为用 mockito 测试。参见 [docs/testing.zh-CN.md](docs/testing.zh-CN.md)。
-- **Conventional commits。**使用 `feat` / `fix` / `docs` / `chore` / `style` 加可选 scope,例如 `feat(xueshu): add fixture and basic search response parsing`。
+- **Conventional commits。**使用 `feat` / `fix` / `docs` / `chore` / `style` 加可选 scope,例如 `feat(hal): add fixture and basic search response parsing`。
 - **PR 流程。**Fork → feature 分支 → 向 `main` 发 PR。PR 描述里写清动机和测试方式。
 
 ## 新增数据源

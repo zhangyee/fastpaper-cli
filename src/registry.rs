@@ -20,8 +20,6 @@ pub enum Source {
     Pubmed,
     Pmc,
     Europepmc,
-    Scholar,
-    Xueshu,
     Semantic,
     Crossref,
     Openalex,
@@ -42,8 +40,6 @@ pub const ALL: &[Source] = &[
     Source::Pubmed,
     Source::Pmc,
     Source::Europepmc,
-    Source::Scholar,
-    Source::Xueshu,
     Source::Semantic,
     Source::Crossref,
     Source::Openalex,
@@ -139,8 +135,6 @@ impl Source {
             Source::Pubmed => &PUBMED,
             Source::Pmc => &PMC,
             Source::Europepmc => &EUROPEPMC,
-            Source::Scholar => &SCHOLAR,
-            Source::Xueshu => &XUESHU,
             Source::Semantic => &SEMANTIC,
             Source::Crossref => &CROSSREF,
             Source::Openalex => &OPENALEX,
@@ -362,66 +356,6 @@ static EUROPEPMC: SourceEntry = SourceEntry {
     pdf: Some(download::pdf_bytes_europepmc),
     cite: None,
     figures: Some(sources::europepmc::figures),
-};
-
-static SCHOLAR: SourceEntry = SourceEntry {
-    name: "scholar",
-    caps: Capabilities {
-        search: Some(SearchCaps {
-            offset: true,
-            ..SearchCaps::BASIC
-        }),
-        get: false,
-        download: false,
-        cite: false,
-        max_limit: None,
-        fields: FieldCaps {
-            pdf_url: true,
-            open_access: false,
-            citations: false,
-        },
-        notes: "HTML scraping, no official API; brittle and rate-limited",
-    },
-    env_var: "FASTPAPER_SCHOLAR_URL",
-    default_base: "https://scholar.google.com",
-    pdf_env_var: None,
-    pdf_default_base: None,
-    search: Some(sources::scholar::search),
-    get: None,
-    pdf: None,
-    cite: None,
-    figures: None,
-};
-
-static XUESHU: SourceEntry = SourceEntry {
-    name: "xueshu",
-    caps: Capabilities {
-        search: Some(SearchCaps {
-            offset: true,
-            patents: true,
-            ..SearchCaps::BASIC
-        }),
-        get: false,
-        download: false,
-        cite: false,
-        max_limit: None,
-        fields: FieldCaps {
-            pdf_url: true,
-            open_access: false,
-            citations: true,
-        },
-        notes: "unofficial endpoint; subject to bot detection; --patents filters \
-                locally, so it pages further to fill -n",
-    },
-    env_var: "FASTPAPER_XUESHU_URL",
-    default_base: "https://xueshu.baidu.com",
-    pdf_env_var: None,
-    pdf_default_base: None,
-    search: Some(sources::xueshu::search),
-    get: None,
-    pdf: None,
-    cite: None,
-    figures: None,
 };
 
 static SEMANTIC: SourceEntry = SourceEntry {
@@ -875,18 +809,17 @@ mod tests {
         }
     }
 
-    // --patents means "patents only". Just two sources can honour that:
-    // europepmc filters natively with SRC:PAT, xueshu filters locally on its
-    // type code. Google Scholar can only *widen* to include patents, never
-    // narrow to them, so it must not claim the flag.
+    // --patents means "patents only". Only europepmc can honour that, filtering
+    // natively with SRC:PAT. A source that can merely *widen* its results to
+    // include patents, never narrow to them, must not claim the flag.
     #[test]
-    fn only_europepmc_and_xueshu_take_patents() {
+    fn only_europepmc_takes_patents() {
         for s in ALL {
             let declared = s
                 .caps()
                 .search
                 .is_some_and(|caps| caps.supports("--patents"));
-            let expected = matches!(s, Source::Europepmc | Source::Xueshu);
+            let expected = matches!(s, Source::Europepmc);
             assert_eq!(
                 declared,
                 expected,

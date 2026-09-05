@@ -2,7 +2,7 @@
 
 > 中文版:[adding-a-source.zh-CN.md](adding-a-source.zh-CN.md)
 
-Read the [Source module contract](architecture.md#source-module-contract) first. `xueshu` (Baidu Xueshu) is the worked example throughout.
+Read the [Source module contract](architecture.md#source-module-contract) first. `arxiv` is the worked example throughout — it is the only source that exercises every step below, including the CLI integration tests of Step 4 and the smoke test of Step 6. Two things it does are *not* typical: it serves PDFs from a host separate from its API (`pdf_env_var` / `pdf_default_base`) and it pulls `figures` out of submission tarballs. Most sources need neither; skip them.
 
 ## Step 0 — Research
 
@@ -16,11 +16,11 @@ Before writing code, produce a research note answering:
 
 Follow the format of the existing notes in [docs/sources/](sources/README.md) and add yours there.
 
-*xueshu example:* the new web frontend calls an undocumented JSON endpoint `GET /search/api/search`; requests need an `Acs-Token` header for which the frontend has a static fallback value; business code `7350001` means "interactive captcha required"; the default curl User-Agent triggers that captcha while an honest tool UA does not.
+*arxiv example:* `GET /api/query` answers in Atom/XML rather than JSON; the query goes in `search_query`, paging in `start` / `max_results`. There is no key and no captcha, but arXiv asks callers to leave ~3 seconds between requests, so the module wraps its requests in exponential backoff instead of hammering.
 
 ## Step 1 — Capture a fixture
 
-Make **one** real request and save the response as `tests/fixtures/<source>_search.json` (or `.xml`/`.html`). Sanitize it first:
+Make **one** real request and save the response as `tests/fixtures/<source>_search.json` (or `.xml`). Sanitize it first:
 
 - strip signed CDN URLs, session tokens, anything with an `authorization=` query;
 - anonymize request/log IDs;
@@ -34,7 +34,7 @@ Create `src/sources/<source>.rs`. Write the parser against the fixture before an
 pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String>
 ```
 
-Work test-first: each behavior gets a failing test, then the minimal implementation. Cover at least:
+The parameter is named for whatever the source actually returns — `json` for most, `xml` for arXiv and PubMed. Work test-first: each behavior gets a failing test, then the minimal implementation. Cover at least:
 
 - happy path: expected number of papers, non-empty ids/titles, `source` set correctly;
 - field mapping: authors, year, citations, venue fallbacks, empty-string → `None`;
@@ -42,7 +42,7 @@ Work test-first: each behavior gets a failing test, then the minimal implementat
 - tolerance: `null`, empty strings, and absent keys must not fail parsing;
 - API-level errors: business error codes must return a clear `Err`, not an empty list.
 
-*xueshu example:* 22 parser tests, including one that feeds an inline JSON body with `"code": 7350001` and asserts the error message mentions the captcha.
+*arxiv example:* 43 in-module tests against `tests/fixtures/arxiv_search.xml`, covering author lists, records with no DOI, and the entry shapes that carry no PDF link.
 
 ## Step 3 — HTTP layer
 
@@ -57,10 +57,10 @@ Rules:
 - `base_url` comes from the caller — never hardcode it inside request code.
 - Use `super::encode_query` for the query string.
 - Send the project User-Agent (`fastpaper-cli/<version> (+repo URL)`); some risk engines block default library UAs.
-- Paginate serially; stop when you have `max_results`, the page is empty, or an error occurs; truncate before returning.
+- If the API pages, paginate serially; stop when you have `max_results`, the page is empty, or an error occurs; truncate before returning.
 - Map HTTP statuses to distinct, human-readable errors (403 blocked / 429 rate-limited / others).
 
-Test with mockito (synchronous): request path and parameters, required headers, second-page pagination, early stop when `max_results` is satisfied, and each error status. *xueshu example:* 10 mockito tests.
+Test with mockito (synchronous): request path and parameters, required headers, second-page pagination, early stop when `max_results` is satisfied, and each error status. *arxiv example:* 15 tests in `tests/cli.rs`. arXiv itself pages in a single request via `start` / `max_results`; for serial paging read `biorxiv` / `medrxiv`, the only two sources that do it.
 
 ## Step 4 — Wire the CLI
 

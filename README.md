@@ -86,7 +86,7 @@ wait
 
 ## Sources
 
-18 academic sources, each accessed independently per command.
+16 academic sources, each accessed independently per command.
 
 `read` is not listed here: it works on a PDF already on disk, so it applies
 equally to anything the `download` column can fetch.
@@ -99,8 +99,6 @@ equally to anything the `download` column can fetch.
 | `pubmed` | PubMed | yes | yes | | | | Biomedical & life sciences (metadata only) |
 | `pmc` | PubMed Central | yes | yes | yes | | | Biomedical & life sciences (full text) |
 | `europepmc` | Europe PMC | yes | yes | yes | | yes | Life sciences superset of PMC; adds preprints, patents, guidelines |
-| `scholar` | Google Scholar | yes | | | | | All disciplines (experimental, rate-limited) |
-| `xueshu` | Baidu Xueshu (百度学术) | yes | | | | | All disciplines, strong Chinese-language coverage (experimental, unofficial API) |
 | `semantic` | Semantic Scholar | yes | yes | yes | yes | | All disciplines, AI-powered citation graph |
 | `crossref` | CrossRef | yes | yes | | | | DOI metadata, all disciplines |
 | `openalex` | OpenAlex | yes | yes | | yes | | Open metadata index, 200M+ works |
@@ -145,7 +143,7 @@ Options:
       --year <YEAR>      Papers in a specific year
       --field <FIELD>    Field of study / category (e.g. cs.CL)
       --open-access      Only open access papers
-      --patents          Patents only (europepmc, xueshu)
+      --patents          Patents only (europepmc)
   -f, --format <FMT>     table, json, jsonl, csv, bibtex [default: table]
   -o, --output <PATH>    Write results to file
 ```
@@ -342,7 +340,7 @@ fastpaper completions bash >> ~/.bashrc
 
 ## Environment variables
 
-All optional except where noted. 17 of 18 sources work with zero configuration.
+All optional except where noted. 15 of 16 sources work with zero configuration.
 
 | Variable | Purpose |
 |----------|---------|

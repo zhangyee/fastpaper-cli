@@ -11,10 +11,8 @@ pub mod openaire;
 pub mod openalex;
 pub mod pmc;
 pub mod pubmed;
-pub mod scholar;
 pub mod semantic;
 pub mod unpaywall;
-pub mod xueshu;
 pub mod zenodo;
 
 use serde::Serialize;

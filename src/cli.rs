@@ -110,7 +110,7 @@ pub struct SearchArgs {
     #[arg(long)]
     pub open_access: bool,
 
-    /// Return patents only (europepmc, xueshu)
+    /// Return patents only (europepmc)
     #[arg(long)]
     pub patents: bool,
 

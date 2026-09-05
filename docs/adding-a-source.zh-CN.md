@@ -2,7 +2,7 @@
 
 > English: [adding-a-source.md](adding-a-source.md)
 
-先阅读[数据源模块契约](architecture.zh-CN.md#数据源模块契约)。全文以 `xueshu`(百度学术)为贯穿实例。
+先阅读[数据源模块契约](architecture.zh-CN.md#数据源模块契约)。全文以 `arxiv` 为贯穿实例——它是唯一一个把下面每一步都走完的源,包括 Step 4 的 CLI 集成测试和 Step 6 的冒烟测试。它有两件事**不**典型:PDF 主机与 API 主机是分开的(`pdf_env_var` / `pdf_default_base`),以及从投稿 tarball 里抽 `figures`。多数源两样都不需要,跳过即可。
 
 ## Step 0 — 调研
 
@@ -16,11 +16,11 @@
 
 体例参考 [docs/sources/](sources/README.md) 里的现有笔记,写完放进去。
 
-*xueshu 实例:*新版网页前端调用未公开的 JSON 端点 `GET /search/api/search`;请求需要 `Acs-Token` 头,前端为它准备了一个静态回退值;业务码 `7350001` 表示"需要交互式验证码";curl 默认 User-Agent 会触发该验证码,而诚实的工具 UA 不会。
+*arxiv 实例:*`GET /api/query` 返回的是 Atom/XML 而不是 JSON;查询放在 `search_query`,翻页用 `start` / `max_results`。没有 key 也没有验证码,但 arXiv 要求调用方请求之间隔 ~3 秒,所以模块用指数退避包住请求,而不是猛打。
 
 ## Step 1 — 抓取 fixture
 
-发**一次**真实请求,把响应存为 `tests/fixtures/<source>_search.json`(或 `.xml`/`.html`)。先脱敏:
+发**一次**真实请求,把响应存为 `tests/fixtures/<source>_search.json`(或 `.xml`)。先脱敏:
 
 - 去掉带签名的 CDN URL、会话 token、任何含 `authorization=` 的查询串;
 - 匿名化请求/日志 ID;
@@ -34,7 +34,7 @@
 pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String>
 ```
 
-测试先行:每个行为先写失败测试,再写最小实现。至少覆盖:
+参数名跟着源实际返回的格式走——多数是 `json`,arXiv 和 PubMed 是 `xml`。测试先行:每个行为先写失败测试,再写最小实现。至少覆盖:
 
 - 正常路径:论文数量符合预期、id/title 非空、`source` 字段正确;
 - 字段映射:作者、年份、引用数、venue 回退、空串 → `None`;
@@ -42,7 +42,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String>
 - 容错:`null`、空串、字段缺席都不能导致解析失败;
 - API 层错误:业务错误码必须返回清晰的 `Err`,而不是空列表。
 
-*xueshu 实例:*22 个解析器测试,其中一个用内联 JSON(`"code": 7350001`)断言错误消息里提到验证码。
+*arxiv 实例:*43 个模块内测试,对着 `tests/fixtures/arxiv_search.xml`,覆盖作者列表、没有 DOI 的记录,以及不带 PDF 链接的条目形态。
 
 ## Step 3 — HTTP 层
 
@@ -57,10 +57,10 @@ pub fn search(base_url: &str, q: &SearchQuery) -> Result<Vec<Paper>, String>
 - `base_url` 由调用方传入——请求代码里绝不硬编码。
 - 查询串用 `super::encode_query` 编码。
 - 发送项目 User-Agent(`fastpaper-cli/<version> (+仓库 URL)`);有些风控引擎会拦截 HTTP 库的默认 UA。
-- 串行分页;拿够 `max_results`、遇到空页或出错即停;返回前截断。
+- 若接口分页,则串行分页;拿够 `max_results`、遇到空页或出错即停;返回前截断。
 - 把 HTTP 状态映射为可区分的可读错误(403 被拦截 / 429 限频 / 其他)。
 
-用 mockito(同步)测试:请求路径与参数、必需请求头、第二页分页、满足 `max_results` 后提前停止、每种错误状态。*xueshu 实例:*10 个 mockito 测试。
+用 mockito(同步)测试:请求路径与参数、必需请求头、第二页分页、满足 `max_results` 后提前停止、每种错误状态。*arxiv 实例:*`tests/cli.rs` 里 15 个测试。arXiv 自己是单请求翻页(`start` / `max_results`);要看串行翻页去读 `biorxiv` / `medrxiv`,只有这两个源真的这么做。
 
 ## Step 4 — 接线 CLI
 

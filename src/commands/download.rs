@@ -69,8 +69,6 @@ fn route(id: &str) -> Result<Source, CommandError> {
 fn unsupported_download(source: Source) -> CommandError {
     let hint = match source {
         Source::Pubmed => "\nPubMed indexes abstracts only. Try: fastpaper download pmc <PMC_ID>",
-        Source::Scholar => "\nGoogle Scholar does not serve PDFs itself.",
-        Source::Xueshu => "\nBaidu Xueshu only aggregates external links.",
         Source::Crossref
         | Source::Openalex
         | Source::Dblp

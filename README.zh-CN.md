@@ -86,7 +86,7 @@ wait
 
 ## 数据源
 
-18 个学术数据源，每条命令独立访问单个数据源。
+16 个学术数据源，每条命令独立访问单个数据源。
 
 这里不列 `read`：它读的是已经落到磁盘上的 PDF，所以凡是 `download` 列能取到的，
 它都能读。
@@ -99,8 +99,6 @@ wait
 | `pubmed` | PubMed | yes | yes | | | | 生物医学与生命科学（仅元数据） |
 | `pmc` | PubMed Central | yes | yes | yes | | | 生物医学与生命科学（全文） |
 | `europepmc` | Europe PMC | yes | yes | yes | | yes | PMC 的生命科学超集，另含预印本、专利、临床指南 |
-| `scholar` | Google Scholar | yes | | | | | 全学科（实验性，有频率限制） |
-| `xueshu` | 百度学术 | yes | | | | | 全学科，中文文献覆盖强（实验性，非官方接口） |
 | `semantic` | Semantic Scholar | yes | yes | yes | yes | | 全学科，AI 驱动的引用图谱 |
 | `crossref` | CrossRef | yes | yes | | | | DOI 元数据，全学科 |
 | `openalex` | OpenAlex | yes | yes | | yes | | 开放元数据索引，2 亿+ 作品 |
@@ -142,7 +140,7 @@ fastpaper search <SOURCE> <QUERY> [OPTIONS]
       --year <YEAR>      指定年份
       --field <FIELD>    学科领域 / 分类 (如 cs.CL)
       --open-access      仅开放获取论文
-      --patents          仅专利(europepmc、xueshu)
+      --patents          仅专利(europepmc)
   -f, --format <FMT>     table, json, jsonl, csv, bibtex [默认: table]
   -o, --output <PATH>    输出到文件
 ```
@@ -321,7 +319,7 @@ fastpaper completions bash >> ~/.bashrc
 
 ## 环境变量
 
-除特别标注外均为可选。18 个数据源中有 17 个无需任何配置即可使用。
+除特别标注外均为可选。16 个数据源中有 15 个无需任何配置即可使用。
 
 | 变量 | 用途 |
 |------|------|

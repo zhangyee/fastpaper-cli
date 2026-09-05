@@ -222,7 +222,7 @@ mod tests {
     // "Patents only" is a narrowing just two sources can do, so listing this
     // source's own filters is not enough — the rejection has to name them.
     #[test]
-    fn patents_rejection_names_the_sources_that_have_it() {
+    fn patents_rejection_names_the_source_that_has_it() {
         let mut q = SearchQuery::simple("battery cathode", 10);
         q.patents = true;
         let err = check_filters(&q, &caps_year_only(), "arxiv").unwrap_err();
@@ -236,7 +236,6 @@ mod tests {
             "got: {}",
             err.message()
         );
-        assert!(err.message().contains("xueshu"), "got: {}", err.message());
     }
 
     // Every source-specific filter has the same failure mode as --patents: the
@@ -289,7 +288,7 @@ mod tests {
             patents: true,
             ..SearchCaps::BASIC
         };
-        assert!(check_filters(&q, &caps, "scholar").is_ok());
+        assert!(check_filters(&q, &caps, "europepmc").is_ok());
     }
 
     #[test]

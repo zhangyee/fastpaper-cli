@@ -41,12 +41,6 @@ fn papers(source: Source) -> Vec<Paper> {
         Source::Europepmc => {
             sources::europepmc::parse_search_response(&f("europepmc_search.json")).unwrap()
         }
-        Source::Scholar => {
-            sources::scholar::parse_search_response(&f("scholar_search.html")).unwrap()
-        }
-        Source::Xueshu => {
-            sources::xueshu::parse_search_response(&f("xueshu_search.json"), false).unwrap()
-        }
         // The search fixture carries no `openAccessPdf`; the edge fixtures do,
         // and both come from the same parser.
         Source::Semantic => {

@@ -24,7 +24,7 @@ No API keys or configuration are required — the entire test suite runs offline
 ## Making changes
 
 - **Tests first.** Every PR must come with tests. Parser changes are tested against fixtures; HTTP behavior is tested with mockito. See [docs/testing.md](docs/testing.md).
-- **Conventional commits.** Use `feat` / `fix` / `docs` / `chore` / `style` with an optional scope, e.g. `feat(xueshu): add fixture and basic search response parsing`.
+- **Conventional commits.** Use `feat` / `fix` / `docs` / `chore` / `style` with an optional scope, e.g. `feat(hal): add fixture and basic search response parsing`.
 - **PR flow.** Fork → feature branch → PR against `main`. In the PR description, explain the motivation and how you tested the change.
 
 ## Adding a new source
