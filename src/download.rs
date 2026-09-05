@@ -83,7 +83,8 @@ fn host_of(url: &str) -> Option<String> {
 /// can tell: an MDPI paper (fully open access) and an AHA one (subscription)
 /// both answer 403, and Semantic Scholar reports `open_access: true` for both.
 /// Guessing "paywall" would be wrong half the time and would send the caller
-/// away from a paper that is in fact free.
+/// away from a paper that is in fact free. The one refusal whose cause *is*
+/// visible from outside is a Cloudflare challenge; `challenged` handles it.
 ///
 /// What it can do is hand over the link. Retrying elsewhere is usually wasted:
 /// unpaywall resolves this DOI to the same publisher URL byte for byte, and
@@ -97,6 +98,42 @@ fn refused(status: u16, url: &str) -> String {
          a bot block here -- they look the same from outside. Other resolvers \
          usually hand back this same URL, so opening it yourself is more likely \
          to help than retrying through another source.",
+        status, who, url
+    )
+}
+
+/// Whether a response is Cloudflare's challenge page rather than the origin's
+/// answer. Cloudflare marks every challenge it serves with
+/// `cf-mitigated: challenge`, so the header is its own statement that the
+/// request never reached the site.
+fn is_cloudflare_challenge(resp: &ureq::http::Response<ureq::Body>) -> bool {
+    resp.headers()
+        .get("cf-mitigated")
+        .and_then(|v| v.to_str().ok())
+        .is_some_and(|v| v.eq_ignore_ascii_case("challenge"))
+}
+
+/// Explain a refusal that Cloudflare, not the origin, produced.
+///
+/// Measured on CORE, 2026-09-05: `core.ac.uk/download/*` answers every
+/// non-browser client 403 with `cf-mitigated: challenge`. The rule is scoped
+/// to that path (the rest of the site loads) and the challenge is the
+/// interactive kind, which Cloudflare documents as needing a visitor to act,
+/// with the clearance cookie bound to the device that solved it. So no
+/// header, retry or credential sent from here can pass it -- and, unlike a
+/// plain refusal, the cause is known, so this says so instead of shrugging.
+///
+/// The advice is the opposite of `refused`: a bot block is about the client,
+/// not the paper, so another source is worth trying.
+fn challenged(status: u16, url: &str) -> String {
+    let who = host_of(url).unwrap_or_else(|| "the server".to_string());
+    format!(
+        "{} from {}\n{}\n\
+         Cloudflare answered with its bot challenge (cf-mitigated: challenge) \
+         instead of the file. This is a bot block, not a paywall: passing it \
+         takes a real browser, so no retry, header or key from fastpaper will \
+         get through. Fetch this paper from another source, or open the link \
+         in a browser yourself.",
         status, who, url
     )
 }
@@ -176,7 +213,36 @@ fn fetch_limited(
     // no bandwidth, keeps Content-Length on the response for the precheck
     // below, and makes `.limit()` count the bytes that land in memory. Servers
     // that ignore the header are why that post-read check stays.
-    match ureq::get(url).header("accept-encoding", "identity").call() {
+    //
+    // 4xx/5xx come back as `Ok` rather than `Err(StatusCode)` so the headers
+    // survive: `cf-mitigated` on a 403 is what tells a Cloudflare challenge
+    // from the origin refusing, and ureq's error keeps only the number.
+    let result = ureq::get(url)
+        .config()
+        .http_status_as_error(false)
+        .build()
+        .header("accept-encoding", "identity")
+        .call();
+    match result {
+        Ok(resp) if !resp.status().is_success() => {
+            let status = resp.status().as_u16();
+            match status {
+                404 => Err(FetchError::NotFound(not_found.to_string())),
+                // 401/402/403 are the server saying "no", as opposed to being
+                // unable: worth naming the host and handing back the link,
+                // since the caller can act on those and cannot act on
+                // `http status: 403`. 401 Unauthorized, 402 Payment Required,
+                // 403 Forbidden.
+                401..=403 if is_cloudflare_challenge(&resp) => {
+                    Err(FetchError::Failed(challenged(status, url)))
+                }
+                401..=403 => Err(FetchError::Failed(refused(status, url))),
+                _ => Err(FetchError::Failed(format!(
+                    "HTTP error: http status: {}",
+                    status
+                ))),
+            }
+        }
         Ok(mut resp) => {
             // A fast path, not the enforcement: oversized papers ideally cost
             // no bandwidth, and content-length is the only place an exact size
@@ -226,14 +292,6 @@ fn fetch_limited(
                 )));
             }
             Ok(bytes)
-        }
-        Err(ureq::Error::StatusCode(404)) => Err(FetchError::NotFound(not_found.to_string())),
-        // 401/402/403 are the server saying "no", as opposed to being unable:
-        // worth naming the host and handing back the link, since the caller
-        // can act on those and cannot act on `http status: 403`.
-        // 401 Unauthorized, 402 Payment Required, 403 Forbidden.
-        Err(ureq::Error::StatusCode(status @ 401..=403)) => {
-            Err(FetchError::Failed(refused(status, url)))
         }
         Err(e) => Err(FetchError::Failed(format!("HTTP error: {}", e))),
     }
@@ -359,13 +417,29 @@ pub fn pdf_bytes_semantic(
 /// -- and whether a given client strips it is a detail we would be depending
 /// on. So the record is fetched first, authenticated, and its `downloadUrl` is
 /// then fetched on its own with no credentials attached.
+///
+/// Since 2026-09 that file sits behind a Cloudflare interactive challenge for
+/// every non-browser client (see `challenged`), so this fails on most networks.
+/// The capability stays declared on purpose: the block is about the client and
+/// the host, not the paper, and the message says where to go next.
 pub fn pdf_bytes_core(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
     let paper = sources::core::get_by_id(base_url, identifier)?
         .ok_or_else(|| FetchError::NotFound(format!("Not found in CORE: {}", identifier)))?;
     let pdf_url = paper.pdf_url.ok_or_else(|| {
         FetchError::NotFound(format!("CORE has no downloadable file for {}", identifier))
     })?;
-    fetch_pdf(&pdf_url, limit)
+    fetch_pdf(&pdf_url, limit).map_err(|e| match (e, &paper.doi) {
+        // CORE only mirrors what repositories publish, so a refused copy says
+        // something about CORE's host and nothing about the paper: it is still
+        // out there under its DOI, and the record just fetched has it. A bare
+        // DOI routes `download` to the open access resolver.
+        (FetchError::Failed(msg), Some(doi)) => FetchError::Failed(format!(
+            "{}\nCORE only mirrors this paper; its record carries DOI {}. \
+             Ask the other sources for it: fastpaper download {}",
+            msg, doi, doi
+        )),
+        (other, _) => other,
+    })
 }
 
 /// Fetch DOAJ PDF bytes via the record's fulltext link.
@@ -615,6 +689,88 @@ mod tests {
             let msg = refused(status, "https://example.org/x.pdf");
             assert!(msg.contains(&status.to_string()), "got: {}", msg);
         }
+    }
+
+    // Measured on CORE, 2026-09-05: core.ac.uk/download/* answers every
+    // non-browser client 403 with `cf-mitigated: challenge`, Cloudflare's own
+    // statement that this is its bot challenge and not the origin refusing.
+    // That header is the one case where the cause *is* observable from
+    // outside, so the message has to name it -- and tell the caller the move
+    // is a different source, the opposite of what a plain refusal advises.
+    #[test]
+    fn a_cloudflare_challenge_is_named_rather_than_left_ambiguous() {
+        let mut server = mockito::Server::new();
+        let _m = server
+            .mock("GET", "/download/1.pdf")
+            .with_status(403)
+            .with_header("cf-mitigated", "challenge")
+            .create();
+        let msg = fetch_pdf(&format!("{}/download/1.pdf", server.url()), 10 * MIB)
+            .unwrap_err()
+            .message()
+            .to_string();
+        assert!(msg.contains("Cloudflare"), "got: {}", msg);
+        assert!(msg.contains("challenge"), "got: {}", msg);
+        assert!(msg.contains("not a paywall"), "got: {}", msg);
+        assert!(msg.contains("another source"), "got: {}", msg);
+        assert!(
+            !msg.contains("cannot tell"),
+            "must not shrug when the cause is known: {}",
+            msg
+        );
+    }
+
+    // The header is the evidence. Without it a 403 stays undeterminable, and
+    // this pins that the challenge path did not swallow the plain one.
+    #[test]
+    fn a_plain_403_is_still_reported_as_undeterminable() {
+        let mut server = mockito::Server::new();
+        let _m = server.mock("GET", "/x.pdf").with_status(403).create();
+        let msg = fetch_pdf(&format!("{}/x.pdf", server.url()), 10 * MIB)
+            .unwrap_err()
+            .message()
+            .to_string();
+        assert!(msg.contains("403"), "got: {}", msg);
+        assert!(msg.contains("cannot tell"), "got: {}", msg);
+    }
+
+    // CORE only mirrors what repositories publish, so a paper whose CORE copy
+    // sits behind the challenge is still out there under its DOI. The record
+    // was already fetched to find the file; handing its DOI on costs nothing
+    // and saves the caller a `get` before the next attempt. A bare DOI routes
+    // `download` to the open access resolver, so that is the command to give.
+    #[test]
+    fn a_refused_core_download_hands_over_the_doi_for_another_source() {
+        let mut server = mockito::Server::new();
+        let work = format!(
+            r#"{{"id":80549003,"title":"Whither Megaleaks",
+"doi":"10.31979/2377-6188.2017.010107",
+"downloadUrl":"{}/download/80549003.pdf"}}"#,
+            server.url()
+        );
+        let _record = server
+            .mock(
+                "GET",
+                mockito::Matcher::Regex("/v3/works/80549003".to_string()),
+            )
+            .with_status(200)
+            .with_body(work)
+            .create();
+        let _file = server
+            .mock("GET", "/download/80549003.pdf")
+            .with_status(403)
+            .with_header("cf-mitigated", "challenge")
+            .create();
+        let msg = pdf_bytes_core(&server.url(), "80549003", 10 * MIB)
+            .unwrap_err()
+            .message()
+            .to_string();
+        assert!(msg.contains("challenge"), "got: {}", msg);
+        assert!(
+            msg.contains("fastpaper download 10.31979/2377-6188.2017.010107"),
+            "got: {}",
+            msg
+        );
     }
 
     fn temp_dir() -> PathBuf {
