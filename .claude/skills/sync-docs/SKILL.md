@@ -26,7 +26,7 @@ description: 审核本仓库文档的漂移时使用——英文与中文版本�
 - **没有语言切换头**:下游按用户语言把整棵 `skills/fastpaper/` 投影成单语言树,变体文件不落盘,用户目录里只会有一个 `SKILL.md`。指向另一版的链接在那边必然是死链;何况 `SKILL.md` 开头是 YAML frontmatter,切换头也无处安放。
 
 **有意单语**(**不要**当成"缺翻译"来标记):
-- `docs/sources/` 下的逐源笔记(`00_base.md` 是共用契约,其余每个源一篇)——中文调研笔记。
+- `docs/sources/` 下的逐源笔记(`base.md` 是共用契约,其余每个源一篇)——中文调研笔记。
 - `docs/sources/README.md`——仅英文索引。
 
 ## Pass A — 中英文一致性

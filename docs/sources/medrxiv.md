@@ -10,7 +10,7 @@
 
 ## 与 BioRxiv 的差异
 
-逻辑、时间窗、本地关键词过滤、退避重试均与 `02_biorxiv.md` 完全一致,仅以下不同:
+逻辑、时间窗、本地关键词过滤、退避重试均与 `biorxiv.md` 完全一致,仅以下不同:
 
 - 搜索路径:`GET {base}/details/medrxiv/{start_date}/{end_date}/0`
 - 论文/PDF URL 域名:`www.medrxiv.org`
