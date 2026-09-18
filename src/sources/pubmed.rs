@@ -109,24 +109,62 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
     }
 
     // Step 2: efetch to get article details
-    let efetch_url = build_efetch_url(
-        base_url,
-        &ids.join(","),
-        api_key.as_deref(),
-        email.as_deref(),
-    );
+    let url = format!("{}{}", base_url, EFETCH_URL);
+    let mut papers = Vec::new();
+    for batch in ids.chunks(EFETCH_BATCH) {
+        let form = efetch_form(batch, api_key.as_deref(), email.as_deref());
+        let body = send(|| crate::http::api().post(&url).send_form(form.clone()))?;
+        papers.extend(parse_efetch_response(&body)?);
+    }
+    // Keep esearch's ranking whatever order efetch answers in.
+    papers.sort_by_key(|p| ids.iter().position(|id| *id == p.id).unwrap_or(usize::MAX));
+    Ok(papers)
+}
 
-    let efetch_body = http_get(&efetch_url)?;
-    parse_efetch_response(&efetch_body)
+/// PMIDs per efetch request.
+///
+/// Every PMID used to ride in the GET URL, and NCBI answered 414 from about
+/// 500 of them (past ~7000 the URL is too long to send at all). NCBI asks for
+/// POST beyond about 200 UIDs. The batch size keeps each answer inside the
+/// request limits: 200 records measured 3.5 MB and 5.5 s, where 1000 in one
+/// request were 17 MB (over the 10 MB read limit) and 39 s.
+const EFETCH_BATCH: usize = 200;
+
+/// Form fields for one efetch POST.
+fn efetch_form(
+    ids: &[&str],
+    api_key: Option<&str>,
+    email: Option<&str>,
+) -> Vec<(&'static str, String)> {
+    let mut form = vec![
+        ("db", "pubmed".to_string()),
+        ("id", ids.join(",")),
+        ("retmode", "xml".to_string()),
+        ("tool", "fastpaper".to_string()),
+    ];
+    if let Some(email) = email {
+        form.push(("email", email.to_string()));
+    }
+    if let Some(key) = api_key {
+        form.push(("api_key", key.to_string()));
+    }
+    form
 }
 
 fn http_get(url: &str) -> Result<String, String> {
+    send(|| crate::http::api().get(url).call())
+}
+
+/// Send a request, backing off on 429.
+fn send(
+    request: impl Fn() -> Result<ureq::http::Response<ureq::Body>, ureq::Error>,
+) -> Result<String, String> {
     let mut last_err = String::new();
     for attempt in 0..3 {
         if attempt > 0 {
             std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
         }
-        match crate::http::api().get(url).call() {
+        match request() {
             Ok(resp) => {
                 return resp
                     .into_body()
@@ -425,7 +463,7 @@ mod tests {
             .with_body(ESEARCH_FIXTURE)
             .create();
         let efetch_mock = server
-            .mock("GET", mockito::Matcher::Regex("efetch".to_string()))
+            .mock("POST", EFETCH_URL)
             .with_status(200)
             .with_body(FIXTURE)
             .create();
@@ -496,10 +534,8 @@ mod tests {
             .with_body(ESEARCH_FIXTURE)
             .create();
         server
-            .mock(
-                "GET",
-                mockito::Matcher::Regex("efetch.*api_key=test-ncbi-key".to_string()),
-            )
+            .mock("POST", EFETCH_URL)
+            .match_body(mockito::Matcher::Regex("api_key=test-ncbi-key".to_string()))
             .with_status(200)
             .with_body(FIXTURE)
             .create();
@@ -526,7 +562,7 @@ mod tests {
             .with_body(ESEARCH_FIXTURE)
             .create();
         server
-            .mock("GET", mockito::Matcher::Regex("efetch".to_string()))
+            .mock("POST", EFETCH_URL)
             .with_status(200)
             .with_body(FIXTURE)
             .create();
@@ -586,7 +622,7 @@ mod tests {
             .with_body(ESEARCH_FIXTURE)
             .create();
         server
-            .mock("GET", mockito::Matcher::Regex("efetch".to_string()))
+            .mock("POST", EFETCH_URL)
             .with_status(200)
             .with_body(FIXTURE)
             .create();
@@ -718,5 +754,106 @@ mod year_tests {
             Some(2021),
             "should report the PubDate year, not DateCompleted"
         );
+    }
+}
+
+#[cfg(test)]
+mod batch_tests {
+    use super::*;
+
+    const FIXTURE: &str = include_str!("../../tests/fixtures/pubmed_efetch.xml");
+    const ESEARCH_FIXTURE: &str = include_str!("../../tests/fixtures/pubmed_esearch.json");
+
+    fn esearch_with(ids: &[String]) -> String {
+        serde_json::json!({ "esearchresult": { "idlist": ids } }).to_string()
+    }
+
+    fn efetch_with(pmids: &[&str]) -> String {
+        let articles: String = pmids
+            .iter()
+            .map(|id| {
+                format!(
+                    "<PubmedArticle><MedlineCitation><PMID Version=\"1\">{id}</PMID>\
+                     <Article><ArticleTitle>Paper {id}</ArticleTitle></Article>\
+                     </MedlineCitation></PubmedArticle>"
+                )
+            })
+            .collect();
+        format!("<PubmedArticleSet>{}</PubmedArticleSet>", articles)
+    }
+
+    // Every PMID in a GET URL is what broke -n 500 and up: NCBI answers 414,
+    // and past ~7000 ids the URL is too long to even send. NCBI asks for POST
+    // beyond about 200 UIDs.
+    #[test]
+    fn efetch_ids_are_posted_not_packed_into_the_url() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("esearch".into()))
+            .with_body(ESEARCH_FIXTURE)
+            .create();
+        let get = server
+            .mock("GET", mockito::Matcher::Regex("efetch".into()))
+            .expect(0)
+            .create();
+        let post = server
+            .mock("POST", EFETCH_URL)
+            .match_body(mockito::Matcher::Regex("id=".into()))
+            .with_body(FIXTURE)
+            .create();
+        search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
+        post.assert();
+        get.assert();
+    }
+
+    // A batch of 200 records is ~3.5 MB and ~5.5 s, inside the 10 MB read
+    // limit and the 30 s request limit; 1000 in one request is ~17 MB and ~39 s.
+    #[test]
+    fn a_full_page_is_fetched_in_batches_of_200() {
+        let cap = crate::registry::Source::Pubmed.caps().max_limit.unwrap();
+        let ids: Vec<String> = (1..=cap).map(|i| i.to_string()).collect();
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("esearch".into()))
+            .with_body(esearch_with(&ids))
+            .create();
+        let post = server
+            .mock("POST", EFETCH_URL)
+            .with_body(efetch_with(&["1"]))
+            .expect(cap.div_ceil(200) as usize)
+            .create();
+        search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", cap),
+        )
+        .unwrap();
+        post.assert();
+    }
+
+    #[test]
+    fn records_keep_the_order_esearch_ranked_them_in() {
+        let ranked = ["30".to_string(), "10".to_string(), "20".to_string()];
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("esearch".into()))
+            .with_body(esearch_with(&ranked))
+            .create();
+        server
+            .mock("POST", EFETCH_URL)
+            .with_body(efetch_with(&["10", "20", "30"]))
+            .create();
+        let ids: Vec<String> = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap()
+        .into_iter()
+        .map(|p| p.id)
+        .collect();
+        assert_eq!(ids, ranked);
     }
 }

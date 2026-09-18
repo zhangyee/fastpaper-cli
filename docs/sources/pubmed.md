@@ -9,10 +9,13 @@
 ## 搜索(两步)
 
 1. **esearch** `GET /entrez/eutils/esearch.fcgi`,取 PMID 列表。
-   - 参数:`db=pubmed`、`term={encode(query)}`、`retmax={max_results}`、`retmode=json`、`tool=fastpaper`、`email=yee.zhang@gmail.com`;有 key 则追加 `&api_key=`。
+   - 参数:`db=pubmed`、`term={encode(query)}`、`retmax={max_results}`、`retmode=json`、`tool=fastpaper`;设置了 `FASTPAPER_EMAIL` 才带 `email`;有 key 则追加 `&api_key=`。
    - 解析 `esearchresult.idlist`;为空则返回空列表。
-2. **efetch** `GET /entrez/eutils/efetch.fcgi`,取详情。
-   - 参数:`db=pubmed`、`id={pmids join ","}`、`retmode=xml`、`tool`、`email`(+可选 `api_key`)。
+2. **efetch** `POST /entrez/eutils/efetch.fcgi`(表单),取详情,**每批 200 个 PMID**。
+   - 表单字段:`db=pubmed`、`id={pmids join ","}`、`retmode=xml`、`tool`、`email`(+可选 `api_key`)。
+   - 为什么 POST + 分批:旧实现把全部 PMID 拼进 GET URL,实测 `-n 500` 起 NCBI 回 414,`-n 10000` 连 URL 都发不出去(http 库报 uri too long)。官方建议超过约 200 个 UID 用 POST。每批 200 条实测 3.5 MB、5.5 s,留在单请求 10 MB 读取 / 30 s 上限之内;一次 1000 条是 17 MB、39 s。
+   - 结果按 esearch 给的顺序重排(pubmed 实测会照提交顺序返回,重排是兜底)。
+   - `PubmedBookArticle`(如 GeneReviews 书籍章节)不解析,会从结果里缺席——`-n 1000` 实测 999 条就是这个原因。
 - `term` 接受 PubMed 原生检索语法(字段标签如 `[Author]`、`[pdat]`);CLI 把 query **原样传入**,不做本地字段拼接。
 - `get_by_pmid(base, pmid)`:单条 efetch。
 
@@ -38,7 +41,7 @@
 
 | CLI 参数 | 映射 |
 |---|---|
-| `-n` | `retmax`(≤10000) |
+| `-n` | `retmax`(≤1000:5 批 efetch,实测约 15 s。esearch 本身最多只能翻到前 10000 条,更多用 `--offset`) |
 | `--offset` | `retstart` |
 | `--author` | `term` 内 `{name}[au]` |
 | `--year` | `term` 内 `{year}[dp]` |

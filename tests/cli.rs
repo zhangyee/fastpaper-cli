@@ -697,7 +697,7 @@ fn search_pubmed_mock_outputs_title() {
         .with_body(esearch)
         .create();
     server
-        .mock("GET", mockito::Matcher::Regex("efetch".to_string()))
+        .mock("POST", "/entrez/eutils/efetch.fcgi")
         .with_status(200)
         .with_body(efetch)
         .create();

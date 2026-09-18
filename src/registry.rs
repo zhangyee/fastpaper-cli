@@ -246,7 +246,7 @@ static PUBMED: SourceEntry = SourceEntry {
         get: true,
         download: false,
         cite: false,
-        max_limit: Some(10000),
+        max_limit: Some(1000),
         fields: FieldCaps::NONE,
         notes: "metadata only, for full text try pmc; --sort citations unavailable",
     },
@@ -277,7 +277,7 @@ static PMC: SourceEntry = SourceEntry {
         get: true,
         download: true,
         cite: false,
-        max_limit: Some(10000),
+        max_limit: Some(100),
         fields: FieldCaps::OPEN_FILES,
         notes: "--sort citations unavailable; PDFs come from the OA subset only",
     },
@@ -634,7 +634,7 @@ static HAL: SourceEntry = SourceEntry {
         get: true,
         download: true,
         cite: false,
-        max_limit: Some(10000),
+        max_limit: Some(1000),
         fields: FieldCaps::OPEN_FILES,
         notes: "year granularity only, use --year rather than --after/--before; \
                 --field takes a HAL domain code such as sdv or info",
@@ -1108,6 +1108,19 @@ mod tests {
         for s in ALL {
             assert!(retired(s.name()).is_none(), "{} is live", s.name());
         }
+    }
+
+    // Each cap is the most one call can fetch inside the per-request limits
+    // (10 MB read, 30 s) in about half a minute; more comes with --offset.
+    // Measured 2026-09-18: pubmed 1000 records = 5 POSTs of 200 (~3.5 MB,
+    // ~5.5 s each); pmc returns full text, 100 articles = 18 MB, fetched as
+    // 4 POSTs of 25; hal 1000 rows = 2.2 MB, 7.4 s, where 10000 were 22.8 MB
+    // and 33.8 s. The 10000 they used to declare never worked.
+    #[test]
+    fn caps_are_what_one_bounded_call_can_fetch() {
+        assert_eq!(Source::Pubmed.caps().max_limit, Some(1000));
+        assert_eq!(Source::Pmc.caps().max_limit, Some(100));
+        assert_eq!(Source::Hal.caps().max_limit, Some(1000));
     }
 
     #[test]

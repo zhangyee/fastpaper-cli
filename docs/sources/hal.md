@@ -43,7 +43,7 @@
 
 | CLI 参数 | 映射 |
 |---|---|
-| `-n` | `rows`(≤10000) |
+| `-n` | `rows`(≤1000:实测 2.2 MB、5–7 s。`rows=10000` 是 22.8 MB、33.8 s,超过单请求 10 MB 读取 / 30 s 上限,从未真正可用;更多用 `--offset`) |
 | `--offset` | `start` |
 | `--author` | `q` 内 `authFullName_s:"{name}"` |
 | `--year` | `fq=publicationDateY_i:{year}` |

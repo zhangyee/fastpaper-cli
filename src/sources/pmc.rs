@@ -113,24 +113,66 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
     }
 
     // Step 2: efetch
-    let efetch_url = build_efetch_url(
-        base_url,
-        &ids.join(","),
-        api_key.as_deref(),
-        email.as_deref(),
-    );
+    let url = format!("{}{}", base_url, EFETCH_URL);
+    let mut papers = Vec::new();
+    for batch in ids.chunks(EFETCH_BATCH) {
+        let form = efetch_form(batch, api_key.as_deref(), email.as_deref());
+        let body = send(|| crate::http::api().post(&url).send_form(form.clone()))?;
+        papers.extend(parse_efetch_response(&body)?);
+    }
+    // PMC efetch does not answer in the order it is asked (measured), so put
+    // the articles back in the order esearch ranked them.
+    papers.sort_by_key(|p| {
+        ids.iter()
+            .position(|id| p.id.strip_prefix("PMC") == Some(*id))
+            .unwrap_or(usize::MAX)
+    });
+    Ok(papers)
+}
 
-    let efetch_body = http_get(&efetch_url)?;
-    parse_efetch_response(&efetch_body)
+/// PMC ids per efetch request.
+///
+/// Every id used to ride in the GET URL, and NCBI answered 414 at 1000 of
+/// them; it asks for POST beyond about 200 UIDs. PMC efetch returns full-text
+/// XML, ~180 KB an article, so the batch is small: 100 articles in one
+/// request measured 18 MB, over the 10 MB read limit.
+const EFETCH_BATCH: usize = 25;
+
+/// Form fields for one efetch POST.
+fn efetch_form(
+    ids: &[&str],
+    api_key: Option<&str>,
+    email: Option<&str>,
+) -> Vec<(&'static str, String)> {
+    let mut form = vec![
+        ("db", "pmc".to_string()),
+        ("id", ids.join(",")),
+        ("rettype", "xml".to_string()),
+        ("tool", "fastpaper".to_string()),
+    ];
+    if let Some(email) = email {
+        form.push(("email", email.to_string()));
+    }
+    if let Some(key) = api_key {
+        form.push(("api_key", key.to_string()));
+    }
+    form
 }
 
 fn http_get(url: &str) -> Result<String, String> {
+    send(|| crate::http::api().get(url).call())
+}
+
+/// Send a request, backing off on 429.
+fn send(
+    request: impl Fn() -> Result<ureq::http::Response<ureq::Body>, ureq::Error>,
+) -> Result<String, String> {
     let mut last_err = String::new();
     for attempt in 0..3 {
         if attempt > 0 {
             std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
         }
-        match crate::http::api().get(url).call() {
+        match request() {
             Ok(resp) => {
                 return resp
                     .into_body()
@@ -475,7 +517,7 @@ mod tests {
             .with_body(ESEARCH_FIXTURE)
             .create();
         let efetch_mock = server
-            .mock("GET", mockito::Matcher::Regex("efetch".to_string()))
+            .mock("POST", EFETCH_URL)
             .with_status(200)
             .with_body(FIXTURE)
             .create();
@@ -521,10 +563,8 @@ mod tests {
             .with_body(ESEARCH_FIXTURE)
             .create();
         let mock = server
-            .mock(
-                "GET",
-                mockito::Matcher::Regex("efetch.*rettype=xml".to_string()),
-            )
+            .mock("POST", EFETCH_URL)
+            .match_body(mockito::Matcher::Regex("rettype=xml".to_string()))
             .with_status(200)
             .with_body(FIXTURE)
             .create();
@@ -549,10 +589,8 @@ mod tests {
             .with_body(ESEARCH_FIXTURE)
             .create();
         server
-            .mock(
-                "GET",
-                mockito::Matcher::Regex("efetch.*api_key=pmc-test-key".to_string()),
-            )
+            .mock("POST", EFETCH_URL)
+            .match_body(mockito::Matcher::Regex("api_key=pmc-test-key".to_string()))
             .with_status(200)
             .with_body(FIXTURE)
             .create();
@@ -575,7 +613,7 @@ mod tests {
             .create();
         // efetch should NOT be called
         let efetch_mock = server
-            .mock("GET", mockito::Matcher::Regex("efetch".to_string()))
+            .mock("POST", EFETCH_URL)
             .with_status(200)
             .with_body(FIXTURE)
             .expect(0)
@@ -724,5 +762,107 @@ mod query_tests {
     #[test]
     fn query_still_targets_the_pmc_database() {
         assert!(url(&SearchQuery::simple("crispr", 10)).contains("db=pmc"));
+    }
+}
+
+#[cfg(test)]
+mod batch_tests {
+    use super::*;
+
+    const FIXTURE: &str = include_str!("../../tests/fixtures/pmc_efetch.xml");
+    const ESEARCH_FIXTURE: &str = include_str!("../../tests/fixtures/pmc_esearch.json");
+
+    fn esearch_with(ids: &[String]) -> String {
+        serde_json::json!({ "esearchresult": { "idlist": ids } }).to_string()
+    }
+
+    fn efetch_with(ids: &[&str]) -> String {
+        let articles: String = ids
+            .iter()
+            .map(|id| {
+                format!(
+                    "<article><front><article-meta>\
+                     <article-id pub-id-type=\"pmcid\">PMC{id}</article-id>\
+                     <title-group><article-title>Paper {id}</article-title></title-group>\
+                     </article-meta></front></article>"
+                )
+            })
+            .collect();
+        format!("<pmc-articleset>{}</pmc-articleset>", articles)
+    }
+
+    // Same failure as pubmed: every id in the GET URL drew a 414 at -n 1000.
+    #[test]
+    fn efetch_ids_are_posted_not_packed_into_the_url() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("esearch".into()))
+            .with_body(ESEARCH_FIXTURE)
+            .create();
+        let get = server
+            .mock("GET", mockito::Matcher::Regex("efetch".into()))
+            .expect(0)
+            .create();
+        let post = server
+            .mock("POST", EFETCH_URL)
+            .match_body(mockito::Matcher::Regex("id=".into()))
+            .with_body(FIXTURE)
+            .create();
+        search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
+        post.assert();
+        get.assert();
+    }
+
+    // PMC efetch returns full-text XML, ~180 KB an article: 25 is ~4.5 MB,
+    // while 100 in one request measured 18 MB, over the 10 MB read limit.
+    #[test]
+    fn a_full_page_is_fetched_in_batches_of_25() {
+        let cap = crate::registry::Source::Pmc.caps().max_limit.unwrap();
+        let ids: Vec<String> = (1..=cap).map(|i| i.to_string()).collect();
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("esearch".into()))
+            .with_body(esearch_with(&ids))
+            .create();
+        let post = server
+            .mock("POST", EFETCH_URL)
+            .with_body(efetch_with(&["1"]))
+            .expect(cap.div_ceil(25) as usize)
+            .create();
+        search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", cap),
+        )
+        .unwrap();
+        post.assert();
+    }
+
+    // Measured: PMC efetch does not answer in the order it was asked, so
+    // without this the relevance ranking esearch returned was lost.
+    #[test]
+    fn articles_keep_the_order_esearch_ranked_them_in() {
+        let ranked = ["30".to_string(), "10".to_string(), "20".to_string()];
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("esearch".into()))
+            .with_body(esearch_with(&ranked))
+            .create();
+        server
+            .mock("POST", EFETCH_URL)
+            .with_body(efetch_with(&["10", "20", "30"]))
+            .create();
+        let ids: Vec<String> = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap()
+        .into_iter()
+        .map(|p| p.id)
+        .collect();
+        assert_eq!(ids, ["PMC30", "PMC10", "PMC20"]);
     }
 }

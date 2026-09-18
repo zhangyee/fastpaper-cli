@@ -12,8 +12,10 @@
 
 ## 搜索(两步)
 
-1. **esearch** `GET /entrez/eutils/esearch.fcgi`,参数 `db=pmc`、`term={encode(query)}`、`retmax`、`retmode=json`、`tool=fastpaper`、`email=yee.zhang@gmail.com`(+可选 `api_key`);解析 `esearchresult.idlist`。
-2. **efetch** `GET /entrez/eutils/efetch.fcgi`,参数 `db=pmc`、`id={ids}`、`rettype=xml`(注意是 `rettype` 而非 `retmode`)、`tool`、`email`(+可选 `api_key`)。
+1. **esearch** `GET /entrez/eutils/esearch.fcgi`,参数 `db=pmc`、`term={encode(query)}`、`retmax`、`retmode=json`、`tool=fastpaper`(设置了 `FASTPAPER_EMAIL` 才带 `email`,+可选 `api_key`);解析 `esearchresult.idlist`。
+2. **efetch** `POST /entrez/eutils/efetch.fcgi`(表单),字段 `db=pmc`、`id={ids}`、`rettype=xml`(注意是 `rettype` 而非 `retmode`)、`tool`、`email`(+可选 `api_key`),**每批 25 个 id**。
+   - 为什么 POST + 分批:旧实现把全部 id 拼进 GET URL,实测 `-n 1000` 时 NCBI 回 414。efetch 返回的是**全文 JATS XML**,每篇约 180 KB:一次 100 篇实测 18 MB,超过单请求 10 MB 读取上限;25 篇约 4.5 MB。
+   - **PMC efetch 不按提交顺序返回**(实测提交 331,364,368,405,返回 364,405,331,368),所以结果按 esearch 给的顺序重排;旧实现没有重排,相关度排序其实是丢了的。
 - query 原样传入 `term`,不做本地字段拼接。
 - `get_by_pmc_id(base, id)`:先 strip `PMC` 前缀取数字 id,再单条 efetch。
 
@@ -45,7 +47,7 @@
 
 | CLI 参数 | 映射 |
 |---|---|
-| `-n` / `--offset` | `retmax`(≤10000) / `retstart` |
+| `-n` / `--offset` | `retmax`(≤100:4 批 efetch,全文约 18 MB,实测约 11 s;更多用 `--offset`) / `retstart` |
 | `--author` | `term` 内 `{name}[au]` |
 | `--year` | `term` 内 `{year}[dp]` |
 | `--after` / `--before` | `datetype=pdat` + `mindate` / `maxdate` |
