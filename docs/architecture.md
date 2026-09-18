@@ -21,7 +21,7 @@ src/
 ├── sources/
 │   ├── mod.rs       # Paper (shared data contract), SearchQuery, Capabilities / SearchCaps,
 │   │                #   encode_query, validate_ymd, contact_email
-│   └── <source>.rs  # One fully self-contained module per source (18 today)
+│   └── <source>.rs  # One fully self-contained module per source (21 today)
 ├── download.rs      # fetch_pdf, per-source pdf_bytes_<src> resolvers, save_pdf
 ├── figures.rs       # unzip_images / untar_gz_images pull figure-extension files out of a
 │                    #   source's archive; safe_entry_path rejects path traversal; save_figures

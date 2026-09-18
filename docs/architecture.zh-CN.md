@@ -21,7 +21,7 @@ src/
 ├── sources/
 │   ├── mod.rs       # Paper(共享数据契约)、SearchQuery、Capabilities / SearchCaps、
 │   │                #   encode_query、validate_ymd、contact_email
-│   └── <source>.rs  # 每个数据源一个完全自包含的模块(目前 18 个)
+│   └── <source>.rs  # 每个数据源一个完全自包含的模块(目前 21 个)
 ├── download.rs      # fetch_pdf、各源 pdf_bytes_<src> 解析函数、save_pdf
 ├── figures.rs       # unzip_images / untar_gz_images 从源的压缩包里筛出插图扩展名的
 │                    #   文件;safe_entry_path 拒绝路径穿越;save_figures 把结果落盘到
