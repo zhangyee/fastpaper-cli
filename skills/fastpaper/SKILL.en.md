@@ -297,9 +297,19 @@ fails or is throttled takes down only itself.
 
 | Tier | Sources | Limit |
 |---|---|---|
-| **A — generous** | `arxiv` `europepmc` `crossref` `openalex` `dblp` `doaj` `zenodo` `hal` `openaire` `osf` `inspire` `zbmath` `eric` `osti` `ntrs` `datacite` | no auth needed; arXiv asks for ~3s between requests |
+| **A — generous** | `europepmc` `crossref` `openalex` `dblp` `doaj` `zenodo` `hal` `openaire` `osf` `inspire` `zbmath` `eric` `osti` `ntrs` `datacite` | no auth needed |
+| **arXiv — one at a time** | `arxiv` (`search`, `get`) | arXiv allows one request every 3 seconds over a single connection, counted across every machine the caller controls |
 | **A with a key** | `semantic` (`SEMANTIC_SCHOLAR_API_KEY`: 1 req/s → 100), `core` (`CORE_API_KEY`) | without a key both have to be treated as serial-only — anonymous `semantic` has been observed failing outright with "rate limited after 5 retries" |
 | **B — shared budget** | `pubmed` + `pmc` | one NCBI E-utilities budget between them: 3 req/s, 10 with `NCBI_API_KEY` |
+
+**Put at most one `arxiv` call (`search` or `get`) in any batch of parallel
+calls**; it can run alongside calls to other sources. The CLI queues arXiv
+requests from every fastpaper process on the machine and spaces them at least
+3 seconds apart, so extra ones are not faster — they just wait their turn — and
+you do not need to sleep between rounds yourself. `download` / `figures` fetch
+files from arxiv.org and are not queued. When arXiv rate-limits you (429), the
+error says how long to wait — do that rather than retrying straight away with a
+reworded query.
 
 ## What this tool cannot do
 

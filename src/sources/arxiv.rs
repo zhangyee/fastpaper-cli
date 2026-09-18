@@ -1,3 +1,8 @@
+use std::fs::OpenOptions;
+use std::io::{Read, Seek, SeekFrom, Write};
+use std::path::{Path, PathBuf};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
 use quick_xml::Reader;
 use quick_xml::events::Event;
 
@@ -56,35 +61,156 @@ pub fn get_by_id(base_url: &str, identifier: &str) -> Result<Option<Paper>, Stri
     Ok(papers.into_iter().next())
 }
 
-/// GET with backoff on 429.
-///
-/// arXiv asks callers to leave three seconds between requests and throttles
-/// hard when they don't. `search` has always retried; `get_by_id` did not, so a
-/// single 429 failed the whole lookup.
-fn http_get_with_retry(url: &str) -> Result<String, String> {
-    let mut last_err = String::new();
-    for attempt in 0..3 {
-        if attempt > 0 {
-            std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
-        }
-        match ureq::get(url).call() {
-            Ok(resp) => {
-                return resp
-                    .into_body()
-                    .read_to_string()
-                    .map_err(|e| format!("Failed to read response: {}", e));
+/// Longest `Retry-After` worth sitting through inside one call. Past this the
+/// caller is better off being told, and deciding for itself.
+const MAX_RETRY_AFTER: Duration = Duration::from_secs(30);
+
+/// How hard to lean on the host behind a URL.
+struct Pacing {
+    /// Lock file shared by every fastpaper process; `None` skips the gate.
+    gate: Option<PathBuf>,
+    /// Quiet time between one request finishing and the next starting.
+    spacing: Duration,
+    /// Wait before each retry after a 429 that names no `Retry-After`.
+    backoff: [Duration; 2],
+}
+
+impl Pacing {
+    /// arXiv's terms: no more than one request every three seconds, over a
+    /// single connection, counted across every machine the caller controls.
+    /// They bind arXiv's servers, not a test server or a mirror pointed at
+    /// through `FASTPAPER_ARXIV_URL`.
+    fn for_url(url: &str) -> Pacing {
+        let host = url
+            .split("://")
+            .nth(1)
+            .and_then(|rest| rest.split(['/', ':', '?']).next())
+            .unwrap_or("");
+        if host == "arxiv.org" || host.ends_with(".arxiv.org") {
+            Pacing {
+                gate: Some(std::env::temp_dir().join("fastpaper-arxiv.lock")),
+                spacing: Duration::from_secs(3),
+                backoff: [Duration::from_secs(3), Duration::from_secs(6)],
             }
-            Err(ureq::Error::StatusCode(429)) => {
-                last_err = "rate limited (429)".to_string();
-                continue;
+        } else {
+            Pacing {
+                gate: None,
+                spacing: Duration::ZERO,
+                backoff: [Duration::from_millis(200), Duration::from_millis(400)],
             }
-            Err(ureq::Error::StatusCode(code)) if code >= 500 => {
-                return Err(format!("Server error: {}", code));
-            }
-            Err(e) => return Err(format!("HTTP error: {}", e)),
         }
     }
-    Err(last_err)
+}
+
+/// Run `request` as the only arXiv request on this machine, starting no
+/// sooner than `spacing` after the previous one finished.
+///
+/// Every fastpaper call is its own process, so a throttle inside one of them
+/// does nothing when a caller runs two arxiv searches side by side. The gate
+/// is a lock file held for the whole request -- arXiv allows one connection
+/// at a time -- and it records when the last request finished. A gate that
+/// cannot be used lets the request through ungated rather than not at all.
+fn gated<T>(gate: &Path, spacing: Duration, request: impl FnOnce() -> T) -> T {
+    let file = match OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(false)
+        .open(gate)
+    {
+        Ok(f) => f,
+        Err(_) => return request(),
+    };
+    if file.lock().is_err() {
+        return request();
+    }
+
+    let mut stamp = String::new();
+    let _ = (&file).read_to_string(&mut stamp);
+    if let Ok(last_ms) = stamp.trim().parse::<u64>() {
+        let next = UNIX_EPOCH + Duration::from_millis(last_ms) + spacing;
+        if let Ok(wait) = next.duration_since(SystemTime::now()) {
+            // Capped so a stamp from a clock that has since moved back
+            // cannot stall every later call.
+            std::thread::sleep(wait.min(spacing));
+        }
+    }
+
+    let out = request();
+
+    let now_ms = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis())
+        .unwrap_or(0);
+    let _ = file.set_len(0);
+    let _ = (&file).seek(SeekFrom::Start(0));
+    let _ = write!(&file, "{}", now_ms);
+    let _ = file.unlock();
+    out
+}
+
+/// GET with arXiv's pacing, backing off on 429.
+///
+/// arXiv throttles hard when its spacing is ignored, and retrying on the old
+/// 200 ms schedule only dug the hole deeper. `search` has always retried;
+/// `get_by_id` did not, so a single 429 failed the whole lookup.
+fn http_get_with_retry(url: &str) -> Result<String, String> {
+    let pacing = Pacing::for_url(url);
+    let agent: ureq::Agent = ureq::Agent::config_builder()
+        .http_status_as_error(false)
+        .build()
+        .into();
+    let send = || -> Result<(u16, Option<u64>, String), String> {
+        let resp = agent
+            .get(url)
+            .call()
+            .map_err(|e| format!("HTTP error: {}", e))?;
+        let status = resp.status().as_u16();
+        let retry_after = resp
+            .headers()
+            .get("retry-after")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| s.trim().parse::<u64>().ok());
+        let body = resp
+            .into_body()
+            .read_to_string()
+            .map_err(|e| format!("Failed to read response: {}", e))?;
+        Ok((status, retry_after, body))
+    };
+
+    for attempt in 0..=pacing.backoff.len() {
+        let (status, retry_after, body) = match pacing.gate {
+            Some(ref gate) => gated(gate, pacing.spacing, send)?,
+            None => send()?,
+        };
+        match status {
+            200..=299 => return Ok(body),
+            429 => {
+                let Some(&backoff) = pacing.backoff.get(attempt) else {
+                    break;
+                };
+                let wait = match retry_after {
+                    Some(secs) if Duration::from_secs(secs) > MAX_RETRY_AFTER => {
+                        return Err(format!(
+                            "arXiv rate limited (429) and asks for {} s before the next request. \
+                             arXiv allows one request every 3 seconds: do not run arxiv calls in parallel.",
+                            secs
+                        ));
+                    }
+                    Some(secs) => Duration::from_secs(secs),
+                    None => backoff,
+                };
+                std::thread::sleep(wait);
+            }
+            code if code >= 500 => return Err(format!("Server error: {}", code)),
+            code => return Err(format!("HTTP error: http status: {}", code)),
+        }
+    }
+    Err(format!(
+        "arXiv rate limited (429) after {} attempts. arXiv allows one request every 3 seconds: \
+         do not run arxiv calls in parallel, and wait a minute before trying again.",
+        pacing.backoff.len() + 1
+    ))
 }
 
 /// Turn `YYYY-MM-DD` into arXiv's `YYYYMMDDHHMM` stamp.
@@ -883,5 +1009,119 @@ mod get_retry_tests {
             .create();
         let err = get_by_id(&server.url(), "2301.08745").unwrap_err();
         assert!(err.contains("429"), "got: {}", err);
+    }
+}
+
+#[cfg(test)]
+mod pacing_tests {
+    use super::*;
+    use std::path::PathBuf;
+    use std::time::{Duration, Instant};
+
+    fn gate_file(name: &str) -> PathBuf {
+        let path = std::env::temp_dir().join(format!(
+            "fastpaper_gate_{}_{}.lock",
+            name,
+            std::process::id()
+        ));
+        let _ = std::fs::remove_file(&path);
+        path
+    }
+
+    // arXiv counts the gap from one request to the next, whichever process
+    // sent them; a second call has to wait out the rest of it.
+    #[test]
+    fn a_request_waits_out_the_spacing_after_the_last_one() {
+        let gate = gate_file("spacing");
+        let spacing = Duration::from_millis(300);
+        gated(&gate, spacing, || ());
+        let first_done = Instant::now();
+        let second_start = gated(&gate, spacing, Instant::now);
+        assert!(
+            second_start.duration_since(first_done) >= Duration::from_millis(250),
+            "second request started {:?} after the first",
+            second_start.duration_since(first_done)
+        );
+    }
+
+    // "A single connection at a time": two callers racing for the gate must
+    // take turns, not overlap. Each thread opens the file itself, as a
+    // separate process would.
+    #[test]
+    fn concurrent_callers_take_turns() {
+        let gate = gate_file("turns");
+        let spans: Vec<(Instant, Instant)> = std::thread::scope(|s| {
+            let handles: Vec<_> = (0..2)
+                .map(|_| {
+                    s.spawn(|| {
+                        gated(&gate, Duration::ZERO, || {
+                            let start = Instant::now();
+                            std::thread::sleep(Duration::from_millis(150));
+                            (start, Instant::now())
+                        })
+                    })
+                })
+                .collect();
+            handles.into_iter().map(|h| h.join().unwrap()).collect()
+        });
+        let (a, b) = (spans[0], spans[1]);
+        assert!(a.1 <= b.0 || b.1 <= a.0, "requests overlapped: {:?}", spans);
+    }
+
+    // A gate that cannot be opened must not cost the caller the request.
+    #[test]
+    fn an_unusable_gate_still_lets_the_request_through() {
+        let gate = std::env::temp_dir()
+            .join("fastpaper_no_such_dir")
+            .join("gate.lock");
+        assert_eq!(gated(&gate, Duration::from_secs(3), || 7), 7);
+    }
+
+    #[test]
+    fn arxiv_itself_is_paced_to_three_seconds() {
+        let p = Pacing::for_url("https://export.arxiv.org/api/query?id_list=1");
+        assert!(p.gate.is_some());
+        assert_eq!(p.spacing, Duration::from_secs(3));
+        assert!(p.backoff.iter().all(|d| *d >= Duration::from_secs(3)));
+    }
+
+    // The terms bind arXiv's servers, not a test server or a mirror pointed
+    // at through FASTPAPER_ARXIV_URL.
+    #[test]
+    fn other_hosts_are_not_gated() {
+        let p = Pacing::for_url("http://127.0.0.1:1234/api/query?id_list=1");
+        assert!(p.gate.is_none());
+    }
+
+    // A wait longer than we are willing to sit through inside one call is
+    // reported, not slept on.
+    #[test]
+    fn a_long_retry_after_is_reported_not_slept_on() {
+        let mut server = mockito::Server::new();
+        let m = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(429)
+            .with_header("retry-after", "600")
+            .expect(1)
+            .create();
+        let started = Instant::now();
+        let err = http_get_with_retry(&format!("{}/api/query", server.url())).unwrap_err();
+        assert!(started.elapsed() < Duration::from_secs(5));
+        assert!(err.contains("600"), "got: {}", err);
+        m.assert();
+    }
+
+    // The caller that hit the limit is usually the one running arxiv calls
+    // side by side; the error has to say so.
+    #[test]
+    fn giving_up_on_429_says_not_to_run_arxiv_in_parallel() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(429)
+            .create();
+        let err = http_get_with_retry(&format!("{}/api/query", server.url())).unwrap_err();
+        assert!(err.contains("429"), "got: {}", err);
+        assert!(err.contains("parallel"), "got: {}", err);
     }
 }

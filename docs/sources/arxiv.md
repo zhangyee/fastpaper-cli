@@ -31,7 +31,11 @@ GET 参数:`search_query`、`start`(偏移)、`max_results`、`sortBy`、`sortOr
 
 ## 注意
 
-- 建议请求间隔约 3s。
+- 限速([API 使用条款](https://info.arxiv.org/help/api/tou.html)):每 3 秒最多一个请求、同一时间只开一个连接,按调用方控制的所有机器合计。
+  - 每次 fastpaper 调用是独立进程,进程内节流管不到并行调用,所以 `search` / `get` 经过一个跨进程闸门:临时目录下的 `fastpaper-arxiv.lock`,请求全程持锁(单连接),文件里记上次请求结束的时间戳,下一个请求至少等满 3 秒。锁文件打不开时不设闸,照常发出。
+  - 只对 `arxiv.org` 主机生效;`FASTPAPER_ARXIV_URL` 指向的测试服务器或镜像不受约束。
+  - PDF / e-print 下载走 `arxiv.org` 文件,不在条款范围内,不排队。
+  - 429:有 `Retry-After` 按它等(超过 30 秒直接报错并写明秒数,不在调用里干等);没有则 3s、6s 后重试,共 3 次。
 - 无结构化章节 API,全文靠 PDF 提取。
 
 ## CLI 过滤参数映射

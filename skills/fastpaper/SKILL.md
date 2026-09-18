@@ -271,9 +271,16 @@ query 原样透传**,所以它们自己的字段语法是能用的:
 
 | 档位 | 来源 | 限制 |
 |---|---|---|
-| **A —— 宽松** | `arxiv` `europepmc` `crossref` `openalex` `dblp` `doaj` `zenodo` `hal` `openaire` `osf` `inspire` `zbmath` `eric` `osti` `ntrs` `datacite` | 不需要认证;arXiv 希望请求之间隔 ~3s |
+| **A —— 宽松** | `europepmc` `crossref` `openalex` `dblp` `doaj` `zenodo` `hal` `openaire` `osf` `inspire` `zbmath` `eric` `osti` `ntrs` `datacite` | 不需要认证 |
+| **arXiv —— 一次一个** | `arxiv`(`search`、`get`) | arXiv 规定每 3 秒最多一个请求、同一时间只开一个连接,按调用方所有机器合计 |
 | **A —— 带 key** | `semantic`(`SEMANTIC_SCHOLAR_API_KEY`:1 req/s → 100)、`core`(`CORE_API_KEY`) | 不带 key 这两个都得当作只能串行来用 —— 匿名的 `semantic` 已被观察到直接失败并报 "rate limited after 5 retries" |
 | **B —— 共享额度** | `pubmed` + `pmc` | 两者共用一份 NCBI E-utilities 额度:3 req/s,带 `NCBI_API_KEY` 是 10 |
+
+**同一轮并行调用里最多放一个 `arxiv` 调用**(`search` 或 `get`);它可以和别的
+来源的调用一起并行。CLI 会让本机所有 fastpaper 进程的 arXiv 请求排队、前后间隔
+至少 3 秒,所以多发的那几个不会更快,只会排队等;连续几轮之间也不用自己 sleep。
+`download` / `figures` 取的是 arxiv.org 上的文件,不走这个队列。被 arXiv 限流
+(429)时,报错会写明要等多久 —— 照做,不要立刻换个说法重试。
 
 ## What this tool cannot do
 
