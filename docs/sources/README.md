@@ -15,7 +15,7 @@ The sources fall into a few families: an open preprint server with free full tex
 | [semantic](semantic.md) | Semantic Scholar | REST JSON (Graph v1) | optional `SEMANTIC_SCHOLAR_API_KEY` | 1 req/s anon → 100 req/s with key |
 | [crossref](crossref.md) | CrossRef | REST JSON | none; `FASTPAPER_EMAIL` joins polite pool | |
 | [openalex](openalex.md) | OpenAlex | REST JSON | none; `FASTPAPER_EMAIL` joins polite pool | |
-| [dblp](dblp.md) | DBLP | REST XML (+ HTML fallback) | none | |
+| [dblp](dblp.md) | DBLP | SPARQL (sparql.dblp.org), JSON | none | dblp.org itself is behind a bot challenge since 2026-09 |
 | [core](core.md) | CORE | REST JSON (v3) | optional `CORE_API_KEY` | key improves limits and result quality |
 | [openaire](openaire.md) | OpenAIRE | REST JSON | none | |
 | [doaj](doaj.md) | DOAJ | REST JSON | none | |

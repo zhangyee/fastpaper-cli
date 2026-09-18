@@ -437,6 +437,8 @@ static DBLP: SourceEntry = SourceEntry {
     caps: Capabilities {
         search: Some(SearchCaps {
             offset: true,
+            year: true,
+            author: true,
             ..SearchCaps::BASIC
         }),
         get: false,
@@ -444,12 +446,13 @@ static DBLP: SourceEntry = SourceEntry {
         cite: false,
         max_limit: Some(1000),
         fields: FieldCaps::NONE,
-        notes: "computer science only, metadata only; the API takes a query and \
-                paging, nothing else",
+        notes: "computer science only, metadata only; matches title words (all \
+                must appear), shortest matching title first",
     },
     env_var: "FASTPAPER_DBLP_URL",
-    // dblp.org's search API has been returning HTTP 500 for every query.
-    default_base: "https://dblp.uni-trier.de",
+    // dblp.org answers every page and API with a bot challenge; its SPARQL
+    // service does not. See src/sources/dblp.rs.
+    default_base: "https://sparql.dblp.org",
     pdf_env_var: None,
     pdf_default_base: None,
     search: Some(sources::dblp::search),

@@ -62,7 +62,7 @@ fn papers(source: Source) -> Vec<Paper> {
         Source::Openalex => {
             sources::openalex::parse_search_response(&f("openalex_search.json")).unwrap()
         }
-        Source::Dblp => sources::dblp::parse_search_response(&f("dblp_search.xml")).unwrap(),
+        Source::Dblp => sources::dblp::parse_search_response(&f("dblp_sparql.json")).unwrap(),
         Source::Core => sources::core::parse_search_response(&f("core_search.json")).unwrap(),
         Source::Openaire => {
             sources::openaire::parse_search_response(&f("openaire_graph_v3.json")).unwrap()

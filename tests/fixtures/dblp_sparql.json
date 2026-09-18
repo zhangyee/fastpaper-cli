@@ -1,0 +1,357 @@
+{
+  "head": {
+    "vars": [
+      "pub",
+      "title",
+      "year",
+      "venue",
+      "doi",
+      "ordinal",
+      "name"
+    ]
+  },
+  "results": {
+    "bindings": [
+      {
+        "pub": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/conf/cvpr/HeZRS16"
+        },
+        "title": {
+          "type": "literal",
+          "value": "Deep Residual Learning for Image Recognition."
+        },
+        "year": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2016"
+        },
+        "venue": {
+          "type": "literal",
+          "value": "CVPR"
+        },
+        "doi": {
+          "type": "uri",
+          "value": "https://doi.org/10.1109/CVPR.2016.90"
+        },
+        "ordinal": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#int",
+          "type": "literal",
+          "value": "1"
+        },
+        "name": {
+          "type": "literal",
+          "value": "Kaiming He"
+        }
+      },
+      {
+        "pub": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/conf/cvpr/HeZRS16"
+        },
+        "title": {
+          "type": "literal",
+          "value": "Deep Residual Learning for Image Recognition."
+        },
+        "year": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2016"
+        },
+        "venue": {
+          "type": "literal",
+          "value": "CVPR"
+        },
+        "doi": {
+          "type": "uri",
+          "value": "https://doi.org/10.1109/CVPR.2016.90"
+        },
+        "ordinal": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#int",
+          "type": "literal",
+          "value": "2"
+        },
+        "name": {
+          "type": "literal",
+          "value": "Xiangyu Zhang 0005"
+        }
+      },
+      {
+        "pub": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/conf/cvpr/HeZRS16"
+        },
+        "title": {
+          "type": "literal",
+          "value": "Deep Residual Learning for Image Recognition."
+        },
+        "year": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2016"
+        },
+        "venue": {
+          "type": "literal",
+          "value": "CVPR"
+        },
+        "doi": {
+          "type": "uri",
+          "value": "https://doi.org/10.1109/CVPR.2016.90"
+        },
+        "ordinal": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#int",
+          "type": "literal",
+          "value": "3"
+        },
+        "name": {
+          "type": "literal",
+          "value": "Shaoqing Ren"
+        }
+      },
+      {
+        "pub": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/conf/cvpr/HeZRS16"
+        },
+        "title": {
+          "type": "literal",
+          "value": "Deep Residual Learning for Image Recognition."
+        },
+        "year": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2016"
+        },
+        "venue": {
+          "type": "literal",
+          "value": "CVPR"
+        },
+        "doi": {
+          "type": "uri",
+          "value": "https://doi.org/10.1109/CVPR.2016.90"
+        },
+        "ordinal": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#int",
+          "type": "literal",
+          "value": "4"
+        },
+        "name": {
+          "type": "literal",
+          "value": "Jian Sun 0001"
+        }
+      },
+      {
+        "pub": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/journals/corr/HeZRS15"
+        },
+        "title": {
+          "type": "literal",
+          "value": "Deep Residual Learning for Image Recognition."
+        },
+        "year": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2015"
+        },
+        "venue": {
+          "type": "literal",
+          "value": "CoRR"
+        },
+        "ordinal": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#int",
+          "type": "literal",
+          "value": "1"
+        },
+        "name": {
+          "type": "literal",
+          "value": "Kaiming He"
+        }
+      },
+      {
+        "pub": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/journals/corr/HeZRS15"
+        },
+        "title": {
+          "type": "literal",
+          "value": "Deep Residual Learning for Image Recognition."
+        },
+        "year": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2015"
+        },
+        "venue": {
+          "type": "literal",
+          "value": "CoRR"
+        },
+        "ordinal": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#int",
+          "type": "literal",
+          "value": "2"
+        },
+        "name": {
+          "type": "literal",
+          "value": "Xiangyu Zhang 0005"
+        }
+      },
+      {
+        "pub": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/journals/corr/HeZRS15"
+        },
+        "title": {
+          "type": "literal",
+          "value": "Deep Residual Learning for Image Recognition."
+        },
+        "year": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2015"
+        },
+        "venue": {
+          "type": "literal",
+          "value": "CoRR"
+        },
+        "ordinal": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#int",
+          "type": "literal",
+          "value": "3"
+        },
+        "name": {
+          "type": "literal",
+          "value": "Shaoqing Ren"
+        }
+      },
+      {
+        "pub": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/journals/corr/HeZRS15"
+        },
+        "title": {
+          "type": "literal",
+          "value": "Deep Residual Learning for Image Recognition."
+        },
+        "year": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2015"
+        },
+        "venue": {
+          "type": "literal",
+          "value": "CoRR"
+        },
+        "ordinal": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#int",
+          "type": "literal",
+          "value": "4"
+        },
+        "name": {
+          "type": "literal",
+          "value": "Jian Sun 0001"
+        }
+      },
+      {
+        "pub": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/journals/corr/abs-2211-12320"
+        },
+        "title": {
+          "type": "literal",
+          "value": "A Cross-Residual Learning for Image Recognition."
+        },
+        "year": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2022"
+        },
+        "venue": {
+          "type": "literal",
+          "value": "CoRR"
+        },
+        "doi": {
+          "type": "uri",
+          "value": "https://doi.org/10.48550/ARXIV.2211.12320"
+        },
+        "ordinal": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#int",
+          "type": "literal",
+          "value": "1"
+        },
+        "name": {
+          "type": "literal",
+          "value": "Jun Liang"
+        }
+      },
+      {
+        "pub": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/journals/corr/abs-2211-12320"
+        },
+        "title": {
+          "type": "literal",
+          "value": "A Cross-Residual Learning for Image Recognition."
+        },
+        "year": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2022"
+        },
+        "venue": {
+          "type": "literal",
+          "value": "CoRR"
+        },
+        "doi": {
+          "type": "uri",
+          "value": "https://doi.org/10.48550/ARXIV.2211.12320"
+        },
+        "ordinal": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#int",
+          "type": "literal",
+          "value": "2"
+        },
+        "name": {
+          "type": "literal",
+          "value": "Songsen Yu"
+        }
+      },
+      {
+        "pub": {
+          "type": "uri",
+          "value": "https://dblp.org/rec/journals/corr/abs-2211-12320"
+        },
+        "title": {
+          "type": "literal",
+          "value": "A Cross-Residual Learning for Image Recognition."
+        },
+        "year": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#gYear",
+          "type": "literal",
+          "value": "2022"
+        },
+        "venue": {
+          "type": "literal",
+          "value": "CoRR"
+        },
+        "doi": {
+          "type": "uri",
+          "value": "https://doi.org/10.48550/ARXIV.2211.12320"
+        },
+        "ordinal": {
+          "datatype": "http://www.w3.org/2001/XMLSchema#int",
+          "type": "literal",
+          "value": "3"
+        },
+        "name": {
+          "type": "literal",
+          "value": "Huan Yang"
+        }
+      }
+    ]
+  },
+  "meta": {
+    "query-time-ms": 2166,
+    "result-size-total": 11
+  }
+}

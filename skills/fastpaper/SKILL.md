@@ -110,7 +110,7 @@ fastpaper read papers/<id>.pdf --max-length 3000
 | `--sort relevance\|date` + `--order asc\|desc` | 排序 —— 并非所有来源都接 `--sort`,不接的会明确报错 |
 | `--sort citations` | **只有 `europepmc`、`semantic`、`crossref`、`openalex`、`openaire`、`inspire` 有引用数可排**,这就是完整清单;其余来源要么明确报错(`arxiv`、`pubmed`、`pmc`、`zenodo`、`hal`、`osf`、`osti`),要么根本不接 `--sort`。拿不准就跑一次 `fastpaper sources --capabilities`,Notes 段落逐来源写明 |
 | `--year <YYYY>` · `--after <YYYY-MM-DD>` · `--before <YYYY-MM-DD>` | 日期 |
-| `--author "<name>"` | 作者 —— `semantic`、`dblp`、`osf`、`eric`、`osti`、`ntrs`、`datacite` 上*没有*这个参数;在这些来源上把人名写进 query |
+| `--author "<name>"` | 作者 —— `semantic`、`osf`、`eric`、`osti`、`ntrs`、`datacite` 上*没有*这个参数;在这些来源上把人名写进 query |
 | `--field <code>` | 学科/分类 —— 取的是*各来源自己的代码*,见下文 |
 | `--open-access` | 只要开放获取的 |
 | `--patents` | **只要专利**(europepmc) |
@@ -205,7 +205,7 @@ block here -- they look the same from outside. ...
 | `semantic` | ✓ | — | ✓ | **跨学科**,而且引用数在这里最靠得住 —— 任何按影响力排序的基础 | 没有 `SEMANTIC_SCHOLAR_API_KEY` 会被限流得很厉害。大多数命中带 DOI,大约一半带 PDF |
 | `openalex` | — | — | ✓ | **跨学科**,200M+ 作品 | `--field` 取的是概念 ID(`C154945302`),不是名字。很少带 PDF 链接 —— 适合找和排序,不适合抓文件。标题查找时相关度会飘 |
 | `crossref` | — | — | ✓ | **跨学科** DOI 注册库 —— 这里最好的 title→DOI 查找 | 只有注册的元数据:没有 PDF,没有 OA 状态,带摘要的命中也很少。用它来解析,然后去别处取内容 |
-| `dblp` | — | — | — | **计算机科学**书目 —— 会议和期刊记录,人工整理,很干净 | 完全没有摘要;只有元数据。它的 API 只接受一个 query 和翻页,别的都不接受 |
+| `dblp` | — | — | — | **计算机科学**书目 —— 会议和期刊记录,人工整理,很干净 | 完全没有摘要;只有元数据。**只按标题词检索**:每个词都得出现在标题里,按前缀匹配(`network` 能匹配 `Networks`,词尾加 `$` 才是整词);人名、会议名写进 query 匹配不到 —— 作者用 `--author`,年份用 `--year`,会议没法过滤。排序是"标题越短越靠前",不是引用数。旧的 `year:` `author:` `venue:` 写法会直接报错 |
 | `core` | ✓ | — | 0 | **跨学科** OA 聚合库,来自仓储和期刊的 400M+ 条 —— 几乎每条命中都有 PDF | 带 DOI 的命中很少,也没有期刊名。`CORE_API_KEY` 能放宽速率限制 |
 | `openaire` | — | — | ✓ | **跨学科**欧盟开放科学图谱 | `download` 在这里用不了,但在少数记录上确实有出版商文件链接时会返回 `pdf_url` —— 它的链接大多是 DOI 解析器,不会被当作 PDF 提供。`get` 要的是 OpenAIRE id,不是 DOI |
 | `doaj` | — | — | — | **跨学科**同行评议 OA 期刊 —— 元数据完整,几乎每条命中都有期刊名和摘要 | **它的 `pdf_url` 是落地页,不是文件** —— 去抓会拿回 HTML。日期只到年份粒度,不能排序 |
@@ -252,12 +252,12 @@ JSON 去排**:看起来像是排出来了,实际上悄悄把被引多的论文�
 `--field` 用的 arXiv 分类:`cs.CL` `cs.LG` `cs.CV` `cs.AI` `cs.RO`,
 `math.*`,`physics.*`,`q-bio.*`,`q-fin.*`,`econ.*`,`stat.ML`,`eess.*`。
 
-**`europepmc`、`pubmed`、`pmc`、`doaj`、`zenodo`、`hal`、`core` 和 `dblp` 会把你的
+**`europepmc`、`pubmed`、`pmc`、`doaj`、`zenodo`、`hal` 和 `core` 会把你的
 query 原样透传**,所以它们自己的字段语法是能用的:
 
 - `pubmed` / `pmc`:`[pt]` 文献类型 · `[mh]` MeSH · `[tiab]` 标题/摘要 · `[au]` 作者 · `[dp]` 日期
 - `europepmc`:`CITED:[N TO *]` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `PUBLISHER:`(预印本服务器,如 `"bioRxiv"`) · `SRC:` 子集(`PPR` 预印本、`CTX` NICE 指南、`AGR` Agricola、`CBA` 中国生物医学文摘(仅 2000–2007,已停更)、`MED`、`PMC`)
-- `doaj`:在 `bibjson.*` 上用 Lucene · `zenodo`:Elasticsearch · `hal`:Solr · `dblp`:`year:` `author:` `venue:`
+- `doaj`:在 `bibjson.*` 上用 Lucene · `zenodo`:Elasticsearch · `hal`:Solr
 
 **`crossref`、`openalex`、`semantic` 只接受自由文本** ——
 按相关度匹配,没有字段语法。要过滤就用 CLI 的 flag。

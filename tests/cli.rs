@@ -988,10 +988,10 @@ fn read_no_longer_accepts_a_source_argument() {
 #[test]
 fn search_rejects_a_filter_the_source_cannot_honour() {
     cmd()
-        .args(["search", "dblp", "crispr", "--year", "2024"])
+        .args(["search", "dblp", "crispr", "--open-access"])
         .assert()
         .failure()
-        .stderr(contains("--year"))
+        .stderr(contains("--open-access"))
         .stderr(contains("dblp"));
 }
 

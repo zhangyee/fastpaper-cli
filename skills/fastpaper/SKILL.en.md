@@ -126,7 +126,7 @@ run these commands with `2>/dev/null`, or an exit code is all you get back:
 | `--sort relevance\|date` + `--order asc\|desc` | ordering — not every source accepts `--sort`; those that do not raise an explicit error |
 | `--sort citations` | **only `europepmc`, `semantic`, `crossref`, `openalex`, `openaire`, `inspire` have citation counts to sort on**, and that is the whole list; the rest either raise an explicit error (`arxiv`, `pubmed`, `pmc`, `zenodo`, `hal`, `osf`, `osti`) or do not take `--sort` at all. When in doubt run `fastpaper sources --capabilities`, whose Notes spell it out per source |
 | `--year <YYYY>` · `--after <YYYY-MM-DD>` · `--before <YYYY-MM-DD>` | dates |
-| `--author "<name>"` | author — *not* on `semantic`, `dblp`, `osf`, `eric`, `osti`, `ntrs`, `datacite`; put the name in the query there |
+| `--author "<name>"` | author — *not* on `semantic`, `osf`, `eric`, `osti`, `ntrs`, `datacite`; put the name in the query there |
 | `--field <code>` | subject/category — takes a *source-specific code*, see below |
 | `--open-access` | OA only |
 | `--patents` | **patents only** (europepmc) |
@@ -228,7 +228,7 @@ Report the URL to the user instead; exit is `1`, not `4`.
 | `semantic` | ✓ | — | ✓ | **cross-discipline**, and the surest citation counts here — the basis for any ranking by impact | throttles hard without `SEMANTIC_SCHOLAR_API_KEY`. Carries a DOI on most hits and a PDF on about half |
 | `openalex` | — | — | ✓ | **cross-discipline**, 200M+ works | `--field` takes a concept ID (`C154945302`), not a name. Rarely carries a PDF link — good for finding and ranking, not for fetching. Relevance drifts on title lookups |
 | `crossref` | — | — | ✓ | **cross-discipline** DOI registry — the best title→DOI lookup here | registered metadata only: no PDFs, no OA status, and an abstract on few hits. Use it to resolve, then go elsewhere for content |
-| `dblp` | — | — | — | **computer science** bibliography — conference and journal records, curated and clean | no abstracts at all; metadata only. The API takes a query and paging, nothing else |
+| `dblp` | — | — | — | **computer science** bibliography — conference and journal records, curated and clean | no abstracts at all; metadata only. **Searches title words only**: every word must appear in the title, matched as a prefix (`network` finds `Networks`; end a word with `$` for the exact word). Names and venues in the query match nothing — use `--author` and `--year`; venues cannot be filtered. Ranked shortest-title-first, not by citations. The old `year:` `author:` `venue:` syntax is an error |
 | `core` | ✓ | — | 0 | **cross-discipline** OA aggregate, 400M+ from repositories and journals — a PDF on nearly every hit | a DOI on few hits and no journal name. `CORE_API_KEY` lifts the rate limit |
 | `openaire` | — | — | ✓ | **cross-discipline** EU open science graph | `download` does not work here, but a `pdf_url` comes back on the minority of hits where a publisher file link is on record — most of its links are DOI resolvers and are not offered as PDFs. `get` wants an OpenAIRE id, not a DOI |
 | `doaj` | — | — | — | **cross-discipline** peer-reviewed OA journals — complete metadata, with a journal name and abstract on nearly every hit | **its `pdf_url` is a landing page, not a file** — fetching one returns HTML. Year granularity only, no sorting |
@@ -278,12 +278,12 @@ results **without any error**. Use the flags instead — `--field`, `--author`,
 arXiv categories for `--field`: `cs.CL` `cs.LG` `cs.CV` `cs.AI` `cs.RO`,
 `math.*`, `physics.*`, `q-bio.*`, `q-fin.*`, `econ.*`, `stat.ML`, `eess.*`.
 
-**`europepmc`, `pubmed`, `pmc`, `doaj`, `zenodo`, `hal`, `core` and `dblp` pass
+**`europepmc`, `pubmed`, `pmc`, `doaj`, `zenodo`, `hal` and `core` pass
 your query through verbatim**, so their own field syntax works:
 
 - `pubmed` / `pmc`: `[pt]` publication type · `[mh]` MeSH · `[tiab]` title/abstract · `[au]` author · `[dp]` date
 - `europepmc`: `CITED:[N TO *]` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `PUBLISHER:` (preprint server, e.g. `"bioRxiv"`) · `SRC:` subsets (`PPR` preprints, `CTX` NICE guidelines, `AGR` Agricola, `CBA` Chinese Biological Abstracts (2000–2007 only, discontinued), `MED`, `PMC`)
-- `doaj`: Lucene on `bibjson.*` · `zenodo`: Elasticsearch · `hal`: Solr · `dblp`: `year:` `author:` `venue:`
+- `doaj`: Lucene on `bibjson.*` · `zenodo`: Elasticsearch · `hal`: Solr
 
 **`crossref`, `openalex`, `semantic` are free-text only** —
 relevance matching, no field syntax. Filter them with the CLI flags.
