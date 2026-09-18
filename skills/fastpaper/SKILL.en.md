@@ -186,7 +186,7 @@ only option.
 | Education research | `eric` | `openalex` `core` `doaj` |
 | Technical reports · grey literature | `osti` (US DOE), `ntrs` (NASA aerospace) | `core` |
 | Datasets · software · theses | `datacite` `zenodo` | `openaire` |
-| Chinese literature | — | `europepmc 'SRC:CBA'` (Chinese biomedical only) |
+| Chinese journals | — | **none.** `europepmc`'s `LANG:chi` and `SRC:CBA` do not count as Chinese journal coverage — see below |
 | Patents | `europepmc --patents` | — |
 
 `PDF` = `fastpaper download` works against this source. A `—` does not mean no
@@ -224,7 +224,7 @@ Report the URL to the user instead; exit is `1`, not `4`.
 | `arxiv` | ✓ | ✓ | — | **CS, AI, math, physics, stats, q-bio, q-fin, econ** preprints, every one of them free to read | query syntax is rewritten — see below. `pdf_url` on every hit, but a DOI on only about half |
 | `pubmed` | — | — | — | **biomedicine**, 35M+ records — the reference index for clinical and life-science work | abstracts only, no PDFs and no journal name; move to `pmc` or `europepmc` for either |
 | `pmc` | ✓ | — | — | **biomedical full text** (NLM) — the OA subset of what pubmed indexes | PDFs come from the OA subset only, so a pubmed hit may have no pmc record |
-| `europepmc` | ✓ | ✓ | ~ | **widest biomedical** — 45M+ abstracts, 9M+ full text, plus EPO patents, NICE guidelines, Agricola, preprints and Chinese Biological Abstracts | richest query syntax here, and the only source that can threshold on citations (`CITED:[N TO *]`). Relevance-ranked hits are mostly uncited, so sort or threshold explicitly when you want impact |
+| `europepmc` | ✓ | ✓ | ~ | **widest biomedical** — 45M+ abstracts, 9M+ full text, plus EPO patents, NICE guidelines, Agricola and preprints | richest query syntax here, and the only source that can threshold on citations (`CITED:[N TO *]`). Relevance-ranked hits are mostly uncited, so sort or threshold explicitly when you want impact |
 | `biorxiv` | ✓ | — | — | **life-science preprints** (CSHL), full text on all of them | **no keyword search API** — browses a date window and matches locally, so `--after`/`--before` decide what is even searched |
 | `medrxiv` | — | — | — | **medical / health preprints** (CSHL) | same date-window search as biorxiv, and its PDFs are blocked (403) — take the DOI elsewhere |
 | `semantic` | ✓ | — | ✓ | **cross-discipline**, and the surest citation counts here — the basis for any ranking by impact | throttles hard without `SEMANTIC_SCHOLAR_API_KEY`. Carries a DOI on most hits and a PDF on about half |
@@ -259,7 +259,7 @@ Most content-type distinctions are not actionable. These are:
 | Need | How |
 |---|---|
 | **Patents only** | `--patents` on `europepmc` |
-| **Chinese literature** | no general Chinese source in the CLI; Chinese biomedical via `europepmc 'SRC:CBA'` |
+| **Chinese journals** | **fastpaper does not cover Chinese journals.** Europe PMC's `LANG:chi` is only the English bibliographic records of the few Chinese journals MEDLINE indexes (titles are English translations in square brackets); `SRC:CBA` (Chinese Biological Abstracts) holds some 140k records from 2000–2007 only and stopped long ago. Neither counts as a Chinese journal search, and finding nothing here **does not** mean the Chinese literature has nothing. Leave Chinese journals to the caller's other channels (they need a browser and are outside this CLI) |
 | **Preprints** | `arxiv`, `biorxiv`, `medrxiv`, or `europepmc 'SRC:PPR'` |
 | **Clinical guidelines** | `europepmc 'SRC:CTX'` (NICE) |
 
@@ -284,7 +284,7 @@ arXiv categories for `--field`: `cs.CL` `cs.LG` `cs.CV` `cs.AI` `cs.RO`,
 your query through verbatim**, so their own field syntax works:
 
 - `pubmed` / `pmc`: `[pt]` publication type · `[mh]` MeSH · `[tiab]` title/abstract · `[au]` author · `[dp]` date
-- `europepmc`: `CITED:[N TO *]` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `SRC:` subsets (`PPR` preprints, `CTX` NICE guidelines, `AGR` Agricola, `CBA` Chinese Biological Abstracts, `MED`, `PMC`)
+- `europepmc`: `CITED:[N TO *]` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `SRC:` subsets (`PPR` preprints, `CTX` NICE guidelines, `AGR` Agricola, `CBA` Chinese Biological Abstracts (2000–2007 only, discontinued), `MED`, `PMC`)
 - `doaj`: Lucene on `bibjson.*` · `zenodo`: Elasticsearch · `hal`: Solr · `dblp`: `year:` `author:` `venue:`
 
 **`crossref`, `openalex`, `semantic` are free-text only** —

@@ -167,7 +167,7 @@ OA 全文命中率最高(`core`)—— 所以它们不是排在专门来源后�
 | 教育学 | `eric` | `openalex` `core` `doaj` |
 | 科技报告 · 灰色文献 | `osti`(美国能源部)、`ntrs`(NASA 航空航天) | `core` |
 | 数据集 · 软件 · 学位论文 | `datacite` `zenodo` | `openaire` |
-| 中文文献 | — | `europepmc 'SRC:CBA'`(中国生物医学文摘,仅生物医学) |
+| 中文期刊 | — | **无。**`europepmc` 的 `LANG:chi` 和 `SRC:CBA` 都不算中文期刊覆盖,见下文 |
 | 专利 | `europepmc --patents` | — |
 
 `PDF` = `fastpaper download` 在这个来源上能用。`—` 并不表示全文完全拿不到:
@@ -201,7 +201,7 @@ block here -- they look the same from outside. ...
 | `arxiv` | ✓ | ✓ | — | **CS、AI、数学、物理、统计、q-bio、q-fin、经济**预印本,每一篇都免费可读 | query 语法会被改写 —— 见下文。每条命中都有 `pdf_url`,但只有大约一半带 DOI |
 | `pubmed` | — | — | — | **生物医学**,35M+ 条记录 —— 临床和生命科学工作的基准索引 | 只有摘要,没有 PDF 也没有期刊名;要这两样就转到 `pmc` 或 `europepmc` |
 | `pmc` | ✓ | — | — | **生物医学全文**(NLM)—— pubmed 所索引内容里的 OA 子集 | PDF 只来自 OA 子集,所以一条 pubmed 命中可能根本没有对应的 pmc 记录 |
-| `europepmc` | ✓ | ✓ | ~ | **生物医学里覆盖最广的** —— 45M+ 摘要、9M+ 全文,外加 EPO 专利、NICE 指南、Agricola、预印本和中国生物医学文摘 | query 语法在这里最丰富,而且它是唯一能按引用数设阈值的来源(`CITED:[N TO *]`)。按相关度排出来的命中大多没被引用过,想看影响力就显式排序或设阈值 |
+| `europepmc` | ✓ | ✓ | ~ | **生物医学里覆盖最广的** —— 45M+ 摘要、9M+ 全文,外加 EPO 专利、NICE 指南、Agricola 和预印本 | query 语法在这里最丰富,而且它是唯一能按引用数设阈值的来源(`CITED:[N TO *]`)。按相关度排出来的命中大多没被引用过,想看影响力就显式排序或设阈值 |
 | `biorxiv` | ✓ | — | — | **生命科学预印本**(CSHL),每一篇都有全文 | **没有关键词搜索 API** —— 它是浏览一个日期窗口然后在本地匹配,所以 `--after`/`--before` 决定了到底在搜什么 |
 | `medrxiv` | — | — | — | **医学 / 健康预印本**(CSHL) | 和 biorxiv 一样是日期窗口搜索,而且它的 PDF 被拦(403)—— 拿 DOI 去别处 |
 | `semantic` | ✓ | — | ✓ | **跨学科**,而且引用数在这里最靠得住 —— 任何按影响力排序的基础 | 没有 `SEMANTIC_SCHOLAR_API_KEY` 会被限流得很厉害。大多数命中带 DOI,大约一半带 PDF |
@@ -234,7 +234,7 @@ JSON 去排**:看起来像是排出来了,实际上悄悄把被引多的论文�
 | 需求 | 怎么做 |
 |---|---|
 | **只要专利** | 在 `europepmc` 上加 `--patents` |
-| **中文文献** | CLI 没有通用中文来源;中文生物医学用 `europepmc 'SRC:CBA'` |
+| **中文期刊** | **fastpaper 不覆盖中文期刊。** Europe PMC 的 `LANG:chi` 只是被 MEDLINE 收录的少数中文刊的英文题录(题名是方括号里的英译);`SRC:CBA`(中国生物医学文摘)只有 2000–2007 年的约 14 万条,早已停更。两者都**不算**中文期刊检索,在这里查不到**不能**推出"中文文献里没有"。中文期刊交给调用方的其他渠道(要用浏览器,不在本 CLI 范围内) |
 | **预印本** | `arxiv`、`biorxiv`、`medrxiv`,或者 `europepmc 'SRC:PPR'` |
 | **临床指南** | `europepmc 'SRC:CTX'`(NICE) |
 
@@ -258,7 +258,7 @@ JSON 去排**:看起来像是排出来了,实际上悄悄把被引多的论文�
 query 原样透传**,所以它们自己的字段语法是能用的:
 
 - `pubmed` / `pmc`:`[pt]` 文献类型 · `[mh]` MeSH · `[tiab]` 标题/摘要 · `[au]` 作者 · `[dp]` 日期
-- `europepmc`:`CITED:[N TO *]` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `SRC:` 子集(`PPR` 预印本、`CTX` NICE 指南、`AGR` Agricola、`CBA` 中国生物医学文摘、`MED`、`PMC`)
+- `europepmc`:`CITED:[N TO *]` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `SRC:` 子集(`PPR` 预印本、`CTX` NICE 指南、`AGR` Agricola、`CBA` 中国生物医学文摘(仅 2000–2007,已停更)、`MED`、`PMC`)
 - `doaj`:在 `bibjson.*` 上用 Lucene · `zenodo`:Elasticsearch · `hal`:Solr · `dblp`:`year:` `author:` `venue:`
 
 **`crossref`、`openalex`、`semantic` 只接受自由文本** ——
