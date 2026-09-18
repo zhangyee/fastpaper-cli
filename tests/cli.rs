@@ -99,13 +99,23 @@ fn search_pubmed_no_capability_error() {
 
 #[test]
 fn download_arxiv_no_capability_error() {
-    // arxiv supports download, so it should NOT fail with "does not support"
-    let output = cmd()
-        .args(["download", "arxiv", "2301.08745"])
-        .output()
-        .unwrap();
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(!stderr.contains("does not support"));
+    // arxiv supports download, so the request goes out to its PDF path rather
+    // than failing with "does not support".
+    let mut server = mockito::Server::new();
+    let pdf = server
+        .mock("GET", "/pdf/2301.08745.pdf")
+        .with_status(200)
+        .with_body(b"%PDF-1.4 fake".as_slice())
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "arxiv", "2301.08745", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success();
+    pdf.assert();
+    let _ = std::fs::remove_dir_all(&dir);
 }
 
 #[test]
@@ -119,32 +129,54 @@ fn get_unknown_identifier_fails() {
 
 #[test]
 fn get_arxiv_id_routes_to_arxiv() {
-    let output = cmd().args(["get", "2301.08745"]).output().unwrap();
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(
-        !stderr.contains("Unrecognized"),
-        "should recognize arXiv ID"
-    );
+    let mut server = mockito::Server::new();
+    let query = server
+        .mock("GET", "/api/query")
+        .match_query(mockito::Matcher::Regex("id_list=2301.08745".into()))
+        .with_status(200)
+        .with_body(include_str!("fixtures/arxiv_search.xml"))
+        .create();
+    cmd()
+        .args(["get", "2301.08745"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
+        .assert()
+        .success();
+    query.assert();
 }
 
 #[test]
 fn get_pmc_id_routes_to_pmc() {
-    let output = cmd().args(["get", "PMC7318926"]).output().unwrap();
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(!stderr.contains("Unrecognized"), "should recognize PMC ID");
+    let mut server = mockito::Server::new();
+    let efetch = server
+        .mock("GET", "/entrez/eutils/efetch.fcgi")
+        .match_query(mockito::Matcher::Regex("id=7318926".into()))
+        .with_status(200)
+        .with_body(include_str!("fixtures/pmc_efetch.xml"))
+        .create();
+    cmd()
+        .args(["get", "PMC7318926"])
+        .env("FASTPAPER_PMC_URL", server.url())
+        .assert()
+        .success();
+    efetch.assert();
 }
 
 #[test]
 fn get_format_json_flag_accepted() {
-    // --format json should be accepted as a valid flag (even if source not implemented)
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body(include_str!("fixtures/arxiv_search.xml"))
+        .create();
     let output = cmd()
         .args(["get", "2301.08745", "--format", "json"])
+        .env("FASTPAPER_ARXIV_URL", server.url())
         .output()
         .unwrap();
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    // Should route to arXiv, not complain about invalid format
-    assert!(!stderr.contains("Unrecognized"));
-    assert!(!stderr.contains("invalid"));
+    assert!(output.status.success());
+    let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(json["source"], "arxiv");
 }
 
 // ── download integration tests ──────────────────
