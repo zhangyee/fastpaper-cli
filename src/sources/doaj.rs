@@ -47,7 +47,7 @@ fn build_search_url(base_url: &str, q: &super::SearchQuery) -> Result<String, St
 /// Fetch a single article by its DOAJ id.
 pub fn get_by_id(base_url: &str, id: &str) -> Result<Option<Paper>, String> {
     let url = format!("{}/api/v4/articles/{}", base_url, super::encode_query(id));
-    match ureq::get(&url).call() {
+    match crate::http::api().get(&url).call() {
         Ok(resp) => {
             let body = resp
                 .into_body()
@@ -71,7 +71,7 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
         if attempt > 0 {
             std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
         }
-        match ureq::get(&url).call() {
+        match crate::http::api().get(&url).call() {
             Ok(resp) => {
                 let body = resp
                     .into_body()

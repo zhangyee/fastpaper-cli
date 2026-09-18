@@ -130,7 +130,7 @@ fn http_get(url: &str) -> Result<String, String> {
         if attempt > 0 {
             std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
         }
-        match ureq::get(url).call() {
+        match crate::http::api().get(url).call() {
             Ok(resp) => {
                 return resp
                     .into_body()
@@ -182,7 +182,8 @@ pub fn pmcid_for_doi(base_url: &str, doi: &str) -> Result<Option<String>, FetchE
         url.push_str(&format!("&email={}", super::encode_query(&email)));
     }
 
-    let body = ureq::get(&url)
+    let body = crate::http::api()
+        .get(&url)
         .call()
         .map_err(|e| FetchError::Failed(format!("Could not reach the PMC ID converter: {}", e)))?
         .into_body()

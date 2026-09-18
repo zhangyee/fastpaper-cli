@@ -217,7 +217,8 @@ fn fetch_limited(
     // 4xx/5xx come back as `Ok` rather than `Err(StatusCode)` so the headers
     // survive: `cf-mitigated` on a 403 is what tells a Cloudflare challenge
     // from the origin refusing, and ureq's error keeps only the number.
-    let result = ureq::get(url)
+    let result = crate::http::download()
+        .get(url)
         .config()
         .http_status_as_error(false)
         .build()
@@ -361,7 +362,8 @@ fn first_pdf_key(listing: &str) -> Option<String> {
 }
 
 fn http_get_text(url: &str) -> Result<String, String> {
-    ureq::get(url)
+    crate::http::api()
+        .get(url)
         .call()
         .map_err(|e| format!("HTTP error: {}", e))?
         .into_body()
@@ -532,7 +534,8 @@ fn resolve_and_fetch(
 ) -> Result<Vec<u8>, FetchError> {
     // No `limit` here on purpose: this is the metadata lookup (JSON/XML), not
     // the PDF. `limit` applies only to `fetch_pdf` below.
-    let body = ureq::get(meta_url)
+    let body = crate::http::api()
+        .get(meta_url)
         .call()
         .map_err(|e| format!("HTTP error: {}", e))?
         .into_body()

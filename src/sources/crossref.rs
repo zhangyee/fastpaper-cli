@@ -90,7 +90,7 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
 pub fn get_by_doi(base_url: &str, doi: &str) -> Result<Option<Paper>, String> {
     let email = super::contact_email();
     let url = build_work_url(base_url, doi, email.as_deref());
-    match ureq::get(&url).call() {
+    match crate::http::api().get(&url).call() {
         Ok(resp) => {
             let body = resp
                 .into_body()
@@ -117,7 +117,7 @@ fn http_get(url: &str) -> Result<String, String> {
         if attempt > 0 {
             std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
         }
-        match ureq::get(url).call() {
+        match crate::http::api().get(url).call() {
             Ok(resp) => {
                 return resp
                     .into_body()

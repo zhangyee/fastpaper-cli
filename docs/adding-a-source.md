@@ -56,6 +56,7 @@ Rules:
 
 - `base_url` comes from the caller — never hardcode it inside request code.
 - Use `super::encode_query` for the query string.
+- Send every request through `crate::http::api()` (or `crate::http::download()` for files), never `ureq::get`: that is where the timeouts live, and a bare ureq request can hang forever.
 - Send the project User-Agent (`fastpaper-cli/<version> (+repo URL)`); some risk engines block default library UAs.
 - If the API pages, paginate serially; stop when you have `max_results`, the page is empty, or an error occurs; truncate before returning.
 - Map HTTP statuses to distinct, human-readable errors (403 blocked / 429 rate-limited / others).

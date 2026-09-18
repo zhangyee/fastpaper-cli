@@ -23,6 +23,8 @@ src/
 │   │                #   encode_query、validate_ymd、contact_email
 │   └── <source>.rs  # 每个数据源一个完全自包含的模块(目前 21 个)
 ├── download.rs      # fetch_pdf、各源 pdf_bytes_<src> 解析函数、save_pdf
+├── http.rs          # 共享的 http::api() 与 http::download();每个请求都有上限:
+│                    #   连接 10 秒、30 秒无新数据、接口请求整体 30 秒,下载不设总时长
 ├── figures.rs       # unzip_images / untar_gz_images 从源的压缩包里筛出插图扩展名的
 │                    #   文件;safe_entry_path 拒绝路径穿越;save_figures 把结果落盘到
 │                    #   以标识符命名的子目录
@@ -105,8 +107,9 @@ JSON 输出中缺失值一律为 `null`,绝不省略字段——schema 稳定,ag
 | Source 作为位置参数 | `fastpaper search arxiv <q>` 打字快,agent 构造命令直接。 |
 | 输出可管道化 | 默认人类可读表格,`--format json` 供机器消费。 |
 | 同步阻塞 I/O | 用 `ureq` 不引入 async runtime:二进制小、编译快、代码简单。 |
+| 每个请求都有上限 | ureq 默认不设任何超时,所以所有请求都经 `http::api()` 或 `http::download()` 发出。"30 秒无新数据"在 ureq 之下、每次等待输入时强制;下载不设总时长,仍在到达的慢速文件不会被掐断。 |
 | 源完全独立实现 | 每源一个文件;接受重复,换来任何源可被独立修改或删除。 |
-| 纯无状态无缓存 | 每次调用都是新鲜的 API 请求——简单、可靠、无副作用。 |
+| 纯无状态无缓存 | 每次调用都是新鲜的 API 请求——简单、可靠、无副作用。唯一的例外是 arXiv 的节流时间戳:临时目录下的一个锁文件,用来在进程之间给 arXiv 请求排队。 |
 | 429 自动退避 | 有限频的 API 上,源内部做指数退避重试,对用户透明。 |
 | 标识符自动检测 | `get` 与 `download` 都能从标识符形状推断数据源;显式指定则覆盖推断。 |
 | 能力只声明一处 | `registry.rs` 声明每个源能做什么;参数校验、`sources --capabilities` 和报错文案全都读它,所以列表不可能与实际行为脱节。 |

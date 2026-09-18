@@ -59,7 +59,7 @@ pub fn lookup_doi(base_url: &str, doi: &str) -> Result<Paper, String> {
         .map_err(|_| "UNPAYWALL_EMAIL environment variable is required.\nHint: export UNPAYWALL_EMAIL=\"your@email.com\"".to_string())?;
 
     let url = format!("{}/v2/{}?email={}", base_url, doi, email);
-    let body = match ureq::get(&url).call() {
+    let body = match crate::http::api().get(&url).call() {
         Ok(resp) => resp
             .into_body()
             .read_to_string()

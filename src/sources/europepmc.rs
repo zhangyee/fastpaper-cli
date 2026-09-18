@@ -103,7 +103,8 @@ pub fn get_by_id(base_url: &str, id: &str) -> Result<Option<Paper>, String> {
         SEARCH_PATH,
         id_query(id)
     );
-    let body = ureq::get(&url)
+    let body = crate::http::api()
+        .get(&url)
         .call()
         .map_err(|e| format!("HTTP error: {}", e))?
         .into_body()
@@ -121,7 +122,7 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
         if attempt > 0 {
             std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
         }
-        match ureq::get(&url).call() {
+        match crate::http::api().get(&url).call() {
             Ok(resp) => {
                 let body = resp
                     .into_body()

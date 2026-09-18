@@ -172,10 +172,7 @@ fn sparql_string(value: &str) -> String {
 /// on. An HTML body is what broke the search API this replaced, so it is
 /// named rather than handed to the JSON parser.
 fn http_get(url: &str) -> Result<String, String> {
-    let agent: ureq::Agent = ureq::Agent::config_builder()
-        .http_status_as_error(false)
-        .build()
-        .into();
+    let agent = crate::http::api();
 
     for attempt in 0..3u32 {
         if attempt > 0 {
@@ -183,6 +180,9 @@ fn http_get(url: &str) -> Result<String, String> {
         }
         let resp = agent
             .get(url)
+            .config()
+            .http_status_as_error(false)
+            .build()
             .header("Accept", "application/sparql-results+json")
             .header("User-Agent", USER_AGENT)
             .call()

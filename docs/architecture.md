@@ -23,6 +23,9 @@ src/
 │   │                #   encode_query, validate_ymd, contact_email
 │   └── <source>.rs  # One fully self-contained module per source (21 today)
 ├── download.rs      # fetch_pdf, per-source pdf_bytes_<src> resolvers, save_pdf
+├── http.rs          # The shared agents, http::api() and http::download(); every request is
+│                    #   bounded: 10 s to connect, 30 s without new bytes, 30 s in total for
+│                    #   API calls, no total for downloads
 ├── figures.rs       # unzip_images / untar_gz_images pull figure-extension files out of a
 │                    #   source's archive; safe_entry_path rejects path traversal; save_figures
 │                    #   writes them under a subdirectory named for the identifier
@@ -109,8 +112,9 @@ Duplication between source modules is accepted on purpose — see the philosophy
 | Source as positional arg | `fastpaper search arxiv <q>` is fast to type and trivial for agents to construct. |
 | Pipeable output | Human table by default, `--format json` for machines. |
 | Synchronous, blocking I/O | `ureq` instead of an async runtime: small binary, fast compile, simple code. |
+| Every request is bounded | ureq sets no timeouts by default, so every request goes through `http::api()` or `http::download()`. The idle limit (30 s without new bytes) is enforced below ureq, on each wait for input; downloads have no total, so a slow file that is still arriving is never cut off. |
 | Fully independent sources | Each source is one file; duplication is accepted so any source can be modified or deleted in isolation. |
-| Stateless, no cache | Every invocation is a fresh API request — simple, reliable, no side effects. |
+| Stateless, no cache | Every invocation is a fresh API request — simple, reliable, no side effects. The one exception is arXiv's pacing stamp, a lock file in the temp directory that spaces arXiv requests across processes. |
 | Automatic backoff on 429 | Sources retry with exponential backoff where the API rate-limits, transparent to the user. |
 | Identifier auto-detection | `get` and `download` infer the source from the identifier shape; naming one explicitly overrides that. |
 | Capabilities declared once | `registry.rs` states what each source can do; argument validation, `sources --capabilities` and the error messages all read from it, so the listing cannot drift from the behaviour. |

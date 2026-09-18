@@ -156,13 +156,13 @@ fn gated<T>(gate: &Path, spacing: Duration, request: impl FnOnce() -> T) -> T {
 /// `get_by_id` did not, so a single 429 failed the whole lookup.
 fn http_get_with_retry(url: &str) -> Result<String, String> {
     let pacing = Pacing::for_url(url);
-    let agent: ureq::Agent = ureq::Agent::config_builder()
-        .http_status_as_error(false)
-        .build()
-        .into();
+    let agent = crate::http::api();
     let send = || -> Result<(u16, Option<u64>, String), String> {
         let resp = agent
             .get(url)
+            .config()
+            .http_status_as_error(false)
+            .build()
             .call()
             .map_err(|e| format!("HTTP error: {}", e))?;
         let status = resp.status().as_u16();

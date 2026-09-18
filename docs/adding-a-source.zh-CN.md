@@ -56,6 +56,7 @@ pub fn search(base_url: &str, q: &SearchQuery) -> Result<Vec<Paper>, String>
 
 - `base_url` 由调用方传入——请求代码里绝不硬编码。
 - 查询串用 `super::encode_query` 编码。
+- 所有请求都经 `crate::http::api()`(取文件用 `crate::http::download()`)发出,不要用 `ureq::get`:超时设置在那里,裸的 ureq 请求可能永远挂住。
 - 发送项目 User-Agent(`fastpaper-cli/<version> (+仓库 URL)`);有些风控引擎会拦截 HTTP 库的默认 UA。
 - 若接口分页,则串行分页;拿够 `max_results`、遇到空页或出错即停;返回前截断。
 - 把 HTTP 状态映射为可区分的可读错误(403 被拦截 / 429 限频 / 其他)。

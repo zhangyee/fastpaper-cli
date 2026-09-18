@@ -95,16 +95,18 @@ fn http_get_with_retry_cfg(
     cfg: &BackoffConfig,
 ) -> FetchOutcome {
     let mut tried_without_key = api_key.is_none();
-    let agent: ureq::Agent = ureq::Agent::config_builder()
-        .http_status_as_error(false)
-        .build()
-        .into();
+    let agent = crate::http::api();
 
     let mut attempt: u32 = 0;
     while attempt <= cfg.max_retries {
         throttle(api_key.is_some());
 
-        let mut req = agent.get(url).header("User-Agent", USER_AGENT);
+        let mut req = agent
+            .get(url)
+            .config()
+            .http_status_as_error(false)
+            .build()
+            .header("User-Agent", USER_AGENT);
         if let Some(ref k) = api_key {
             req = req.header("x-api-key", k);
         }

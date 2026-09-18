@@ -95,7 +95,7 @@ fn http_get_core(url: &str, api_key: Option<&str>) -> Result<String, String> {
         if attempt > 0 {
             std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
         }
-        let mut req = ureq::get(url);
+        let mut req = crate::http::api().get(url);
         if let Some(key) = api_key {
             req = req.header("Authorization", &format!("Bearer {}", key));
         }

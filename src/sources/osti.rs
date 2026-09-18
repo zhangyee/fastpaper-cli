@@ -106,7 +106,7 @@ fn http_get(url: &str) -> Result<String, String> {
         if attempt > 0 {
             std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
         }
-        match ureq::get(url).call() {
+        match crate::http::api().get(url).call() {
             Ok(resp) => {
                 return resp
                     .into_body()

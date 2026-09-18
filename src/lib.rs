@@ -3,6 +3,7 @@ pub mod commands;
 pub mod download;
 pub mod figures;
 pub mod grep;
+pub mod http;
 pub mod identifier;
 pub mod output;
 pub mod read;
