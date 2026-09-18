@@ -289,15 +289,17 @@ fn resolve_source_and_id<'a>(
         None => Ok((None, first)),
         Some(id) => match Source::from_name(first) {
             Some(source) => Ok((Some(source), id)),
-            None => Err(format!(
-                "'{}' is not a known source.\nValid sources: {}",
-                first,
-                registry::ALL
-                    .iter()
-                    .map(|s| s.name())
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            )),
+            None => Err(registry::retired(first).unwrap_or_else(|| {
+                format!(
+                    "'{}' is not a known source.\nValid sources: {}",
+                    first,
+                    registry::ALL
+                        .iter()
+                        .map(|s| s.name())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                )
+            })),
         },
     }
 }

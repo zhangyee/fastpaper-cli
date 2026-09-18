@@ -1020,7 +1020,7 @@ fn sources_capabilities_shows_filters_and_caveats() {
         .assert()
         .success()
         .stdout(contains("Search filters"))
-        .stdout(contains("no keyword search API"));
+        .stdout(contains("--sort citations is unavailable"));
 }
 
 #[test]
@@ -2164,4 +2164,34 @@ fn real_ntrs_search_works() {
 #[ignore]
 fn real_datacite_search_works() {
     real_search_returns_results("datacite");
+}
+
+// bioRxiv and medRxiv were removed: their API cannot search, so every call
+// paged a date window for a minute or more. A caller still asking for them
+// needs the way on, not just clap's list of valid names.
+#[test]
+fn searching_a_removed_preprint_server_points_at_europepmc() {
+    cmd()
+        .args(["search", "biorxiv", "rhizosphere"])
+        .assert()
+        .code(2)
+        .stderr(contains(r#"SRC:PPR AND PUBLISHER:"bioRxiv""#));
+}
+
+#[test]
+fn naming_a_removed_source_for_get_points_at_europepmc() {
+    cmd()
+        .args(["get", "medrxiv", "10.1101/2020.01.01.123456"])
+        .assert()
+        .failure()
+        .stderr(contains(r#"SRC:PPR AND PUBLISHER:"medRxiv""#));
+}
+
+#[test]
+fn sources_no_longer_lists_biorxiv_or_medrxiv() {
+    cmd()
+        .arg("sources")
+        .assert()
+        .success()
+        .stdout(contains("biorxiv").not().and(contains("medrxiv").not()));
 }

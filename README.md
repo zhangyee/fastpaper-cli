@@ -86,7 +86,7 @@ wait
 
 ## Sources
 
-23 academic sources, each accessed independently per command.
+21 academic sources, each accessed independently per command.
 
 `read` is not listed here: it works on a PDF already on disk, so it applies
 equally to anything the `download` column can fetch.
@@ -94,8 +94,6 @@ equally to anything the `download` column can fetch.
 | Source | Full name | search | get | download | cite | figures | Domain |
 |--------|-----------|:------:|:---:|:--------:|:----:|:-------:|--------|
 | `arxiv` | arXiv | yes | yes | yes | | yes | Physics, math, CS, statistics, EE, q-bio, q-fin, econ |
-| `biorxiv` | bioRxiv | yes | yes | yes | | | Life sciences |
-| `medrxiv` | medRxiv | yes | yes | | | | Medical / health sciences (medRxiv blocks PDF fetches) |
 | `pubmed` | PubMed | yes | yes | | | | Biomedical & life sciences (metadata only) |
 | `pmc` | PubMed Central | yes | yes | yes | | | Biomedical & life sciences (full text) |
 | `europepmc` | Europe PMC | yes | yes | yes | | yes | Life sciences superset of PMC; adds preprints, patents, guidelines |
@@ -347,7 +345,7 @@ fastpaper completions bash >> ~/.bashrc
 
 ## Environment variables
 
-All optional except where noted. 22 of 23 sources work with zero configuration.
+All optional except where noted. 20 of 21 sources work with zero configuration.
 
 | Variable | Purpose |
 |----------|---------|
@@ -364,7 +362,7 @@ Every source also takes `FASTPAPER_<SOURCE>_URL` to override its base URL —
 `FASTPAPER_ARXIV_URL`, `FASTPAPER_PUBMED_URL` and so on — which is what the
 tests point at a local mock server. Sources whose files live on a different host
 than their API have a second override for that host: `FASTPAPER_ARXIV_PDF_URL`,
-`FASTPAPER_BIORXIV_DL_URL`, `FASTPAPER_PMC_DL_URL` (which points at the PMC
+`FASTPAPER_PMC_DL_URL` (which points at the PMC
 Cloud Service on AWS Open Data, not the article pages).
 
 One override does not fit that pattern, because it is not a source:

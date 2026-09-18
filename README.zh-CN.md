@@ -86,7 +86,7 @@ wait
 
 ## 数据源
 
-23 个学术数据源，每条命令独立访问单个数据源。
+21 个学术数据源，每条命令独立访问单个数据源。
 
 这里不列 `read`：它读的是已经落到磁盘上的 PDF，所以凡是 `download` 列能取到的，
 它都能读。
@@ -94,8 +94,6 @@ wait
 | 数据源 | 全称 | search | get | download | cite | figures | 覆盖领域 |
 |--------|------|:------:|:---:|:--------:|:----:|:-------:|----------|
 | `arxiv` | arXiv | yes | yes | yes | | yes | 物理、数学、计算机、统计、电子工程、量化生物/金融、经济学 |
-| `biorxiv` | bioRxiv | yes | yes | yes | | | 生命科学 |
-| `medrxiv` | medRxiv | yes | yes | | | | 医学 / 健康科学（medRxiv 拦截 PDF 抓取）|
 | `pubmed` | PubMed | yes | yes | | | | 生物医学与生命科学（仅元数据） |
 | `pmc` | PubMed Central | yes | yes | yes | | | 生物医学与生命科学（全文） |
 | `europepmc` | Europe PMC | yes | yes | yes | | yes | PMC 的生命科学超集，另含预印本、专利、临床指南 |
@@ -326,7 +324,7 @@ fastpaper completions bash >> ~/.bashrc
 
 ## 环境变量
 
-除特别标注外均为可选。23 个数据源中有 22 个无需任何配置即可使用。
+除特别标注外均为可选。21 个数据源中有 20 个无需任何配置即可使用。
 
 | 变量 | 用途 |
 |------|------|
@@ -341,7 +339,7 @@ fastpaper completions bash >> ~/.bashrc
 
 每个源还支持用 `FASTPAPER_<SOURCE>_URL` 覆盖它的 base URL——`FASTPAPER_ARXIV_URL`、
 `FASTPAPER_PUBMED_URL` 等等——测试就是靠它指向本地 mock 服务器的。文件与 API 不在同一
-主机的源另有一个文件主机的覆盖项：`FASTPAPER_ARXIV_PDF_URL`、`FASTPAPER_BIORXIV_DL_URL`、
+主机的源另有一个文件主机的覆盖项：`FASTPAPER_ARXIV_PDF_URL`、
 `FASTPAPER_PMC_DL_URL`（指向 AWS Open Data 上的 PMC Cloud Service，不是文章页）。
 
 有一个覆盖项不符合这个模式，因为它不是数据源：`FASTPAPER_IDCONV_URL` 指向 NCBI 的

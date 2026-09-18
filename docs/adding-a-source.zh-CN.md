@@ -60,7 +60,7 @@ pub fn search(base_url: &str, q: &SearchQuery) -> Result<Vec<Paper>, String>
 - 若接口分页,则串行分页;拿够 `max_results`、遇到空页或出错即停;返回前截断。
 - 把 HTTP 状态映射为可区分的可读错误(403 被拦截 / 429 限频 / 其他)。
 
-用 mockito(同步)测试:请求路径与参数、必需请求头、第二页分页、满足 `max_results` 后提前停止、每种错误状态。*arxiv 实例:*`tests/cli.rs` 里 15 个测试。arXiv 自己是单请求翻页(`start` / `max_results`);要看串行翻页去读 `biorxiv` / `medrxiv`,只有这两个源真的这么做。
+用 mockito(同步)测试:请求路径与参数、必需请求头、第二页分页、满足 `max_results` 后提前停止、每种错误状态。*arxiv 实例:*`tests/cli.rs` 里 15 个测试。arXiv 自己是单请求翻页(`start` / `max_results`);要看串行翻页去读 `ntrs`,它的接口忽略一切页大小参数、恒 10 条/页。
 
 ## Step 4 — 接线 CLI
 

@@ -1,6 +1,6 @@
 ---
 name: fastpaper
-description: Use when the user asks to find academic papers or patents, survey a literature, look up a paper by DOI, arXiv id, PMID or PMC id, trace who cites what, get a paper's PDF, fetch its original figure files, or read one. Covers 23 sources — arXiv, PubMed, PMC, Europe PMC, bioRxiv, medRxiv, OSF Preprints, Semantic Scholar, OpenAlex, Crossref, DataCite, DBLP, CORE, OpenAIRE, DOAJ, HAL, Zenodo, Unpaywall, INSPIRE-HEP, zbMATH Open, ERIC, OSTI.GOV, NASA NTRS.
+description: Use when the user asks to find academic papers or patents, survey a literature, look up a paper by DOI, arXiv id, PMID or PMC id, trace who cites what, get a paper's PDF, fetch its original figure files, or read one. Covers 21 sources — arXiv, PubMed, PMC, Europe PMC (including bioRxiv / medRxiv preprints), OSF Preprints, Semantic Scholar, OpenAlex, Crossref, DataCite, DBLP, CORE, OpenAIRE, DOAJ, HAL, Zenodo, Unpaywall, INSPIRE-HEP, zbMATH Open, ERIC, OSTI.GOV, NASA NTRS.
 ---
 
 # fastpaper
@@ -126,7 +126,7 @@ run these commands with `2>/dev/null`, or an exit code is all you get back:
 | `--sort relevance\|date` + `--order asc\|desc` | ordering — not every source accepts `--sort`; those that do not raise an explicit error |
 | `--sort citations` | **only `europepmc`, `semantic`, `crossref`, `openalex`, `openaire`, `inspire` have citation counts to sort on**, and that is the whole list; the rest either raise an explicit error (`arxiv`, `pubmed`, `pmc`, `zenodo`, `hal`, `osf`, `osti`) or do not take `--sort` at all. When in doubt run `fastpaper sources --capabilities`, whose Notes spell it out per source |
 | `--year <YYYY>` · `--after <YYYY-MM-DD>` · `--before <YYYY-MM-DD>` | dates |
-| `--author "<name>"` | author — *not* on `semantic`, `dblp`, `biorxiv`, `medrxiv`, `osf`, `eric`, `osti`, `ntrs`, `datacite`; put the name in the query there |
+| `--author "<name>"` | author — *not* on `semantic`, `dblp`, `osf`, `eric`, `osti`, `ntrs`, `datacite`; put the name in the query there |
 | `--field <code>` | subject/category — takes a *source-specific code*, see below |
 | `--open-access` | OA only |
 | `--patents` | **patents only** (europepmc) |
@@ -178,7 +178,7 @@ only option.
 | Math · physics · stats · quant bio/fin/econ | `arxiv` (`math.*` `physics.*` `stat.*` `q-bio.*` `q-fin.*` `econ.*` `eess.*`) | `openalex` `core` `hal` |
 | Mathematics (published record) | `zbmath` (MSC classes + reviews, 1868 onwards) | `crossref` `openalex` |
 | High-energy physics | `inspire` (surest citation counts; `--sort citations` works) | `arxiv` `openalex` |
-| Biomedicine · clinical | `pubmed` `pmc` `europepmc` `biorxiv` `medrxiv` | `semantic` `openalex` |
+| Biomedicine · clinical | `pubmed` `pmc` `europepmc` (bioRxiv / medRxiv preprints go through it too, see below) | `semantic` `openalex` |
 | Chemistry · materials · engineering | — | `openalex` `semantic` `crossref` `core` |
 | Earth · environment · agriculture | `europepmc 'SRC:AGR'` (Agricola) | `openalex` `core` `doaj` |
 | Humanities · social science | — | `openalex` `core` `doaj` `hal` (strong on French/European work) |
@@ -225,8 +225,6 @@ Report the URL to the user instead; exit is `1`, not `4`.
 | `pubmed` | — | — | — | **biomedicine**, 35M+ records — the reference index for clinical and life-science work | abstracts only, no PDFs and no journal name; move to `pmc` or `europepmc` for either |
 | `pmc` | ✓ | — | — | **biomedical full text** (NLM) — the OA subset of what pubmed indexes | PDFs come from the OA subset only, so a pubmed hit may have no pmc record |
 | `europepmc` | ✓ | ✓ | ~ | **widest biomedical** — 45M+ abstracts, 9M+ full text, plus EPO patents, NICE guidelines, Agricola and preprints | richest query syntax here, and the only source that can threshold on citations (`CITED:[N TO *]`). Relevance-ranked hits are mostly uncited, so sort or threshold explicitly when you want impact |
-| `biorxiv` | ✓ | — | — | **life-science preprints** (CSHL), full text on all of them | **no keyword search API** — browses a date window and matches locally, so `--after`/`--before` decide what is even searched |
-| `medrxiv` | — | — | — | **medical / health preprints** (CSHL) | same date-window search as biorxiv, and its PDFs are blocked (403) — take the DOI elsewhere |
 | `semantic` | ✓ | — | ✓ | **cross-discipline**, and the surest citation counts here — the basis for any ranking by impact | throttles hard without `SEMANTIC_SCHOLAR_API_KEY`. Carries a DOI on most hits and a PDF on about half |
 | `openalex` | — | — | ✓ | **cross-discipline**, 200M+ works | `--field` takes a concept ID (`C154945302`), not a name. Rarely carries a PDF link — good for finding and ranking, not for fetching. Relevance drifts on title lookups |
 | `crossref` | — | — | ✓ | **cross-discipline** DOI registry — the best title→DOI lookup here | registered metadata only: no PDFs, no OA status, and an abstract on few hits. Use it to resolve, then go elsewhere for content |
@@ -260,7 +258,7 @@ Most content-type distinctions are not actionable. These are:
 |---|---|
 | **Patents only** | `--patents` on `europepmc` |
 | **Chinese journals** | **fastpaper does not cover Chinese journals.** Europe PMC's `LANG:chi` is only the English bibliographic records of the few Chinese journals MEDLINE indexes (titles are English translations in square brackets); `SRC:CBA` (Chinese Biological Abstracts) holds some 140k records from 2000–2007 only and stopped long ago. Neither counts as a Chinese journal search, and finding nothing here **does not** mean the Chinese literature has nothing. Leave Chinese journals to the caller's other channels (they need a browser and are outside this CLI) |
-| **Preprints** | `arxiv`, `biorxiv`, `medrxiv`, or `europepmc 'SRC:PPR'` |
+| **Preprints** | `arxiv`; bioRxiv / medRxiv via `europepmc '<terms> AND SRC:PPR AND PUBLISHER:"bioRxiv"'` (or `"medRxiv"`), other preprint servers via `europepmc 'SRC:PPR'`. Europe PMC holds nearly every preprint from both servers, though the newest few days may not be in yet. Filter on `PUBLISHER`, not a DOI prefix — new bioRxiv preprints use `10.64898/`. The CLI no longer has separate `biorxiv` / `medrxiv` sources: their API cannot search by keyword, so one search paged a date window for a minute or more |
 | **Clinical guidelines** | `europepmc 'SRC:CTX'` (NICE) |
 
 `--patents` means patents only: with the flag you get patents, without it none,
@@ -284,7 +282,7 @@ arXiv categories for `--field`: `cs.CL` `cs.LG` `cs.CV` `cs.AI` `cs.RO`,
 your query through verbatim**, so their own field syntax works:
 
 - `pubmed` / `pmc`: `[pt]` publication type · `[mh]` MeSH · `[tiab]` title/abstract · `[au]` author · `[dp]` date
-- `europepmc`: `CITED:[N TO *]` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `SRC:` subsets (`PPR` preprints, `CTX` NICE guidelines, `AGR` Agricola, `CBA` Chinese Biological Abstracts (2000–2007 only, discontinued), `MED`, `PMC`)
+- `europepmc`: `CITED:[N TO *]` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `PUBLISHER:` (preprint server, e.g. `"bioRxiv"`) · `SRC:` subsets (`PPR` preprints, `CTX` NICE guidelines, `AGR` Agricola, `CBA` Chinese Biological Abstracts (2000–2007 only, discontinued), `MED`, `PMC`)
 - `doaj`: Lucene on `bibjson.*` · `zenodo`: Elasticsearch · `hal`: Solr · `dblp`: `year:` `author:` `venue:`
 
 **`crossref`, `openalex`, `semantic` are free-text only** —

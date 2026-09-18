@@ -15,8 +15,6 @@ use crate::sources::{self, Capabilities, Direction, FieldCaps, Paper, SearchCaps
 #[derive(ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Source {
     Arxiv,
-    Biorxiv,
-    Medrxiv,
     Pubmed,
     Pmc,
     Europepmc,
@@ -42,8 +40,6 @@ pub enum Source {
 /// Every source, in the order `fastpaper sources` lists them.
 pub const ALL: &[Source] = &[
     Source::Arxiv,
-    Source::Biorxiv,
-    Source::Medrxiv,
     Source::Pubmed,
     Source::Pmc,
     Source::Europepmc,
@@ -76,6 +72,28 @@ pub fn sources_supporting(flag: &str) -> Vec<&'static str> {
         .filter(|s| s.caps().search.is_some_and(|caps| caps.supports(flag)))
         .map(|s| s.name())
         .collect()
+}
+
+/// Where a caller still naming a removed source should go instead.
+///
+/// bioRxiv and medRxiv share an API with no keyword search: every search paged
+/// a date window for a minute or more and matched the whole query as one
+/// phrase, so an empty result meant nothing. Europe PMC indexes both servers
+/// with real search. A bare "invalid value" would leave the caller to guess.
+pub fn retired(name: &str) -> Option<String> {
+    let server = match name {
+        "biorxiv" => "bioRxiv",
+        "medrxiv" => "medRxiv",
+        _ => return None,
+    };
+    Some(format!(
+        "{name} was removed: its API cannot search by keyword, so every search paged a \
+         date window for a minute or more.\n\
+         Search {server} preprints through Europe PMC, which indexes them with real search:\n  \
+         fastpaper search europepmc '<query> AND SRC:PPR AND PUBLISHER:\"{server}\"'\n\
+         The newest few days of preprints may not be indexed there yet.\n\
+         For one preprint by DOI: fastpaper get <DOI>"
+    ))
 }
 
 pub struct SourceEntry {
@@ -144,8 +162,6 @@ impl Source {
     pub fn entry(&self) -> &'static SourceEntry {
         match self {
             Source::Arxiv => &ARXIV,
-            Source::Biorxiv => &BIORXIV,
-            Source::Medrxiv => &MEDRXIV,
             Source::Pubmed => &PUBMED,
             Source::Pmc => &PMC,
             Source::Europepmc => &EUROPEPMC,
@@ -210,73 +226,6 @@ static ARXIV: SourceEntry = SourceEntry {
     pdf: Some(download::pdf_bytes_arxiv),
     cite: None,
     figures: Some(sources::arxiv::figures),
-};
-
-static BIORXIV: SourceEntry = SourceEntry {
-    name: "biorxiv",
-    caps: Capabilities {
-        search: Some(SearchCaps {
-            offset: true,
-            sort: false,
-            year: true,
-            date_range: true,
-            author: false,
-            field: false,
-            // Every preprint here is freely readable.
-            open_access: true,
-            patents: false,
-        }),
-        get: true,
-        download: true,
-        cite: false,
-        max_limit: None,
-        fields: FieldCaps::OPEN_FILES,
-        notes: "no keyword search API: browses a date window and matches the \
-                keyword locally, so --after/--before/--year decide what is searched",
-    },
-    env_var: "FASTPAPER_BIORXIV_URL",
-    default_base: "https://api.biorxiv.org",
-    pdf_env_var: Some("FASTPAPER_BIORXIV_DL_URL"),
-    pdf_default_base: Some("https://www.biorxiv.org"),
-    search: Some(sources::biorxiv::search),
-    get: Some(sources::biorxiv::get_by_id),
-    pdf: Some(download::pdf_bytes_biorxiv),
-    cite: None,
-    figures: None,
-};
-
-static MEDRXIV: SourceEntry = SourceEntry {
-    name: "medrxiv",
-    caps: Capabilities {
-        search: Some(SearchCaps {
-            offset: true,
-            sort: false,
-            year: true,
-            date_range: true,
-            author: false,
-            field: false,
-            // Every preprint here is freely readable.
-            open_access: true,
-            patents: false,
-        }),
-        get: true,
-        download: false,
-        cite: false,
-        max_limit: None,
-        fields: FieldCaps::OPEN_FILES,
-        notes: "no keyword search API: browses a date window and matches the \
-                keyword locally, so --after/--before/--year decide what is \
-                searched; PDF downloads are blocked by medRxiv (HTTP 403)",
-    },
-    env_var: "FASTPAPER_MEDRXIV_URL",
-    default_base: "https://api.biorxiv.org",
-    pdf_env_var: Some("FASTPAPER_MEDRXIV_DL_URL"),
-    pdf_default_base: Some("https://www.medrxiv.org"),
-    search: Some(sources::medrxiv::search),
-    get: Some(sources::medrxiv::get_by_id),
-    pdf: None,
-    cite: None,
-    figures: None,
 };
 
 static PUBMED: SourceEntry = SourceEntry {
@@ -1148,5 +1097,22 @@ mod tests {
         assert_eq!(Source::Arxiv.pdf_base_url(), "http://files.test");
         unsafe { std::env::remove_var("FASTPAPER_ARXIV_URL") };
         unsafe { std::env::remove_var("FASTPAPER_ARXIV_PDF_URL") };
+    }
+
+    // A name is either a live source or a redirect, never both.
+    #[test]
+    fn no_live_source_is_also_retired() {
+        for s in ALL {
+            assert!(retired(s.name()).is_none(), "{} is live", s.name());
+        }
+    }
+
+    #[test]
+    fn a_retired_preprint_server_names_its_europepmc_filter() {
+        assert!(
+            retired("medrxiv")
+                .unwrap()
+                .contains(r#"PUBLISHER:"medRxiv""#)
+        );
     }
 }

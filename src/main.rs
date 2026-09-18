@@ -1,10 +1,12 @@
 use clap::Parser;
+use clap::error::{ContextKind, ContextValue, ErrorKind};
 
 use fastpaper::cli;
 use fastpaper::commands::{self, CommandError, CommandResult};
+use fastpaper::registry;
 
 fn main() {
-    let cli = cli::Cli::parse();
+    let cli = cli::Cli::try_parse().unwrap_or_else(|err| exit_on_parse_error(err));
 
     let result: CommandResult = match &cli.command {
         cli::Commands::Search(args) => commands::search::run(args, &cli.global),
@@ -34,4 +36,18 @@ fn main() {
         eprintln!("{}{}", prefix, err.message());
         std::process::exit(err.exit_code());
     }
+}
+
+/// Let clap report a bad command line, adding the way on when the rejected
+/// value names a source that was removed. clap's list of valid names says what
+/// exists now, not where the caller's search went.
+fn exit_on_parse_error(err: clap::Error) -> ! {
+    if err.kind() == ErrorKind::InvalidValue
+        && let Some(ContextValue::String(value)) = err.get(ContextKind::InvalidValue)
+        && let Some(hint) = registry::retired(value)
+    {
+        eprintln!("error: {}", hint);
+        std::process::exit(err.exit_code());
+    }
+    err.exit()
 }

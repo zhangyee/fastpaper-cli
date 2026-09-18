@@ -60,7 +60,7 @@ Rules:
 - If the API pages, paginate serially; stop when you have `max_results`, the page is empty, or an error occurs; truncate before returning.
 - Map HTTP statuses to distinct, human-readable errors (403 blocked / 429 rate-limited / others).
 
-Test with mockito (synchronous): request path and parameters, required headers, second-page pagination, early stop when `max_results` is satisfied, and each error status. *arxiv example:* 15 tests in `tests/cli.rs`. arXiv itself pages in a single request via `start` / `max_results`; for serial paging read `biorxiv` / `medrxiv`, the only two sources that do it.
+Test with mockito (synchronous): request path and parameters, required headers, second-page pagination, early stop when `max_results` is satisfied, and each error status. *arxiv example:* 15 tests in `tests/cli.rs`. arXiv itself pages in a single request via `start` / `max_results`; for serial paging read `ntrs`, whose API ignores every page-size parameter and returns 10 per page.
 
 ## Step 4 — Wire the CLI
 

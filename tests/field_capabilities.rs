@@ -30,12 +30,6 @@ fn papers(source: Source) -> Vec<Paper> {
     let f = fixture;
     match source {
         Source::Arxiv => sources::arxiv::parse_search_response(&f("arxiv_search.xml")).unwrap(),
-        Source::Biorxiv => {
-            sources::biorxiv::parse_search_response(&f("biorxiv_search.json")).unwrap()
-        }
-        Source::Medrxiv => {
-            sources::medrxiv::parse_search_response(&f("medrxiv_search.json")).unwrap()
-        }
         Source::Pubmed => sources::pubmed::parse_efetch_response(&f("pubmed_efetch.xml")).unwrap(),
         Source::Pmc => sources::pmc::parse_efetch_response(&f("pmc_efetch.xml")).unwrap(),
         Source::Europepmc => {

@@ -1,6 +1,6 @@
 ---
 name: fastpaper
-description: 当用户要查找学术论文或专利、做文献调研、按 DOI / arXiv id / PMID / PMC id 查某篇论文、追踪谁引用了谁、获取论文 PDF、抓取论文原始图片文件,或阅读论文时使用。覆盖 23 个来源 —— arXiv、PubMed、PMC、Europe PMC、bioRxiv、medRxiv、OSF Preprints、Semantic Scholar、OpenAlex、Crossref、DataCite、DBLP、CORE、OpenAIRE、DOAJ、HAL、Zenodo、Unpaywall、INSPIRE-HEP、zbMATH Open、ERIC、OSTI.GOV、NASA NTRS。
+description: 当用户要查找学术论文或专利、做文献调研、按 DOI / arXiv id / PMID / PMC id 查某篇论文、追踪谁引用了谁、获取论文 PDF、抓取论文原始图片文件,或阅读论文时使用。覆盖 21 个来源 —— arXiv、PubMed、PMC、Europe PMC(含 bioRxiv / medRxiv 预印本)、OSF Preprints、Semantic Scholar、OpenAlex、Crossref、DataCite、DBLP、CORE、OpenAIRE、DOAJ、HAL、Zenodo、Unpaywall、INSPIRE-HEP、zbMATH Open、ERIC、OSTI.GOV、NASA NTRS。
 ---
 
 # fastpaper
@@ -110,7 +110,7 @@ fastpaper read papers/<id>.pdf --max-length 3000
 | `--sort relevance\|date` + `--order asc\|desc` | 排序 —— 并非所有来源都接 `--sort`,不接的会明确报错 |
 | `--sort citations` | **只有 `europepmc`、`semantic`、`crossref`、`openalex`、`openaire`、`inspire` 有引用数可排**,这就是完整清单;其余来源要么明确报错(`arxiv`、`pubmed`、`pmc`、`zenodo`、`hal`、`osf`、`osti`),要么根本不接 `--sort`。拿不准就跑一次 `fastpaper sources --capabilities`,Notes 段落逐来源写明 |
 | `--year <YYYY>` · `--after <YYYY-MM-DD>` · `--before <YYYY-MM-DD>` | 日期 |
-| `--author "<name>"` | 作者 —— `semantic`、`dblp`、`biorxiv`、`medrxiv`、`osf`、`eric`、`osti`、`ntrs`、`datacite` 上*没有*这个参数;在这些来源上把人名写进 query |
+| `--author "<name>"` | 作者 —— `semantic`、`dblp`、`osf`、`eric`、`osti`、`ntrs`、`datacite` 上*没有*这个参数;在这些来源上把人名写进 query |
 | `--field <code>` | 学科/分类 —— 取的是*各来源自己的代码*,见下文 |
 | `--open-access` | 只要开放获取的 |
 | `--patents` | **只要专利**(europepmc) |
@@ -159,7 +159,7 @@ OA 全文命中率最高(`core`)—— 所以它们不是排在专门来源后�
 | 数学 · 物理 · 统计 · 量化生物/金融/经济 | `arxiv`(`math.*` `physics.*` `stat.*` `q-bio.*` `q-fin.*` `econ.*` `eess.*`) | `openalex` `core` `hal` |
 | 数学(已发表文献) | `zbmath`(MSC 分类 + 评论,1868 年至今) | `crossref` `openalex` |
 | 高能物理 | `inspire`(引用数最可靠,可 `--sort citations`) | `arxiv` `openalex` |
-| 生物医学 · 临床 | `pubmed` `pmc` `europepmc` `biorxiv` `medrxiv` | `semantic` `openalex` |
+| 生物医学 · 临床 | `pubmed` `pmc` `europepmc`(bioRxiv / medRxiv 预印本也走它,见下文) | `semantic` `openalex` |
 | 化学 · 材料 · 工程 | — | `openalex` `semantic` `crossref` `core` |
 | 地球 · 环境 · 农业 | `europepmc 'SRC:AGR'`(Agricola) | `openalex` `core` `doaj` |
 | 人文 · 社会科学 | — | `openalex` `core` `doaj` `hal`(法语/欧洲研究上很强) |
@@ -202,8 +202,6 @@ block here -- they look the same from outside. ...
 | `pubmed` | — | — | — | **生物医学**,35M+ 条记录 —— 临床和生命科学工作的基准索引 | 只有摘要,没有 PDF 也没有期刊名;要这两样就转到 `pmc` 或 `europepmc` |
 | `pmc` | ✓ | — | — | **生物医学全文**(NLM)—— pubmed 所索引内容里的 OA 子集 | PDF 只来自 OA 子集,所以一条 pubmed 命中可能根本没有对应的 pmc 记录 |
 | `europepmc` | ✓ | ✓ | ~ | **生物医学里覆盖最广的** —— 45M+ 摘要、9M+ 全文,外加 EPO 专利、NICE 指南、Agricola 和预印本 | query 语法在这里最丰富,而且它是唯一能按引用数设阈值的来源(`CITED:[N TO *]`)。按相关度排出来的命中大多没被引用过,想看影响力就显式排序或设阈值 |
-| `biorxiv` | ✓ | — | — | **生命科学预印本**(CSHL),每一篇都有全文 | **没有关键词搜索 API** —— 它是浏览一个日期窗口然后在本地匹配,所以 `--after`/`--before` 决定了到底在搜什么 |
-| `medrxiv` | — | — | — | **医学 / 健康预印本**(CSHL) | 和 biorxiv 一样是日期窗口搜索,而且它的 PDF 被拦(403)—— 拿 DOI 去别处 |
 | `semantic` | ✓ | — | ✓ | **跨学科**,而且引用数在这里最靠得住 —— 任何按影响力排序的基础 | 没有 `SEMANTIC_SCHOLAR_API_KEY` 会被限流得很厉害。大多数命中带 DOI,大约一半带 PDF |
 | `openalex` | — | — | ✓ | **跨学科**,200M+ 作品 | `--field` 取的是概念 ID(`C154945302`),不是名字。很少带 PDF 链接 —— 适合找和排序,不适合抓文件。标题查找时相关度会飘 |
 | `crossref` | — | — | ✓ | **跨学科** DOI 注册库 —— 这里最好的 title→DOI 查找 | 只有注册的元数据:没有 PDF,没有 OA 状态,带摘要的命中也很少。用它来解析,然后去别处取内容 |
@@ -235,7 +233,7 @@ JSON 去排**:看起来像是排出来了,实际上悄悄把被引多的论文�
 |---|---|
 | **只要专利** | 在 `europepmc` 上加 `--patents` |
 | **中文期刊** | **fastpaper 不覆盖中文期刊。** Europe PMC 的 `LANG:chi` 只是被 MEDLINE 收录的少数中文刊的英文题录(题名是方括号里的英译);`SRC:CBA`(中国生物医学文摘)只有 2000–2007 年的约 14 万条,早已停更。两者都**不算**中文期刊检索,在这里查不到**不能**推出"中文文献里没有"。中文期刊交给调用方的其他渠道(要用浏览器,不在本 CLI 范围内) |
-| **预印本** | `arxiv`、`biorxiv`、`medrxiv`,或者 `europepmc 'SRC:PPR'` |
+| **预印本** | `arxiv`;bioRxiv / medRxiv 用 `europepmc '<词> AND SRC:PPR AND PUBLISHER:"bioRxiv"'`(或 `"medRxiv"`),其他预印本服务器用 `europepmc 'SRC:PPR'`。Europe PMC 收了这两个服务器几乎全部预印本,但最新几天的可能还没进来。要按 `PUBLISHER` 过滤,不要按 DOI 前缀 —— bioRxiv 新稿已改用 `10.64898/` 前缀。CLI 已不再单独提供 `biorxiv` / `medrxiv` 来源:它们的接口不能按关键词检索,一次检索要翻一分钟以上的日期窗口 |
 | **临床指南** | `europepmc 'SRC:CTX'`(NICE) |
 
 `--patents` 的意思是只要专利:加了这个 flag 就只有专利,不加就一篇专利都没有,
@@ -258,7 +256,7 @@ JSON 去排**:看起来像是排出来了,实际上悄悄把被引多的论文�
 query 原样透传**,所以它们自己的字段语法是能用的:
 
 - `pubmed` / `pmc`:`[pt]` 文献类型 · `[mh]` MeSH · `[tiab]` 标题/摘要 · `[au]` 作者 · `[dp]` 日期
-- `europepmc`:`CITED:[N TO *]` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `SRC:` 子集(`PPR` 预印本、`CTX` NICE 指南、`AGR` Agricola、`CBA` 中国生物医学文摘(仅 2000–2007,已停更)、`MED`、`PMC`)
+- `europepmc`:`CITED:[N TO *]` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `PUBLISHER:`(预印本服务器,如 `"bioRxiv"`) · `SRC:` 子集(`PPR` 预印本、`CTX` NICE 指南、`AGR` Agricola、`CBA` 中国生物医学文摘(仅 2000–2007,已停更)、`MED`、`PMC`)
 - `doaj`:在 `bibjson.*` 上用 Lucene · `zenodo`:Elasticsearch · `hal`:Solr · `dblp`:`year:` `author:` `venue:`
 
 **`crossref`、`openalex`、`semantic` 只接受自由文本** ——

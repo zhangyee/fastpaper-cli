@@ -320,30 +320,6 @@ pub fn pdf_bytes_arxiv(
     sources::arxiv::download_pdf(base_url, identifier, limit)
 }
 
-/// Fetch bioRxiv PDF bytes.
-pub fn pdf_bytes_biorxiv(
-    base_url: &str,
-    identifier: &str,
-    limit: u64,
-) -> Result<Vec<u8>, FetchError> {
-    fetch_pdf(
-        &format!("{}/content/{}v1.full.pdf", base_url, identifier),
-        limit,
-    )
-}
-
-/// Fetch medRxiv PDF bytes.
-pub fn pdf_bytes_medrxiv(
-    base_url: &str,
-    identifier: &str,
-    limit: u64,
-) -> Result<Vec<u8>, FetchError> {
-    fetch_pdf(
-        &format!("{}/content/{}v1.full.pdf", base_url, identifier),
-        limit,
-    )
-}
-
 /// Fetch PMC PDF bytes from the PMC Cloud Service.
 ///
 /// The article page's `/pdf/` URL is not usable programmatically: it answers
@@ -908,44 +884,6 @@ mod tests {
     }
 
     // ── additional source download tests ────────
-
-    #[test]
-    fn biorxiv_pdf_saves_file() {
-        let mut server = mockito::Server::new();
-        server
-            .mock(
-                "GET",
-                mockito::Matcher::Regex("content.*full.pdf".to_string()),
-            )
-            .with_status(200)
-            .with_body(b"%PDF-1.4 biorxiv".as_slice())
-            .create();
-        let dir = temp_dir();
-        let bytes =
-            pdf_bytes_biorxiv(&server.url(), "10.1101/2024.01.01.574894", 10 * MIB).unwrap();
-        let path = save_pdf(&bytes, &dir, "10.1101/2024.01.01.574894", false).unwrap();
-        assert!(path.exists());
-        let _ = fs::remove_dir_all(&dir);
-    }
-
-    #[test]
-    fn medrxiv_pdf_saves_file() {
-        let mut server = mockito::Server::new();
-        server
-            .mock(
-                "GET",
-                mockito::Matcher::Regex("content.*full.pdf".to_string()),
-            )
-            .with_status(200)
-            .with_body(b"%PDF-1.4 medrxiv".as_slice())
-            .create();
-        let dir = temp_dir();
-        let bytes =
-            pdf_bytes_medrxiv(&server.url(), "10.1101/2024.01.01.123456", 10 * MIB).unwrap();
-        let path = save_pdf(&bytes, &dir, "10.1101/2024.01.01.123456", false).unwrap();
-        assert!(path.exists());
-        let _ = fs::remove_dir_all(&dir);
-    }
 
     // Two steps now: list the article's prefix to learn the version, then
     // fetch the .pdf object.

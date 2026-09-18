@@ -143,11 +143,11 @@ mod tests {
     }
 
     #[test]
-    fn capabilities_view_surfaces_the_biorxiv_caveat() {
+    fn capabilities_view_surfaces_the_arxiv_caveat() {
         let out = render(true);
         assert!(
-            out.contains("no keyword search API"),
-            "biorxiv's local-filtering caveat should be visible"
+            out.contains("--sort citations is unavailable"),
+            "arxiv's citation-sort caveat should be visible"
         );
     }
 

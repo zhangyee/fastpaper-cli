@@ -326,7 +326,7 @@ mod tests {
     #[test]
     fn limit_is_unchecked_when_the_source_has_no_cap() {
         let q = SearchQuery::simple("attention", 100_000);
-        assert!(check_limit(&q, None, "biorxiv").is_ok());
+        assert!(check_limit(&q, None, "osti").is_ok());
     }
 
     #[test]

@@ -1,5 +1,4 @@
 pub mod arxiv;
-pub mod biorxiv;
 pub mod core;
 pub mod crossref;
 pub mod datacite;
@@ -9,7 +8,6 @@ pub mod eric;
 pub mod europepmc;
 pub mod hal;
 pub mod inspire;
-pub mod medrxiv;
 pub mod ntrs;
 pub mod openaire;
 pub mod openalex;
