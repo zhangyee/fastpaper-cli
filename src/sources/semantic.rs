@@ -709,7 +709,11 @@ mod tests {
             .mock("GET", mockito::Matcher::Any)
             .match_header(
                 "user-agent",
-                mockito::Matcher::Regex(r"^fastpaper-cli/\d+\.\d+\.\d+ \(\+https://".to_string()),
+                // A release candidate (0.9.0-rc.1) is as valid a version as 0.9.0.
+                mockito::Matcher::Regex(
+                    r"^fastpaper-cli/\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)? \(\+https://"
+                        .to_string(),
+                ),
             )
             .with_status(200)
             .with_body(FIXTURE)
