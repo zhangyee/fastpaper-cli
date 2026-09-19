@@ -568,7 +568,7 @@ fn fetch_ads_route(
                 Ok(bytes) => return Ok(bytes),
                 Err(e) => {
                     let rendering = matches!(&e, FetchError::Failed(m)
-                        if m.contains("504") || m.contains("no data received"));
+                        if m.contains("http status: 504") || m.contains("no data received"));
                     last = e;
                     if !rendering {
                         break;
@@ -1296,6 +1296,30 @@ mod tests {
         let err = fetch_ads_route(
             &server.url(),
             "1979A&A....75..228L",
+            &["ADS_PDF"],
+            u64::MAX,
+            std::time::Duration::ZERO,
+        )
+        .unwrap_err();
+        assert!(matches!(err, FetchError::Failed(_)), "got: {:?}", err);
+        m.assert();
+    }
+
+    // A 403 refusal is not a rendering-in-progress 504, even when the
+    // bibcode embedded in the refusal message (which quotes the request URL)
+    // happens to contain the digits "504" -- matching on the bare substring
+    // would misclassify this as retryable.
+    #[test]
+    fn a_refusal_naming_a_bibcode_that_contains_504_is_not_retried() {
+        let mut server = mockito::Server::new();
+        let m = server
+            .mock("GET", "/1998ApJ...504..123X/ADS_PDF")
+            .with_status(403)
+            .expect(1)
+            .create();
+        let err = fetch_ads_route(
+            &server.url(),
+            "1998ApJ...504..123X",
             &["ADS_PDF"],
             u64::MAX,
             std::time::Duration::ZERO,
