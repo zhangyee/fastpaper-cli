@@ -1,0 +1,570 @@
+[
+  {
+    "paper": {
+      "id": "2608.09888",
+      "authors": [
+        {
+          "_id": "6a7af16fb7183653340c11cd",
+          "user": {
+            "_id": "66d17d0d2fa8a088dc6992b3",
+            "avatarUrl": "/avatars/0aeb72e86b49d85db5577b507751147a.svg",
+            "isPro": false,
+            "fullname": "Björn Engdahl",
+            "user": "bjornengdahl",
+            "type": "user",
+            "name": "bjornengdahl"
+          },
+          "name": "Björn Engdahl",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-08-11T16:45:04.704Z",
+          "hidden": false
+        },
+        {
+          "_id": "6a7af16fb7183653340c11ce",
+          "user": {
+            "_id": "63a48fe7658851481f766a24",
+            "avatarUrl": "/avatars/4d1738e80fd7677a81197fb158ba8c44.svg",
+            "isPro": false,
+            "fullname": "Adrian Kosowski",
+            "user": "dxtrous",
+            "type": "user",
+            "name": "dxtrous"
+          },
+          "name": "Adrian Kosowski",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-08-12T00:45:04.441Z",
+          "hidden": false
+        },
+        {
+          "_id": "6a7af16fb7183653340c11cf",
+          "user": {
+            "_id": "651310e3b7994cff61d71320",
+            "avatarUrl": "/avatars/161cb412c7cb284fa7483e790807e4d3.svg",
+            "isPro": false,
+            "fullname": "Jan Chorowski",
+            "user": "janchorowski",
+            "type": "user",
+            "name": "janchorowski"
+          },
+          "name": "Jan Chorowski",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-08-11T16:45:04.695Z",
+          "hidden": false
+        },
+        {
+          "_id": "6a7af16fb7183653340c11d0",
+          "user": {
+            "_id": "68dd50bb9d2cc46fef645799",
+            "avatarUrl": "/avatars/699f84aa771851854a4201cb1df3543b.svg",
+            "isPro": false,
+            "fullname": "Zuzanna Stamirowska",
+            "user": "Brain-synapse",
+            "type": "user",
+            "name": "Brain-synapse"
+          },
+          "name": "Zuzanna Stamirowska",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-08-11T16:45:04.700Z",
+          "hidden": false
+        },
+        {
+          "_id": "6a7af16fb7183653340c11d1",
+          "name": "Przemysław Uznański",
+          "hidden": false
+        },
+        {
+          "_id": "6a7af16fb7183653340c11d2",
+          "name": "Junlin Jiang",
+          "hidden": false
+        },
+        {
+          "_id": "6a7af16fb7183653340c11d3",
+          "user": {
+            "_id": "63924fd62bfa48413aa0caec",
+            "avatarUrl": "/avatars/9ebf245b9ca187a213a2b15f7853ea08.svg",
+            "isPro": false,
+            "fullname": "Rohan Phadke",
+            "user": "rohanphadke",
+            "type": "user",
+            "name": "rohanphadke"
+          },
+          "name": "Rohan Phadke",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-08-12T00:45:04.516Z",
+          "hidden": false
+        },
+        {
+          "_id": "6a7af16fb7183653340c11d4",
+          "user": {
+            "_id": "61786d0b038518aa2827c6b7",
+            "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/61786d0b038518aa2827c6b7/d1UnfivoVreYebS5JM3P9.jpeg",
+            "isPro": false,
+            "fullname": "Remek Kinas",
+            "user": "Remek",
+            "type": "user",
+            "name": "Remek"
+          },
+          "name": "Remigiusz Kinas",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-08-21T13:14:47.826Z",
+          "hidden": false
+        },
+        {
+          "_id": "6a7af16fb7183653340c11d5",
+          "user": {
+            "_id": "67f9669837a74b52e3789326",
+            "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/no-auth/8pKQWDFb56H6LN1YZnhTc.png",
+            "isPro": false,
+            "fullname": "Richard Z",
+            "user": "chardizard",
+            "type": "user",
+            "name": "chardizard"
+          },
+          "name": "Richard Zhong",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-08-21T13:14:49.752Z",
+          "hidden": false
+        }
+      ],
+      "publishedAt": "2026-08-10T00:00:00.000Z",
+      "submittedOnDailyAt": "2026-08-11T00:00:00.000Z",
+      "title": "BDH-CQ: In-Context Learning with Recurrent Latent Reasoning",
+      "submittedOnDailyBy": {
+        "_id": "651310e3b7994cff61d71320",
+        "avatarUrl": "/avatars/161cb412c7cb284fa7483e790807e4d3.svg",
+        "isPro": false,
+        "fullname": "Jan Chorowski",
+        "user": "janchorowski",
+        "type": "user",
+        "name": "janchorowski"
+      },
+      "summary": "We introduce BDH-CQ, a reasoning model that combines in-context learning with recurrent latent reasoning. Inputs presented at inference time continuously update the model's recurrent memory; the model then solves a query through iterative computation in a high-dimensional latent space, without verbalizing its intermediate reasoning. We evaluate the model on the public ARC-AGI-1 evaluation set and use controlled ARC-like interventions to study what it learns from demonstrations, how consistently it applies an inferred transformation, and which concepts remain difficult. A 150M-parameter configuration reaches 29.5% pass@2 at a computed inference cost of \\$0.0007 per task. This operating point breaks through the previously reported ARC-AGI-1 cost-accuracy Pareto frontier, establishing a new state of the art in benchmark cost efficiency.",
+      "upvotes": 781,
+      "discussionId": "6a7af170b7183653340c11d6",
+      "projectPage": "https://pathway.com/blog/pathway-150m-model-breaks-arc-agi-1-cost-efficiency-frontier",
+      "githubRepo": "https://github.com/pathwaycom/arc-task-gen",
+      "githubRepoAddedBy": "admin",
+      "ai_summary": "A 150M-parameter reasoning model using recurrent latent reasoning and in-context learning achieves a new cost-accuracy frontier on ARC-AGI-1.",
+      "ai_keywords": [
+        "in-context learning",
+        "recurrent latent reasoning",
+        "high-dimensional latent space",
+        "ARC-AGI-1",
+        "cost-accuracy Pareto frontier"
+      ],
+      "ai_summary_model": "thinkingmachines/Inkling-Small",
+      "githubStars": 11184,
+      "organization": {
+        "_id": "6697b1a8b981e21b48bc575f",
+        "name": "pathwaycom",
+        "fullname": "Pathway",
+        "avatar": "https://cdn-avatars.huggingface.co/v1/production/uploads/6697aead07b36ccd016f0888/nOEvf0HpKBQJcVDfljgAc.png"
+      }
+    },
+    "publishedAt": "2026-08-09T20:00:00.000Z",
+    "title": "BDH-CQ: In-Context Learning with Recurrent Latent Reasoning",
+    "summary": "We introduce BDH-CQ, a reasoning model that combines in-context learning with recurrent latent reasoning. Inputs presented at inference time continuously update the model's recurrent memory; the model then solves a query through iterative computation in a high-dimensional latent space, without verbalizing its intermediate reasoning. We evaluate the model on the public ARC-AGI-1 evaluation set and use controlled ARC-like interventions to study what it learns from demonstrations, how consistently it applies an inferred transformation, and which concepts remain difficult. A 150M-parameter configuration reaches 29.5% pass@2 at a computed inference cost of \\$0.0007 per task. This operating point breaks through the previously reported ARC-AGI-1 cost-accuracy Pareto frontier, establishing a new state of the art in benchmark cost efficiency.",
+    "thumbnail": "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2608.09888.png",
+    "numComments": 6,
+    "submittedBy": {
+      "_id": "651310e3b7994cff61d71320",
+      "avatarUrl": "/avatars/161cb412c7cb284fa7483e790807e4d3.svg",
+      "fullname": "Jan Chorowski",
+      "name": "janchorowski",
+      "type": "user",
+      "isPro": false,
+      "isHf": false,
+      "isHfAdmin": false,
+      "isMod": false,
+      "followerCount": 16,
+      "isUserFollowing": false
+    },
+    "organization": {
+      "_id": "6697b1a8b981e21b48bc575f",
+      "name": "pathwaycom",
+      "fullname": "Pathway",
+      "avatar": "https://cdn-avatars.huggingface.co/v1/production/uploads/6697aead07b36ccd016f0888/nOEvf0HpKBQJcVDfljgAc.png"
+    },
+    "isAuthorParticipating": true
+  },
+  {
+    "paper": {
+      "id": "2608.15089",
+      "authors": [
+        {
+          "_id": "6a848ed0536bdd3bdd48f61f",
+          "name": "Ziheng Qin",
+          "hidden": false
+        },
+        {
+          "_id": "6a848ed0536bdd3bdd48f620",
+          "name": "Yaxin Lu",
+          "hidden": false
+        },
+        {
+          "_id": "6a848ed0536bdd3bdd48f621",
+          "name": "Zhangyang Atlas Wang",
+          "hidden": false
+        },
+        {
+          "_id": "6a848ed0536bdd3bdd48f622",
+          "name": "Kai Wang",
+          "hidden": false
+        }
+      ],
+      "publishedAt": "2026-08-15T00:00:00.000Z",
+      "submittedOnDailyAt": "2026-08-18T00:00:00.000Z",
+      "title": "StateM: Reaching 95.3% Raw Accuracy, or a \\$15 Frontier Run, on Terminal-Bench 2.1 via Harness Scaling",
+      "submittedOnDailyBy": {
+        "_id": "655452b8432af1b1116394d1",
+        "avatarUrl": "/avatars/85860fb3c2d09c9c23e7677d7129cca3.svg",
+        "isPro": false,
+        "fullname": "Kai Wang",
+        "user": "VictorKai1996NUS",
+        "type": "user",
+        "name": "VictorKai1996NUS"
+      },
+      "summary": "Long-horizon agents can fail even when their underlying models can solve the constituent steps. They may lose track of mutable state, fail to reactivate lessons from earlier executions, skip known procedures, or stop prematurely. We bet on harness scaling to improve the execution system around an agent without changing its model weights. We introduce StateM, an agent-native runtime that organizes execution around durable states, phase-local context, checked transitions, recoverable runbooks, and versioned procedural practices that agents and users can inspect together.\n  On Terminal-Bench 2.1, StateM raises GPT-5.5 xhigh to 92.1\\%, versus 83.1\\% reference and GPT-5.6 Sol Ultra at 91.9\\%. The runbook transfers unchanged to GPT-5.6. With GPT-5.6 Sol xhigh, StateM reaches 95.3\\% raw accuracy across 445 trials and succeeds on all 89 tasks at least once. The frozen profile raises GPT-5.6 Luna from 76.7 to 85.4\\%, above the 84.9\\% Sol xhigh reference.\n  Using the same runtime, runbook structure, and golden rules, less than \\38 of adaptation raises DeepSeek-V4 Flash from 82.7 to 88.1% under standard timeouts and to 89.1% on an 88-task common core. Extending only the remaining latency-sensitive task matches the reported 88.8% GPT-5.6 Sol max result. Final-score API usage is about 15 versus \\574.68 for the GPT reference; total DeepSeek expenditure is 52.22.\n  On BusinessBench, family-specific runbooks built on development sets yield held-out gains of 0.55 macro and 1.34 micro points; two mechanism-matched families improve by 10.04 points. Concrete rules generalize when tasks share execution structure, while the control methodology applies broadly. StateM turns selected postmortem findings into persistent, executable preconditions and practices, making learned controls explicit and enforceable through stateful controls. Code at github.com/henryqin1997/statem.",
+      "upvotes": 447,
+      "discussionId": "6a848ed1536bdd3bdd48f623",
+      "projectPage": "https://henryqin1997.github.io/statem/",
+      "githubRepo": "https://github.com/henryqin1997/statem",
+      "githubRepoAddedBy": "user",
+      "ai_summary": "StateM is a runtime system that improves long-horizon agent execution through durable states, recoverable runbooks, and enforceable procedural controls without altering model weights.",
+      "ai_keywords": [
+        "agent-native runtime",
+        "durable states",
+        "phase-local context",
+        "checked transitions",
+        "recoverable runbooks",
+        "versioned procedural practices",
+        "StateM",
+        "Terminal-Bench",
+        "runbook transfer",
+        "frozen profile",
+        "DeepSeek-V4 Flash",
+        "BusinessBench",
+        "mechanism-matched families",
+        "stateful controls"
+      ],
+      "ai_summary_model": "thinkingmachines/Inkling-Small",
+      "githubStars": 1148
+    },
+    "publishedAt": "2026-08-14T20:00:00.000Z",
+    "title": "StateM: Reaching 95.3% Raw Accuracy, or a \\$15 Frontier Run, on Terminal-Bench 2.1 via Harness Scaling",
+    "summary": "Long-horizon agents can fail even when their underlying models can solve the constituent steps. They may lose track of mutable state, fail to reactivate lessons from earlier executions, skip known procedures, or stop prematurely. We bet on harness scaling to improve the execution system around an agent without changing its model weights. We introduce StateM, an agent-native runtime that organizes execution around durable states, phase-local context, checked transitions, recoverable runbooks, and versioned procedural practices that agents and users can inspect together.\n  On Terminal-Bench 2.1, StateM raises GPT-5.5 xhigh to 92.1\\%, versus 83.1\\% reference and GPT-5.6 Sol Ultra at 91.9\\%. The runbook transfers unchanged to GPT-5.6. With GPT-5.6 Sol xhigh, StateM reaches 95.3\\% raw accuracy across 445 trials and succeeds on all 89 tasks at least once. The frozen profile raises GPT-5.6 Luna from 76.7 to 85.4\\%, above the 84.9\\% Sol xhigh reference.\n  Using the same runtime, runbook structure, and golden rules, less than \\38 of adaptation raises DeepSeek-V4 Flash from 82.7 to 88.1% under standard timeouts and to 89.1% on an 88-task common core. Extending only the remaining latency-sensitive task matches the reported 88.8% GPT-5.6 Sol max result. Final-score API usage is about 15 versus \\574.68 for the GPT reference; total DeepSeek expenditure is 52.22.\n  On BusinessBench, family-specific runbooks built on development sets yield held-out gains of 0.55 macro and 1.34 micro points; two mechanism-matched families improve by 10.04 points. Concrete rules generalize when tasks share execution structure, while the control methodology applies broadly. StateM turns selected postmortem findings into persistent, executable preconditions and practices, making learned controls explicit and enforceable through stateful controls. Code at github.com/henryqin1997/statem.",
+    "thumbnail": "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2608.15089.png",
+    "numComments": 2,
+    "submittedBy": {
+      "_id": "655452b8432af1b1116394d1",
+      "avatarUrl": "/avatars/85860fb3c2d09c9c23e7677d7129cca3.svg",
+      "fullname": "Kai Wang",
+      "name": "VictorKai1996NUS",
+      "type": "user",
+      "isPro": false,
+      "isHf": false,
+      "isHfAdmin": false,
+      "isMod": false,
+      "followerCount": 10,
+      "isUserFollowing": false
+    },
+    "isAuthorParticipating": false
+  },
+  {
+    "paper": {
+      "id": "2608.14391",
+      "authors": [
+        {
+          "_id": "6a826d9eb601d59c652813ad",
+          "user": {
+            "_id": "6a031f1af4f5549021cd71bc",
+            "avatarUrl": "/avatars/92ca90d0cfd9a99e2965fe16952223c2.svg",
+            "isPro": false,
+            "fullname": "Shuo Liang",
+            "user": "liangshuo0111",
+            "type": "user",
+            "name": "liangshuo0111"
+          },
+          "name": "Shuo Liang",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-08-17T08:45:04.751Z",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813ae",
+          "name": "Yixing Ma",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813af",
+          "user": {
+            "_id": "648157807a741c7f33f5ebf5",
+            "avatarUrl": "/avatars/57a620971ce3e1ec883dc0772a5fb0b1.svg",
+            "isPro": false,
+            "fullname": "Pengfei Zhou",
+            "user": "IntJudge",
+            "type": "user",
+            "name": "IntJudge"
+          },
+          "name": "Pengfei Zhou",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-08-27T08:45:04.819Z",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813b0",
+          "name": "Xingyan Chen",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813b1",
+          "name": "Zihan Mei",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813b2",
+          "name": "Manting Li",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813b3",
+          "name": "Feihan Chen",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813b4",
+          "user": {
+            "_id": "6a82932c3a00fe455fc858e6",
+            "avatarUrl": "/avatars/9b43c9f902c82f39bcbe72df787df0f3.svg",
+            "isPro": false,
+            "fullname": "DzvenWang",
+            "user": "DzvenWang",
+            "type": "user",
+            "name": "DzvenWang"
+          },
+          "name": "Zhiwen Wang",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-08-21T13:17:34.795Z",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813b5",
+          "user": {
+            "_id": "69551af665df8d6e64034222",
+            "avatarUrl": "/avatars/1111e924fd4ca5f0334adad93ae20cd2.svg",
+            "isPro": false,
+            "fullname": "Xubin",
+            "user": "xubinknight",
+            "type": "user",
+            "name": "xubinknight"
+          },
+          "name": "Bin Xu",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-08-17T16:45:04.500Z",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813b6",
+          "name": "Haotian Zhang",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813b7",
+          "name": "Jiajun Song",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813b8",
+          "name": "Shiya Su",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813b9",
+          "name": "Run Liu",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813ba",
+          "name": "Zhenghang Ni",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813bb",
+          "name": "Yifa Yu",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813bc",
+          "name": "Jintao Hong",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813bd",
+          "name": "Bolong Feng",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813be",
+          "name": "Yifei Liu",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813bf",
+          "name": "Zirui Zhang",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813c0",
+          "name": "Jingxuan Zhang",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813c1",
+          "user": {
+            "_id": "6800776577adcafc838e136b",
+            "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/no-auth/ScPvC91gdvvLNaJZoRLzo.png",
+            "isPro": false,
+            "fullname": "Songlin Zhao",
+            "user": "TagoreZhaoSecondary",
+            "type": "user",
+            "name": "TagoreZhaoSecondary"
+          },
+          "name": "Songlin Zhao",
+          "status": "claimed_verified",
+          "statusLastChangedAt": "2026-08-17T08:45:04.758Z",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813c2",
+          "name": "Yifan Bai",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813c3",
+          "name": "Kang Tan",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813c4",
+          "name": "Yizhe Liu",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813c5",
+          "name": "Junhao Du",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813c6",
+          "name": "Yongtao Ge",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813c7",
+          "name": "Zhaopan Xv",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813c8",
+          "name": "Xinyuan Zhang",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813c9",
+          "name": "Mengru Ma",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813ca",
+          "name": "Chunhua Shen",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813cb",
+          "name": "Wei Wang",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813cc",
+          "name": "Yang You",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813cd",
+          "name": "Zheng Zhu",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813ce",
+          "name": "Kaipeng Zhang",
+          "hidden": false
+        },
+        {
+          "_id": "6a826d9eb601d59c652813cf",
+          "name": "Wangbo Zhao",
+          "hidden": false
+        }
+      ],
+      "publishedAt": "2026-08-14T00:00:00.000Z",
+      "submittedOnDailyAt": "2026-08-17T00:00:00.000Z",
+      "title": "Can We Defend Against AI-Generated Video Attacks on Real-World Crisis Events? A Systematic Evaluation of Detectors, Generators and Social Dissemination",
+      "submittedOnDailyBy": {
+        "_id": "65d8b116f5d21ab1939efe03",
+        "avatarUrl": "/avatars/54d84f74faa2cc6fb8d6b58573dfde6d.svg",
+        "isPro": false,
+        "fullname": "Wangbo Zhao",
+        "user": "heisejiasuo",
+        "type": "user",
+        "name": "heisejiasuo"
+      },
+      "summary": "Recent video generators can fabricate realistic depictions of wars, disasters, public emergencies, and other real-world crises, creating substantial risks of misinformation. Existing benchmarks, however, provide limited evidence on detector and generator behavior in such settings, including how detectability varies with generation conditions, how people perceive generated videos, and whether detectors remain reliable during social dissemination. To address this gap, we introduce RA-Bench, a benchmark for AI-generated video detection that uses Real videos as Anchors. RA-Bench contains 17,886 videos, comprising 1,830 real-video anchors across 10 social-risk categories and 16,056 generated clips from four open-source and five closed-source generators. Based on RA-Bench, we organize our evaluation along three dimensions. We first assess detector generalization across seven traditional detectors, ten zero-shot multimodal models under three review settings, and two MLLMs specifically fine-tuned on AI-generated video detection. Across these methods, none of the three detector families generalizes consistently across RA-Bench instances. We then examine how detectability varies with generation quality, conditioning information, and sampling seeds. These analyses show that generation properties affect detector families differently, while source-level detection patterns remain stable across seeds. Finally, we study human authenticity judgments and detector reliability during social dissemination. We find that videos that mislead people are also difficult for current detectors, and that social dissemination makes detection harder. Together, these findings show that current methods struggle to detect realistic AI-generated videos, highlighting the need for detectors robust to evolving video generators.",
+      "upvotes": 283,
+      "discussionId": "6a826d9eb601d59c652813d0",
+      "projectPage": "https://ra-bench-crisis-video.yxgma811120.chatgpt.site/",
+      "githubRepo": "https://github.com/24029100313/RA-Bench",
+      "githubRepoAddedBy": "user",
+      "ai_summary": "A new benchmark for AI-generated video detection reveals that current detectors fail to generalize across realistic crisis-related videos and become less reliable as content spreads socially.",
+      "ai_keywords": [
+        "AI-generated video detection",
+        "RA-Bench",
+        "zero-shot multimodal models",
+        "MLLMs",
+        "detector generalization",
+        "social dissemination"
+      ],
+      "ai_summary_model": "thinkingmachines/Inkling-Small",
+      "githubStars": 125,
+      "organization": {
+        "_id": "5e67bd5b1009063689407478",
+        "name": "huggingface",
+        "fullname": "Hugging Face",
+        "avatar": "https://cdn-avatars.huggingface.co/v1/production/uploads/1583856921041-5dd96eb166059660ed1ee413.png"
+      }
+    },
+    "publishedAt": "2026-08-13T20:00:00.000Z",
+    "title": "Can We Defend Against AI-Generated Video Attacks on Real-World Crisis Events? A Systematic Evaluation of Detectors, Generators and Social Dissemination",
+    "summary": "Recent video generators can fabricate realistic depictions of wars, disasters, public emergencies, and other real-world crises, creating substantial risks of misinformation. Existing benchmarks, however, provide limited evidence on detector and generator behavior in such settings, including how detectability varies with generation conditions, how people perceive generated videos, and whether detectors remain reliable during social dissemination. To address this gap, we introduce RA-Bench, a benchmark for AI-generated video detection that uses Real videos as Anchors. RA-Bench contains 17,886 videos, comprising 1,830 real-video anchors across 10 social-risk categories and 16,056 generated clips from four open-source and five closed-source generators. Based on RA-Bench, we organize our evaluation along three dimensions. We first assess detector generalization across seven traditional detectors, ten zero-shot multimodal models under three review settings, and two MLLMs specifically fine-tuned on AI-generated video detection. Across these methods, none of the three detector families generalizes consistently across RA-Bench instances. We then examine how detectability varies with generation quality, conditioning information, and sampling seeds. These analyses show that generation properties affect detector families differently, while source-level detection patterns remain stable across seeds. Finally, we study human authenticity judgments and detector reliability during social dissemination. We find that videos that mislead people are also difficult for current detectors, and that social dissemination makes detection harder. Together, these findings show that current methods struggle to detect realistic AI-generated videos, highlighting the need for detectors robust to evolving video generators.",
+    "thumbnail": "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2608.14391.png",
+    "numComments": 7,
+    "submittedBy": {
+      "_id": "65d8b116f5d21ab1939efe03",
+      "avatarUrl": "/avatars/54d84f74faa2cc6fb8d6b58573dfde6d.svg",
+      "fullname": "Wangbo Zhao",
+      "name": "heisejiasuo",
+      "type": "user",
+      "isPro": false,
+      "isHf": false,
+      "isHfAdmin": false,
+      "isMod": false,
+      "followerCount": 1,
+      "isUserFollowing": false
+    },
+    "organization": {
+      "_id": "5e67bd5b1009063689407478",
+      "name": "huggingface",
+      "fullname": "Hugging Face",
+      "avatar": "https://cdn-avatars.huggingface.co/v1/production/uploads/1583856921041-5dd96eb166059660ed1ee413.png"
+    },
+    "isAuthorParticipating": true
+  }
+]

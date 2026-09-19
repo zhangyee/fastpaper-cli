@@ -7,6 +7,7 @@ pub mod doaj;
 pub mod eric;
 pub mod europepmc;
 pub mod hal;
+pub mod huggingface;
 pub mod inspire;
 pub mod ntrs;
 pub mod openaire;

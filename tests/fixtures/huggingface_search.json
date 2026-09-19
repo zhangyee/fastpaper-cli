@@ -1,0 +1,230 @@
+[
+  {
+    "paper": {
+      "id": "2006.11239",
+      "authors": [
+        {
+          "_id": "6411c77d6b75ddced38902b3",
+          "name": "Jonathan Ho",
+          "hidden": false
+        },
+        {
+          "_id": "6411c77d6b75ddced38902b4",
+          "user": {
+            "_id": "62f678c42e53c2efd33c23a0",
+            "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/no-auth/QlVjKgk2QEA4Z20WBCHMV.png",
+            "isPro": false,
+            "fullname": "Ajay Jain",
+            "user": "ajayj",
+            "type": "user",
+            "name": "ajayj"
+          },
+          "name": "Ajay Jain",
+          "status": "extracted_pending",
+          "statusLastChangedAt": "2023-03-15T09:40:26.587Z",
+          "hidden": false
+        },
+        {
+          "_id": "6411c77d6b75ddced38902b5",
+          "name": "Pieter Abbeel",
+          "hidden": false
+        }
+      ],
+      "publishedAt": "2020-06-19T17:24:44.000Z",
+      "title": "Denoising Diffusion Probabilistic Models",
+      "summary": "We present high quality image synthesis results using diffusion probabilistic\nmodels, a class of latent variable models inspired by considerations from\nnonequilibrium thermodynamics. Our best results are obtained by training on a\nweighted variational bound designed according to a novel connection between\ndiffusion probabilistic models and denoising score matching with Langevin\ndynamics, and our models naturally admit a progressive lossy decompression\nscheme that can be interpreted as a generalization of autoregressive decoding.\nOn the unconditional CIFAR10 dataset, we obtain an Inception score of 9.46 and\na state-of-the-art FID score of 3.17. On 256x256 LSUN, we obtain sample quality\nsimilar to ProgressiveGAN. Our implementation is available at\nhttps://github.com/hojonathanho/diffusion",
+      "upvotes": 9,
+      "discussionId": "641192343ea54b1aa7e2f083",
+      "ai_summary": "Diffusion probabilistic models achieve high-quality image synthesis through novel training and lossy decompression techniques, outperforming existing methods on CIFAR10 and LSUN datasets.",
+      "ai_keywords": [
+        "diffusion probabilistic models",
+        "latent variable models",
+        "nonequilibrium thermodynamics",
+        "weighted variational bound",
+        "denoising score matching",
+        "Langevin dynamics",
+        "progressive lossy decompression",
+        "autoregressive decoding",
+        "Inception score",
+        "FID score",
+        "ProgressiveGAN"
+      ],
+      "ai_summary_model": "Qwen/Qwen2.5-Coder-32B-Instruct"
+    },
+    "publishedAt": "2020-06-19T13:24:44.000Z",
+    "title": "Denoising Diffusion Probabilistic Models",
+    "summary": "We present high quality image synthesis results using diffusion probabilistic\nmodels, a class of latent variable models inspired by considerations from\nnonequilibrium thermodynamics. Our best results are obtained by training on a\nweighted variational bound designed according to a novel connection between\ndiffusion probabilistic models and denoising score matching with Langevin\ndynamics, and our models naturally admit a progressive lossy decompression\nscheme that can be interpreted as a generalization of autoregressive decoding.\nOn the unconditional CIFAR10 dataset, we obtain an Inception score of 9.46 and\na state-of-the-art FID score of 3.17. On 256x256 LSUN, we obtain sample quality\nsimilar to ProgressiveGAN. Our implementation is available at\nhttps://github.com/hojonathanho/diffusion",
+    "thumbnail": "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2006.11239.png",
+    "numComments": 5,
+    "upvoted": false,
+    "isAuthorParticipating": false,
+    "highlightedTitle": [
+      {
+        "type": "text",
+        "text": "Denoising "
+      },
+      {
+        "type": "highlight",
+        "text": "Diffusion"
+      },
+      {
+        "type": "text",
+        "text": " Probabilistic Models"
+      }
+    ],
+    "highlightedSummary": [
+      {
+        "type": "text",
+        "text": "We present high quality image synthesis results using diffusion probabilistic\nmodels, a class of latent variable models inspired by considerations from\nnonequilibrium thermodynamics. Our best results are obtained by training on a\nweighted variational bound designed according to a novel connection between\ndiffusion probabilistic models and denoising score matching with Langevin\ndynamics, and our models naturally admit a progressive lossy decompression\nscheme that can be interpreted as a generalization of autoregressive decoding.\nOn the unconditional CIFAR10 dataset, we obtain an Inception score of 9.46 and\na state-of-the-art FID score of 3.17. On 256x256 LSUN, we obtain sample quality\nsimilar to ProgressiveGAN. Our implementation is available at\nhttps://github.com/hojonathanho/diffusion"
+      }
+    ]
+  },
+  {
+    "paper": {
+      "id": "2112.10752",
+      "authors": [
+        {
+          "_id": "6411c77f6b75ddced3890cad",
+          "name": "Robin Rombach",
+          "hidden": false
+        },
+        {
+          "_id": "6411c77f6b75ddced3890cae",
+          "name": "Andreas Blattmann",
+          "hidden": false
+        },
+        {
+          "_id": "6411c77f6b75ddced3890caf",
+          "name": "Dominik Lorenz",
+          "hidden": false
+        },
+        {
+          "_id": "6411c77f6b75ddced3890cb0",
+          "name": "Patrick Esser",
+          "hidden": false
+        },
+        {
+          "_id": "6411c77f6b75ddced3890cb1",
+          "name": "Björn Ommer",
+          "hidden": false
+        }
+      ],
+      "publishedAt": "2021-12-20T18:55:25.000Z",
+      "title": "High-Resolution Image Synthesis with Latent Diffusion Models",
+      "summary": "By decomposing the image formation process into a sequential application of\ndenoising autoencoders, diffusion models (DMs) achieve state-of-the-art\nsynthesis results on image data and beyond. Additionally, their formulation\nallows for a guiding mechanism to control the image generation process without\nretraining. However, since these models typically operate directly in pixel\nspace, optimization of powerful DMs often consumes hundreds of GPU days and\ninference is expensive due to sequential evaluations. To enable DM training on\nlimited computational resources while retaining their quality and flexibility,\nwe apply them in the latent space of powerful pretrained autoencoders. In\ncontrast to previous work, training diffusion models on such a representation\nallows for the first time to reach a near-optimal point between complexity\nreduction and detail preservation, greatly boosting visual fidelity. By\nintroducing cross-attention layers into the model architecture, we turn\ndiffusion models into powerful and flexible generators for general conditioning\ninputs such as text or bounding boxes and high-resolution synthesis becomes\npossible in a convolutional manner. Our latent diffusion models (LDMs) achieve\na new state of the art for image inpainting and highly competitive performance\non various tasks, including unconditional image generation, semantic scene\nsynthesis, and super-resolution, while significantly reducing computational\nrequirements compared to pixel-based DMs. Code is available at\nhttps://github.com/CompVis/latent-diffusion .",
+      "upvotes": 17,
+      "discussionId": "641192363ea54b1aa7e2f433",
+      "ai_summary": "Diffusion models applied in the latent space of pretrained autoencoders with cross-attention layers achieve high-quality image synthesis with reduced computational cost and flexible input handling.",
+      "ai_keywords": [
+        "denoising autoencoders",
+        "diffusion models",
+        "pixel space",
+        "latent space",
+        "pretrained autoencoders",
+        "cross-attention layers",
+        "latent diffusion models",
+        "image inpainting",
+        "unconditional image generation",
+        "semantic scene synthesis",
+        "super-resolution"
+      ],
+      "ai_summary_model": "Qwen/Qwen2.5-Coder-32B-Instruct"
+    },
+    "publishedAt": "2021-12-20T13:55:25.000Z",
+    "title": "High-Resolution Image Synthesis with Latent Diffusion Models",
+    "summary": "By decomposing the image formation process into a sequential application of\ndenoising autoencoders, diffusion models (DMs) achieve state-of-the-art\nsynthesis results on image data and beyond. Additionally, their formulation\nallows for a guiding mechanism to control the image generation process without\nretraining. However, since these models typically operate directly in pixel\nspace, optimization of powerful DMs often consumes hundreds of GPU days and\ninference is expensive due to sequential evaluations. To enable DM training on\nlimited computational resources while retaining their quality and flexibility,\nwe apply them in the latent space of powerful pretrained autoencoders. In\ncontrast to previous work, training diffusion models on such a representation\nallows for the first time to reach a near-optimal point between complexity\nreduction and detail preservation, greatly boosting visual fidelity. By\nintroducing cross-attention layers into the model architecture, we turn\ndiffusion models into powerful and flexible generators for general conditioning\ninputs such as text or bounding boxes and high-resolution synthesis becomes\npossible in a convolutional manner. Our latent diffusion models (LDMs) achieve\na new state of the art for image inpainting and highly competitive performance\non various tasks, including unconditional image generation, semantic scene\nsynthesis, and super-resolution, while significantly reducing computational\nrequirements compared to pixel-based DMs. Code is available at\nhttps://github.com/CompVis/latent-diffusion .",
+    "thumbnail": "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2112.10752.png",
+    "numComments": 4,
+    "upvoted": false,
+    "isAuthorParticipating": false,
+    "highlightedTitle": [
+      {
+        "type": "text",
+        "text": "High-Resolution Image Synthesis with Latent "
+      },
+      {
+        "type": "highlight",
+        "text": "Diffusion"
+      },
+      {
+        "type": "text",
+        "text": " Models"
+      }
+    ],
+    "highlightedSummary": [
+      {
+        "type": "text",
+        "text": "By decomposing the image formation process into a sequential application of\ndenoising autoencoders, diffusion models (DMs) achieve state-of-the-art\nsynthesis results on image data and beyond. Additionally, their formulation\nallows for a guiding mechanism to control the image generation process without\nretraining. However, since these models typically operate directly in pixel\nspace, optimization of powerful DMs often consumes hundreds of GPU days and\ninference is expensive due to sequential evaluations. To enable DM training on\nlimited computational resources while retaining their quality and flexibility,\nwe apply them in the latent space of powerful pretrained autoencoders. In\ncontrast to previous work, training diffusion models on such a representation\nallows for the first time to reach a near-optimal point between complexity\nreduction and detail preservation, greatly boosting visual fidelity. By\nintroducing cross-attention layers into the model architecture, we turn\ndiffusion models into powerful and flexible generators for general conditioning\ninputs such as text or bounding boxes and high-resolution synthesis becomes\npossible in a convolutional manner. Our latent diffusion models (LDMs) achieve\na new state of the art for image inpainting and highly competitive performance\non various tasks, including unconditional image generation, semantic scene\nsynthesis, and super-resolution, while significantly reducing computational\nrequirements compared to pixel-based DMs. Code is available at\nhttps://github.com/CompVis/latent-diffusion ."
+      }
+    ]
+  },
+  {
+    "paper": {
+      "id": "2202.00512",
+      "authors": [
+        {
+          "_id": "6411c77f6b75ddced3890ce9",
+          "name": "Tim Salimans",
+          "hidden": false
+        },
+        {
+          "_id": "6411c77f6b75ddced3890cea",
+          "name": "Jonathan Ho",
+          "hidden": false
+        }
+      ],
+      "publishedAt": "2022-02-01T16:07:25.000Z",
+      "title": "Progressive Distillation for Fast Sampling of Diffusion Models",
+      "summary": "Diffusion models have recently shown great promise for generative modeling,\noutperforming GANs on perceptual quality and autoregressive models at density\nestimation. A remaining downside is their slow sampling time: generating high\nquality samples takes many hundreds or thousands of model evaluations. Here we\nmake two contributions to help eliminate this downside: First, we present new\nparameterizations of diffusion models that provide increased stability when\nusing few sampling steps. Second, we present a method to distill a trained\ndeterministic diffusion sampler, using many steps, into a new diffusion model\nthat takes half as many sampling steps. We then keep progressively applying\nthis distillation procedure to our model, halving the number of required\nsampling steps each time. On standard image generation benchmarks like\nCIFAR-10, ImageNet, and LSUN, we start out with state-of-the-art samplers\ntaking as many as 8192 steps, and are able to distill down to models taking as\nfew as 4 steps without losing much perceptual quality; achieving, for example,\na FID of 3.0 on CIFAR-10 in 4 steps. Finally, we show that the full progressive\ndistillation procedure does not take more time than it takes to train the\noriginal model, thus representing an efficient solution for generative modeling\nusing diffusion at both train and test time.",
+      "upvotes": 2,
+      "discussionId": "641192363ea54b1aa7e2f438",
+      "ai_summary": "New parameterizations and progressive distillation methods improve the efficiency of diffusion models without sacrificing perceptual quality.",
+      "ai_keywords": [
+        "diffusion models",
+        "GANs",
+        "autoregressive models",
+        "perceptual quality",
+        "sampling time",
+        "parameterizations",
+        "deterministic diffusion sampler",
+        "distillation",
+        "FID",
+        "CIFAR-10",
+        "ImageNet",
+        "LSUN"
+      ],
+      "ai_summary_model": "Qwen/Qwen2.5-Coder-32B-Instruct"
+    },
+    "publishedAt": "2022-02-01T11:07:25.000Z",
+    "title": "Progressive Distillation for Fast Sampling of Diffusion Models",
+    "summary": "Diffusion models have recently shown great promise for generative modeling,\noutperforming GANs on perceptual quality and autoregressive models at density\nestimation. A remaining downside is their slow sampling time: generating high\nquality samples takes many hundreds or thousands of model evaluations. Here we\nmake two contributions to help eliminate this downside: First, we present new\nparameterizations of diffusion models that provide increased stability when\nusing few sampling steps. Second, we present a method to distill a trained\ndeterministic diffusion sampler, using many steps, into a new diffusion model\nthat takes half as many sampling steps. We then keep progressively applying\nthis distillation procedure to our model, halving the number of required\nsampling steps each time. On standard image generation benchmarks like\nCIFAR-10, ImageNet, and LSUN, we start out with state-of-the-art samplers\ntaking as many as 8192 steps, and are able to distill down to models taking as\nfew as 4 steps without losing much perceptual quality; achieving, for example,\na FID of 3.0 on CIFAR-10 in 4 steps. Finally, we show that the full progressive\ndistillation procedure does not take more time than it takes to train the\noriginal model, thus representing an efficient solution for generative modeling\nusing diffusion at both train and test time.",
+    "thumbnail": "https://cdn-thumbnails.huggingface.co/social-thumbnails/papers/2202.00512.png",
+    "numComments": 1,
+    "upvoted": false,
+    "isAuthorParticipating": false,
+    "highlightedTitle": [
+      {
+        "type": "text",
+        "text": "Progressive Distillation for Fast Sampling of "
+      },
+      {
+        "type": "highlight",
+        "text": "Diffusion"
+      },
+      {
+        "type": "text",
+        "text": " Models"
+      }
+    ],
+    "highlightedSummary": [
+      {
+        "type": "highlight",
+        "text": "Diffusion"
+      },
+      {
+        "type": "text",
+        "text": " models have recently shown great promise for generative modeling,\noutperforming GANs on perceptual quality and autoregressive models at density\nestimation. A remaining downside is their slow sampling time: generating high\nquality samples takes many hundreds or thousands of model evaluations. Here we\nmake two contributions to help eliminate this downside: First, we present new\nparameterizations of diffusion models that provide increased stability when\nusing few sampling steps. Second, we present a method to distill a trained\ndeterministic diffusion sampler, using many steps, into a new diffusion model\nthat takes half as many sampling steps. We then keep progressively applying\nthis distillation procedure to our model, halving the number of required\nsampling steps each time. On standard image generation benchmarks like\nCIFAR-10, ImageNet, and LSUN, we start out with state-of-the-art samplers\ntaking as many as 8192 steps, and are able to distill down to models taking as\nfew as 4 steps without losing much perceptual quality; achieving, for example,\na FID of 3.0 on CIFAR-10 in 4 steps. Finally, we show that the full progressive\ndistillation procedure does not take more time than it takes to train the\noriginal model, thus representing an efficient solution for generative modeling\nusing diffusion at both train and test time."
+      }
+    ]
+  }
+]

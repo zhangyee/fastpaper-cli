@@ -1,0 +1,199 @@
+{
+  "id": "2608.09888",
+  "authors": [
+    {
+      "_id": "6a7af16fb7183653340c11cd",
+      "user": {
+        "_id": "66d17d0d2fa8a088dc6992b3",
+        "avatarUrl": "/avatars/0aeb72e86b49d85db5577b507751147a.svg",
+        "isPro": false,
+        "fullname": "Björn Engdahl",
+        "user": "bjornengdahl",
+        "type": "user",
+        "name": "bjornengdahl"
+      },
+      "name": "Björn Engdahl",
+      "status": "claimed_verified",
+      "statusLastChangedAt": "2026-08-11T16:45:04.704Z",
+      "hidden": false
+    },
+    {
+      "_id": "6a7af16fb7183653340c11ce",
+      "user": {
+        "_id": "63a48fe7658851481f766a24",
+        "avatarUrl": "/avatars/4d1738e80fd7677a81197fb158ba8c44.svg",
+        "isPro": false,
+        "fullname": "Adrian Kosowski",
+        "user": "dxtrous",
+        "type": "user",
+        "name": "dxtrous"
+      },
+      "name": "Adrian Kosowski",
+      "status": "claimed_verified",
+      "statusLastChangedAt": "2026-08-12T00:45:04.441Z",
+      "hidden": false
+    },
+    {
+      "_id": "6a7af16fb7183653340c11cf",
+      "user": {
+        "_id": "651310e3b7994cff61d71320",
+        "avatarUrl": "/avatars/161cb412c7cb284fa7483e790807e4d3.svg",
+        "isPro": false,
+        "fullname": "Jan Chorowski",
+        "user": "janchorowski",
+        "type": "user",
+        "name": "janchorowski"
+      },
+      "name": "Jan Chorowski",
+      "status": "claimed_verified",
+      "statusLastChangedAt": "2026-08-11T16:45:04.695Z",
+      "hidden": false
+    },
+    {
+      "_id": "6a7af16fb7183653340c11d0",
+      "user": {
+        "_id": "68dd50bb9d2cc46fef645799",
+        "avatarUrl": "/avatars/699f84aa771851854a4201cb1df3543b.svg",
+        "isPro": false,
+        "fullname": "Zuzanna Stamirowska",
+        "user": "Brain-synapse",
+        "type": "user",
+        "name": "Brain-synapse"
+      },
+      "name": "Zuzanna Stamirowska",
+      "status": "claimed_verified",
+      "statusLastChangedAt": "2026-08-11T16:45:04.700Z",
+      "hidden": false
+    },
+    {
+      "_id": "6a7af16fb7183653340c11d1",
+      "name": "Przemysław Uznański",
+      "hidden": false
+    },
+    {
+      "_id": "6a7af16fb7183653340c11d2",
+      "name": "Junlin Jiang",
+      "hidden": false
+    },
+    {
+      "_id": "6a7af16fb7183653340c11d3",
+      "user": {
+        "_id": "63924fd62bfa48413aa0caec",
+        "avatarUrl": "/avatars/9ebf245b9ca187a213a2b15f7853ea08.svg",
+        "isPro": false,
+        "fullname": "Rohan Phadke",
+        "user": "rohanphadke",
+        "type": "user",
+        "name": "rohanphadke"
+      },
+      "name": "Rohan Phadke",
+      "status": "claimed_verified",
+      "statusLastChangedAt": "2026-08-12T00:45:04.516Z",
+      "hidden": false
+    },
+    {
+      "_id": "6a7af16fb7183653340c11d4",
+      "user": {
+        "_id": "61786d0b038518aa2827c6b7",
+        "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/61786d0b038518aa2827c6b7/d1UnfivoVreYebS5JM3P9.jpeg",
+        "isPro": false,
+        "fullname": "Remek Kinas",
+        "user": "Remek",
+        "type": "user",
+        "name": "Remek"
+      },
+      "name": "Remigiusz Kinas",
+      "status": "claimed_verified",
+      "statusLastChangedAt": "2026-08-21T13:14:47.826Z",
+      "hidden": false
+    },
+    {
+      "_id": "6a7af16fb7183653340c11d5",
+      "user": {
+        "_id": "67f9669837a74b52e3789326",
+        "avatarUrl": "https://cdn-avatars.huggingface.co/v1/production/uploads/no-auth/8pKQWDFb56H6LN1YZnhTc.png",
+        "isPro": false,
+        "fullname": "Richard Z",
+        "user": "chardizard",
+        "type": "user",
+        "name": "chardizard"
+      },
+      "name": "Richard Zhong",
+      "status": "claimed_verified",
+      "statusLastChangedAt": "2026-08-21T13:14:49.752Z",
+      "hidden": false
+    }
+  ],
+  "publishedAt": "2026-08-10T00:00:00.000Z",
+  "submittedOnDailyAt": "2026-08-11T00:00:00.000Z",
+  "title": "BDH-CQ: In-Context Learning with Recurrent Latent Reasoning",
+  "submittedOnDailyBy": {
+    "_id": "651310e3b7994cff61d71320",
+    "avatarUrl": "/avatars/161cb412c7cb284fa7483e790807e4d3.svg",
+    "isPro": false,
+    "fullname": "Jan Chorowski",
+    "user": "janchorowski",
+    "type": "user",
+    "name": "janchorowski"
+  },
+  "summary": "We introduce BDH-CQ, a reasoning model that combines in-context learning with recurrent latent reasoning. Inputs presented at inference time continuously update the model's recurrent memory; the model then solves a query through iterative computation in a high-dimensional latent space, without verbalizing its intermediate reasoning. We evaluate the model on the public ARC-AGI-1 evaluation set and use controlled ARC-like interventions to study what it learns from demonstrations, how consistently it applies an inferred transformation, and which concepts remain difficult. A 150M-parameter configuration reaches 29.5% pass@2 at a computed inference cost of \\$0.0007 per task. This operating point breaks through the previously reported ARC-AGI-1 cost-accuracy Pareto frontier, establishing a new state of the art in benchmark cost efficiency.",
+  "upvotes": 782,
+  "discussionId": "6a7af170b7183653340c11d6",
+  "projectPage": "https://pathway.com/blog/pathway-150m-model-breaks-arc-agi-1-cost-efficiency-frontier",
+  "githubRepo": "https://github.com/pathwaycom/arc-task-gen",
+  "githubRepoAddedBy": "admin",
+  "ai_summary": "A 150M-parameter reasoning model using recurrent latent reasoning and in-context learning achieves a new cost-accuracy frontier on ARC-AGI-1.",
+  "ai_keywords": [
+    "in-context learning",
+    "recurrent latent reasoning",
+    "high-dimensional latent space",
+    "ARC-AGI-1",
+    "cost-accuracy Pareto frontier"
+  ],
+  "ai_summary_model": "thinkingmachines/Inkling-Small",
+  "githubStars": 11184,
+  "organization": {
+    "_id": "6697b1a8b981e21b48bc575f",
+    "name": "pathwaycom",
+    "fullname": "Pathway",
+    "avatar": "https://cdn-avatars.huggingface.co/v1/production/uploads/6697aead07b36ccd016f0888/nOEvf0HpKBQJcVDfljgAc.png"
+  },
+  "linkedModels": [],
+  "numTotalModels": 0,
+  "linkedDatasets": [
+    {
+      "author": "WhySoCodius",
+      "downloads": 108,
+      "gated": false,
+      "id": "WhySoCodius/in-context-grid-reasoning",
+      "lastModified": "2026-09-03T19:16:12.000Z",
+      "datasetsServerInfo": {
+        "viewer": "viewer",
+        "numRows": 1000,
+        "libraries": [
+          "datasets",
+          "pandas",
+          "polars",
+          "mlcroissant"
+        ],
+        "formats": [
+          "json"
+        ],
+        "modalities": [
+          "tabular",
+          "text"
+        ]
+      },
+      "private": false,
+      "repoType": "dataset",
+      "likes": 1,
+      "isLikedByUser": false,
+      "isBenchmark": false,
+      "isTraces": false,
+      "isEnvironment": false
+    }
+  ],
+  "numTotalDatasets": 1,
+  "linkedSpaces": [],
+  "numTotalSpaces": 0
+}
