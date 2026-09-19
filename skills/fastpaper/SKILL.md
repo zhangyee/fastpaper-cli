@@ -17,8 +17,8 @@ description: 当用户要查找学术论文或专利、做文献调研、想知�
 
 `null` 覆盖了两种相反的情况,而记录本身分辨不出是哪一种:这个来源*根本*就不
 提供该字段,或者它确实带这个字段、只是这篇论文没有值。`fastpaper sources` 能把
-两者分开 —— 它的 `pdf_url` / `open_access` / `citations` 三列说明每个来源能填
-哪些字段。来自标 `✗` 的来源的 `null` 意味着**换个来源问**;来自标 `✓` 的来源
+两者分开 —— 它的 `pdf_url` / `open_access` / `citations` / `community` 四列说明
+每个来源能填哪些字段。来自标 `✗` 的来源的 `null` 意味着**换个来源问**;来自标 `✓` 的来源
 则意味着答案确实是未知。先查这一列,比发起一次注定不会成功的下载要便宜。
 
 `community` 装的是社区信号(票数、评论数、机构、GitHub 仓库与 star、上榜日期、关联的模型 / 数据集数),**只有 `huggingface` 会填**,其他来源恒为 `null`。它说的是关注度,不是引用影响力。
@@ -182,7 +182,7 @@ jq -r '.results[] | select((.title+" "+(.abstract//"")) | test("agent";"i")) | [
 **怎么读 `community`**:
 
 - `upvotes` 只能在同一个榜里互相比。票数随时间累积:本周的论文天然比上个月的票少,周一上榜的也比周五多攒了几天。
-- `github_stars`、`linked_models` 看有没有放出代码和模型;`null` 只表示 Hugging Face 页面上没关联,不等于没有。关联数只有 `fastpaper get huggingface <id>` 会给。
+- `github_stars` 的 `null` 是真的没有关联仓库,不是缺失。`linked_models`(以及 `linked_datasets`、`linked_spaces`)在列表和检索结果里恒为 `null`;只有 `fastpaper get huggingface <id>` 会填,填了之后 `0` 才表示确实没有关联。
 - `organization` 是发布机构,适合回答"某个实验室最近发了什么"。
 - 榜单由社区挑选,偏 LLM、多模态、生成式和 agent。**没上榜不能推出"不重要",更不能推出"这个方向没人做"**。
 

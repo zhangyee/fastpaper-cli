@@ -21,8 +21,8 @@ rather than filling it in.
 `null` covers two opposite situations, and the record cannot tell them apart:
 the source has nothing to say about that field *at all*, or it does carry the
 field and has nothing for this paper. `fastpaper sources` separates them — its
-`pdf_url` / `open_access` / `citations` columns say which fields each source can
-fill. A `null` from a source marked `✗` means **ask a different source**; from
+`pdf_url` / `open_access` / `citations` / `community` columns say which fields
+each source can fill. A `null` from a source marked `✗` means **ask a different source**; from
 one marked `✓` it means the answer really is unknown. Checking that column first
 is cheaper than a download attempt that was never going to work.
 
@@ -199,7 +199,7 @@ jq -r '.results[] | select((.title+" "+(.abstract//"")) | test("agent";"i")) | [
 **Reading `community`**:
 
 - Compare `upvotes` only within one list. Votes accumulate: this week's papers have fewer than last month's by construction, and Monday's have had days more than Friday's.
-- `github_stars` / `linked_models` show whether code and models were released; `null` means none is linked on Hugging Face, not that none exists. Only `fastpaper get huggingface <id>` reports the linked counts.
+- `github_stars`'s `null` means no repo is linked on Hugging Face — that's the real state, not a gap. `linked_models` (and `linked_datasets`, `linked_spaces`) are always `null` in lists and search; only `fastpaper get huggingface <id>` fills them, and once it does, `0` means none linked.
 - `organization` is the publishing lab — good for "what has lab X put out lately".
 - The lists are community-picked and lean to LLMs, multimodal, generative and agents. **Not being listed does not mean unimportant, let alone that nobody works on it.**
 
