@@ -42,7 +42,8 @@ pub fn build_listing_url(
         Listing::Week(week) if week.ends_with("-W53") => {
             // Dec 28 always falls in the last ISO week of its year.
             return Err(format!(
-                "Hugging Face's weekly list stops at W52, so {} has none.\n\
+                "Hugging Face's weekly list stops at W52, so {} is not available (not every \
+                 year has a week 53).\n\
                  Ask for its days instead, e.g. --top {}-12-28",
                 week,
                 &week[..4]
@@ -80,13 +81,17 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
 
 fn listing_search(base_url: &str, listing: &Listing, limit: u32) -> Result<Vec<Paper>, String> {
     let page_size = limit.clamp(1, PAGE_MAX);
+    // A page whose `held` count never comes in short of `page_size` (e.g.
+    // every record on it fails to parse) would otherwise page forever; this
+    // caps it at the number of full pages `limit` could ever need.
+    let max_pages = limit.div_ceil(page_size);
     let mut papers = Vec::new();
     let mut page = 0;
     loop {
         let url = build_listing_url(base_url, listing, page_size, page)?;
         let (held, batch) = parse_list(&http_get(&url)?)?;
         papers.extend(batch);
-        if (held as u32) < page_size || papers.len() as u32 >= limit {
+        if (held as u32) < page_size || papers.len() as u32 >= limit || page + 1 >= max_pages {
             break;
         }
         page += 1;
@@ -476,6 +481,35 @@ mod tests {
             "got: {}",
             err
         );
+        // The old wording ("so 2026-W53 has none") reads as if every year has
+        // a week 53 and this one is simply empty; most years have no W53 at
+        // all, so the message should say that instead of implying absent data.
+        assert!(err.contains("not every year has a week 53"), "got: {}", err);
+    }
+
+    // A page whose items are all malformed (no `paper.id`) reports `held` at
+    // the full page size forever -- nothing about that condition says "short
+    // page", so without a hard ceiling the loop keeps asking for more pages
+    // that will never fill `limit`. This pins a ceiling of
+    // `limit.div_ceil(page_size)` pages, independent of whether any of them
+    // are short.
+    #[test]
+    fn listing_search_stops_at_a_hard_page_ceiling_even_when_every_page_looks_full() {
+        let mut server = mockito::Server::new();
+        let unusable_page: String = serde_json::to_string(
+            &(0..5)
+                .map(|_| serde_json::json!({"paper": {"title": "no id here"}}))
+                .collect::<Vec<_>>(),
+        )
+        .unwrap();
+        let m = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_body(unusable_page)
+            .expect(1)
+            .create();
+        let papers = listing_search(&server.url(), &Listing::Day("2026-08-01".into()), 5).unwrap();
+        assert!(papers.is_empty(), "{:?}", papers);
+        m.assert();
     }
 
     #[test]
