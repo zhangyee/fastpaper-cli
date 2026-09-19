@@ -1,0 +1,512 @@
+{
+  "count": 10000,
+  "notes": [
+    {
+      "content": {
+        "venue": {
+          "value": "Inter-sentence Relation Extraction with Document-level Graph Convolutional Neural Network"
+        },
+        "venueid": {
+          "value": "OpenReview.net/Public_Article"
+        },
+        "paperhash": {
+          "value": "sahu|intersentence_relation_extraction_with_documentlevel_graph_convolutional_neural_network"
+        },
+        "html": {
+          "value": "https://research.manchester.ac.uk/en/publications/ea78c225-856e-4785-845c-08291faa1cb2"
+        },
+        "abstract": {
+          "value": "Inter-sentence relation extraction deals with a number of complex semantic relationships in documents, which require local, non-local, syntactic and semantic dependencies. Existing methods do not fully exploit such dependencies. We present a novel inter-sentence relation extraction model that builds a labelled edge graph convolutional neural network model on a document-level graph. The graph is constructed using various inter- and intra-sentence dependencies to capture local and non-local dependency information. In order to predict the relation of an entity pair, we utilise multi-instance learning with bi-affine pairwise scoring. Experimental results show that our model achieves comparable performance to the state-of-the-art neural models on two biochemistry datasets. Our analysis shows that all the types in the graph are effective for inter-sentence relation extraction."
+        },
+        "_bibtex": {
+          "value": "@inproceedings{ea78c225856e4785845c08291faa1cb2,\n  title     = \"Inter-sentence Relation Extraction with Document-level Graph Convolutional Neural Network\",\n  abstract  = \"Inter-sentence relation extraction deals with a number of complex semantic relationships in documents, which require local, non-local, syntactic and semantic dependencies. Existing methods do not fully exploit such dependencies. We present a novel inter-sentence relation extraction model that builds a labelled edge graph convolutional neural network model on a document-level graph. The graph is constructed using various inter- and intra-sentence dependencies to capture local and non-local dependency information. In order to predict the relation of an entity pair, we utilise multi-instance learning with bi-affine pairwise scoring. Experimental results show that our model achieves comparable performance to the state-of-the-art neural models on two biochemistry datasets. Our analysis shows that all the types in the graph are effective for inter-sentence relation extraction.\",\n  author    = \"Sunil Sahu and Efstathia Christopoulou and Makoto Miwa and Sophia Ananiadou\",\n  year      = \"2019\",\n  month     = jul,\n  doi       = \"10.18653/v1/P19-1423\",\n  language  = \"English\",\n  pages     = \"4309--4316\",\n  booktitle = \"Inter-sentence Relation Extraction with Document-level Graph Convolutional Neural Network\",\n}"
+        },
+        "title": {
+          "value": "Inter-sentence Relation Extraction with Document-level Graph Convolutional Neural Network"
+        },
+        "authors": {
+          "value": [
+            {
+              "fullname": "Sunil Sahu"
+            },
+            {
+              "fullname": "Efstathia Christopoulou"
+            },
+            {
+              "fullname": "Makoto Miwa"
+            },
+            {
+              "fullname": "Sophia Ananiadou",
+              "username": "~Sophia_Ananiadou1"
+            }
+          ]
+        }
+      },
+      "tmdate": 1789090689345,
+      "pdate": 1561939200000,
+      "externalIds": [
+        "doi:10.18653/v1/p19-1423"
+      ],
+      "tcdate": 1770542205274,
+      "writers": [
+        "~",
+        "OpenReview.net/Public_Article/ORCID.org",
+        "OpenReview.net/Support"
+      ],
+      "signatures": [
+        "~Sophia_Ananiadou1"
+      ],
+      "forum": "iaA07eD0bP",
+      "license": "CC BY-SA 4.0",
+      "number": 44538,
+      "cdate": 1761255330764,
+      "readers": [
+        "everyone"
+      ],
+      "invitations": [
+        "OpenReview.net/Public_Article/ORCID.org/-/Record",
+        "OpenReview.net/Public_Article/-/Edit",
+        "OpenReview.net/-/Edit"
+      ],
+      "mdate": 1789090689345,
+      "domain": "OpenReview.net/Public_Article",
+      "id": "iaA07eD0bP",
+      "version": 2
+    },
+    {
+      "content": {
+        "venue": {
+          "value": "Submitted to ICLR 2024"
+        },
+        "code_of_ethics": {
+          "value": "I acknowledge that I and all co-authors of this work have read and commit to adhering to the ICLR Code of Ethics."
+        },
+        "keywords": {
+          "value": [
+            "graph neural network",
+            "neural architecture search",
+            "graph sparsification"
+          ]
+        },
+        "primary_area": {
+          "value": "learning on graphs and other geometries & topologies"
+        },
+        "submission_guidelines": {
+          "value": "I certify that this submission complies with the submission instructions as described on https://iclr.cc/Conferences/2024/AuthorGuide."
+        },
+        "abstract": {
+          "value": "Graph Neural Architecture Search (GNAS) has achieved superior performance on various graph-structured tasks. However, existing GNAS studies overlook the applications of GNAS in resource-constraint scenarios. This paper proposes to design a joint graph data and architecture mechanism, which identifies important sub-architectures via the valuable graph data. To search for optimal lightweight Graph Neural Networks (GNNs), we propose Lightweight Graph Neural Architecture Search with Graph SparsIfication and Network Pruning (GASSIP). In particular, GASSIP comprises an operation-pruned architecture search module to enable efficient lightweight GNN search. Meanwhile, we design a novel curriculum graph data sparsification module with an architecture-aware edge-removing difficulty measurement to help select optimal sub-architectures. With the aid of two differentiable masks, we iteratively optimize these two modules to efficiently search for the optimal lightweight architecture. Extensive experiments on five benchmarks demonstrate the effectiveness of GASSIP. Particularly, our method achieves on-par or even higher node classification performance with half or fewer model parameters of searched GNNs and a sparser graph."
+        },
+        "_bibtex": {
+          "value": "@misc{\nxie2024lightweight,\ntitle={Lightweight Graph Neural Network Search with Graph Sparsification},\nauthor={Beini Xie and Heng Chang and Ziwei Zhang and Zeyang Zhang and Simin Wu and Xin Wang and Yuan Meng and Wenwu Zhu},\nyear={2024},\nurl={https://openreview.net/forum?id=IefMMX12yk}\n}"
+        },
+        "title": {
+          "value": "Lightweight Graph Neural Network Search with Graph Sparsification"
+        },
+        "pdf": {
+          "value": "/pdf/eb64ab16c75a04aa0e9fbd0d256a2a61e6045fed.pdf"
+        },
+        "venueid": {
+          "value": "ICLR.cc/2024/Conference/Rejected_Submission"
+        },
+        "paperhash": {
+          "value": "xie|lightweight_graph_neural_network_search_with_graph_sparsification"
+        },
+        "authorids": {
+          "value": [
+            "~Beini_Xie1",
+            "~Heng_Chang2",
+            "~Ziwei_Zhang1",
+            "~Zeyang_Zhang1",
+            "~Simin_Wu1",
+            "~Xin_Wang17",
+            "~Yuan_Meng2",
+            "~Wenwu_Zhu1"
+          ]
+        },
+        "anonymous_url": {
+          "value": "I certify that there is no URL (e.g., github page) that could be used to find authors' identity."
+        },
+        "no_acknowledgement_section": {
+          "value": "I certify that there is no acknowledgement section in this submission for double blind review."
+        },
+        "authors": {
+          "value": [
+            "Beini Xie",
+            "Heng Chang",
+            "Ziwei Zhang",
+            "Zeyang Zhang",
+            "Simin Wu",
+            "Xin Wang",
+            "Yuan Meng",
+            "Wenwu Zhu"
+          ]
+        }
+      },
+      "tmdate": 1707625774594,
+      "tcdate": 1695552920526,
+      "writers": [
+        "ICLR.cc/2024/Conference",
+        "ICLR.cc/2024/Conference/Submission9366/Authors"
+      ],
+      "signatures": [
+        "ICLR.cc/2024/Conference/Submission9366/Authors"
+      ],
+      "forum": "IefMMX12yk",
+      "number": 9366,
+      "cdate": 1695552920526,
+      "readers": [
+        "everyone"
+      ],
+      "invitations": [
+        "ICLR.cc/2024/Conference/-/Submission",
+        "ICLR.cc/2024/Conference/-/Post_Submission",
+        "ICLR.cc/2024/Conference/Submission9366/-/Rebuttal_Revision",
+        "ICLR.cc/2024/Conference/-/Edit"
+      ],
+      "mdate": 1707625774594,
+      "odate": 1697213872796,
+      "domain": "ICLR.cc/2024/Conference",
+      "id": "IefMMX12yk",
+      "version": 2
+    },
+    {
+      "content": {
+        "venue": {
+          "value": "IEEE Netw. 2024"
+        },
+        "pdf": {
+          "value": "https://ieeexplore.ieee.org/iel7/65/10506038/10327705.pdf"
+        },
+        "venueid": {
+          "value": "dblp.org/journals/NETWORK/2024"
+        },
+        "paperhash": {
+          "value": "guo|configreco_network_configuration_recommendation_with_graph_neural_networks"
+        },
+        "authorids": {
+          "value": [
+            "~Zhenbei_Guo1",
+            "https://dblp.org/search/pid/api?q=author:Fuliang_Li:",
+            "~Jiaxing_Shen2",
+            "https://dblp.org/search/pid/api?q=author:Tangzheng_Xie:",
+            "https://dblp.org/search/pid/api?q=author:Shan_Jiang_0005:",
+            "~Xingwei_Wang3"
+          ]
+        },
+        "html": {
+          "value": "https://doi.org/10.1109/MNET.2023.3336239"
+        },
+        "_bibtex": {
+          "value": "@article{DBLP:journals/network/GuoLSXJW24,\n  author={Zhenbei Guo and Fuliang Li and Jiaxing Shen and Tangzheng Xie and Shan Jiang and Xingwei Wang},\n  title={ConfigReco: Network Configuration Recommendation With Graph Neural Networks},\n  year={2024},\n  month={January},\n  cdate={1704067200000},\n  journal={IEEE Netw.},\n  volume={38},\n  number={1},\n  pages={7-14},\n  url={https://doi.org/10.1109/MNET.2023.3336239}\n}\n"
+        },
+        "abstract": {
+          "value": "Configuration synthesis is a fundamental technology in the context of self-driving networks, aimed at mitigating network outages by intelligently and automatically generating configurations that align with network intents. However, existing tools often fall short in meeting the practical requirements of network operators, particularly in terms of generality and scalability. Moreover, these tools disregard manual configuration which remains the primary method employed for daily network management. To address these challenges, this paper introduces ConfigReco, a novel, versatile, and scalable configuration recommendation tool tailored for manual configuration. ConfigReco facilitates the automatic generation of configuration templates based on the network operator’s intent. First, ConfigReco leverages existing configurations as input and models them using a knowledge graph. Second, graph neural networks are employed by ConfigReco to estimate the significance of nodes within the configuration knowledge graph. Lastly, configuration recommendations are made by ConfigReco based on the computed importance scores. A prototype system has been implemented to substantiate the effectiveness of ConfigReco, and its performance has been evaluated using real-world configurations. The experimental results demonstrate that ConfigReco achieves a coverage rate of 93.35% while concurrently maintaining a redundancy rate of 23.07% within a configuration knowledge graph comprising 890,464 edges and 40,885 nodes. Furthermore, ConfigReco exhibits high scalability, enabling its applicability to arbitrary datasets, while simultaneously providing efficient recommendations within a response time of 1 second."
+        },
+        "title": {
+          "value": "ConfigReco: Network Configuration Recommendation With Graph Neural Networks"
+        },
+        "authors": {
+          "value": [
+            "Zhenbei Guo",
+            "Fuliang Li",
+            "Jiaxing Shen",
+            "Tangzheng Xie",
+            "Shan Jiang",
+            "Xingwei Wang"
+          ]
+        }
+      },
+      "tmdate": 1786408684618,
+      "pdate": 1704067200000,
+      "tcdate": 1722695753982,
+      "writers": [
+        "~"
+      ],
+      "signatures": [
+        "~Xingwei_Wang3"
+      ],
+      "forum": "9TJMTG2bcQ",
+      "license": "CC BY-SA 4.0",
+      "number": 49980,
+      "cdate": 1704067200000,
+      "readers": [
+        "everyone"
+      ],
+      "invitations": [
+        "DBLP.org/-/Record",
+        "DBLP.org/-/Edit",
+        "DBLP.org/-/Author_Coreference"
+      ],
+      "mdate": 1786408684618,
+      "domain": "DBLP.org",
+      "id": "9TJMTG2bcQ",
+      "version": 2
+    },
+    {
+      "content": {
+        "venue": {
+          "value": "Submitted to ICLR 2025"
+        },
+        "code_of_ethics": {
+          "value": "I acknowledge that I and all co-authors of this work have read and commit to adhering to the ICLR Code of Ethics."
+        },
+        "keywords": {
+          "value": [
+            "Trustworthy",
+            "Robust",
+            "Graph Neural Network"
+          ]
+        },
+        "supplementary_material": {
+          "value": "/attachment/bb0a382183696df688a576cb8c5d3e66fbe81c41.zip"
+        },
+        "primary_area": {
+          "value": "learning on graphs and other geometries & topologies"
+        },
+        "submission_guidelines": {
+          "value": "I certify that this submission complies with the submission instructions as described on https://iclr.cc/Conferences/2025/AuthorGuide."
+        },
+        "abstract": {
+          "value": "Explaining the prediction process of Graph Neural Network (GNN) is crucial for enhancing network transparency. However, real-world networks are predominantly heterogeneous and often beset with noise. The presence of intricate relationships in heterogeneous graphs necessitates a consideration of semantics during the explanation process, while mitigating the impact of noise remains unexplored. For GNN explainers heavily reliant on graph structure and raw features, erroneous predictions may lead to misguided explanations under the influence of noise. To address these challenges, we propose a Robust Heterogeneous Graph Neural Network Explainer with Graph Information Bottleneck, named RHGIB. We theoretically analyze the power of different heterogeneous GNN architectures on the propagation of noise information and exploit denoising variational inference. Specifically, we infer the latent distributions of both graph structure and features to alleviate the influence of noise. Subsequently, we incorporate heterogeneous edge types into the generation process of explanatory subgraph and utilize Graph Information Bottleneck framework for optimization, allowing the Explainer to learn heterogeneous semantics while enhancing robustness. Extensive experiments on multiple real-world heterogeneous graph datasets demonstrate the superior performance of RHGIB compared to state-of-the-art baselines."
+        },
+        "_bibtex": {
+          "value": "@misc{\nlu2025robust,\ntitle={Robust Heterogeneous Graph Neural Network Explainer with Graph Information Bottleneck},\nauthor={Yifan Lu and Pengfei Jiao and Xuan Guo and Ziyun Zou and Yiwei Wang and Mengzhou Gao and Huaming Wu},\nyear={2025},\nurl={https://openreview.net/forum?id=IMWYNVBHob}\n}"
+        },
+        "title": {
+          "value": "Robust Heterogeneous Graph Neural Network Explainer with Graph Information Bottleneck"
+        },
+        "pdf": {
+          "value": "/pdf/c9e03e112ac11f84a5acb4a2bdedd97fe7ff422b.pdf"
+        },
+        "venueid": {
+          "value": "ICLR.cc/2025/Conference/Rejected_Submission"
+        },
+        "paperhash": {
+          "value": "lu|robust_heterogeneous_graph_neural_network_explainer_with_graph_information_bottleneck"
+        },
+        "authorids": {
+          "value": [
+            "~Yifan_Lu5",
+            "~Pengfei_Jiao2",
+            "~Xuan_Guo2",
+            "~Ziyun_Zou1",
+            "~Yiwei_Wang2",
+            "~Mengzhou_Gao1",
+            "~Huaming_Wu1"
+          ]
+        },
+        "anonymous_url": {
+          "value": "I certify that there is no URL (e.g., github page) that could be used to find authors’ identity."
+        },
+        "no_acknowledgement_section": {
+          "value": "I certify that there is no acknowledgement section in this submission for double blind review."
+        },
+        "authors": {
+          "value": [
+            "Yifan Lu",
+            "Pengfei Jiao",
+            "Xuan Guo",
+            "Ziyun Zou",
+            "Yiwei Wang",
+            "Mengzhou Gao",
+            "Huaming Wu"
+          ]
+        }
+      },
+      "tmdate": 1738735672679,
+      "tcdate": 1727185466458,
+      "writers": [
+        "ICLR.cc/2025/Conference",
+        "ICLR.cc/2025/Conference/Submission3728/Authors"
+      ],
+      "signatures": [
+        "ICLR.cc/2025/Conference/Submission3728/Authors"
+      ],
+      "forum": "IMWYNVBHob",
+      "license": "CC BY 4.0",
+      "number": 3728,
+      "cdate": 1727185466458,
+      "readers": [
+        "everyone"
+      ],
+      "invitations": [
+        "ICLR.cc/2025/Conference/-/Submission",
+        "ICLR.cc/2025/Conference/-/Post_Submission",
+        "ICLR.cc/2025/Conference/Submission3728/-/Full_Submission",
+        "ICLR.cc/2025/Conference/Submission3728/-/Rebuttal_Revision",
+        "ICLR.cc/2025/Conference/-/Edit"
+      ],
+      "mdate": 1738735672679,
+      "odate": 1728008565725,
+      "domain": "ICLR.cc/2025/Conference",
+      "id": "IMWYNVBHob",
+      "version": 2
+    },
+    {
+      "content": {
+        "venue": {
+          "value": "Neural Networks 2024"
+        },
+        "venueid": {
+          "value": "dblp.org/journals/NN/2024"
+        },
+        "paperhash": {
+          "value": "tao|a_dual_robust_graph_neural_network_against_graph_adversarial_attacks"
+        },
+        "authorids": {
+          "value": [
+            "https://dblp.org/search/pid/api?q=author:Qian_Tao:",
+            "https://dblp.org/search/pid/api?q=author:Jianpeng_Liao:",
+            "https://dblp.org/search/pid/api?q=author:Enze_Zhang:",
+            "~Lusi_Li1"
+          ]
+        },
+        "html": {
+          "value": "https://doi.org/10.1016/j.neunet.2024.106276"
+        },
+        "_bibtex": {
+          "value": "@article{DBLP:journals/nn/TaoLZL24,\n  author={Qian Tao and Jianpeng Liao and Enze Zhang and Lusi Li},\n  title={A Dual Robust Graph Neural Network Against Graph Adversarial Attacks},\n  year={2024},\n  cdate={1704067200000},\n  journal={Neural Networks},\n  volume={175},\n  pages={106276},\n  url={https://doi.org/10.1016/j.neunet.2024.106276}\n}\n"
+        },
+        "abstract": {
+          "value": "Graph Neural Networks (GNNs) have gained widespread usage and achieved remarkable success in various real-world applications. Nevertheless, recent studies reveal the vulnerability of GNNs to graph adversarial attacks that fool them by modifying graph structure. This vulnerability undermines the robustness of GNNs and poses significant security and privacy risks across various applications. Hence, it is crucial to develop robust GNN models that can effectively defend against such attacks. One simple approach is to remodel the graph. However, most existing methods cannot fully preserve the similarity relationship among the original nodes while learning the node representation required for reweighting the edges. Furthermore, they lack supervision information regarding adversarial perturbations, hampering their ability to recognize adversarial edges. To address these limitations, we propose a novel Dual Robust Graph Neural Network (DualRGNN) against graph adversarial attacks. DualRGNN first incorporates a node-similarity-preserving graph refining (SPGR) module to prune and refine the graph based on the learned node representations, which contain the original nodes’ similarity relationships, weakening the poisoning of graph adversarial attacks on graph data. DualRGNN then employs an adversarial-supervised graph attention (ASGAT) network to enhance the model’s capability in identifying adversarial edges by treating these edges as supervised signals. Through extensive experiments conducted on four benchmark datasets, DualRGNN has demonstrated remarkable robustness against various graph adversarial attacks."
+        },
+        "title": {
+          "value": "A Dual Robust Graph Neural Network Against Graph Adversarial Attacks"
+        },
+        "authors": {
+          "value": [
+            "Qian Tao",
+            "Jianpeng Liao",
+            "Enze Zhang",
+            "Lusi Li"
+          ]
+        }
+      },
+      "tmdate": 1739811419490,
+      "pdate": 1704067200000,
+      "tcdate": 1739811414234,
+      "writers": [
+        "~"
+      ],
+      "signatures": [
+        "~Lusi_Li1"
+      ],
+      "forum": "YcgDBWhjEF",
+      "license": "CC BY-SA 4.0",
+      "number": 324273,
+      "cdate": 1704067200000,
+      "readers": [
+        "everyone"
+      ],
+      "invitations": [
+        "DBLP.org/-/Record",
+        "DBLP.org/-/Edit"
+      ],
+      "mdate": 1739811419490,
+      "domain": "DBLP.org",
+      "id": "YcgDBWhjEF",
+      "version": 2
+    },
+    {
+      "content": {
+        "venue": {
+          "value": "ICLR 2025 Spotlight"
+        },
+        "code_of_ethics": {
+          "value": "I acknowledge that I and all co-authors of this work have read and commit to adhering to the ICLR Code of Ethics."
+        },
+        "keywords": {
+          "value": [
+            "music generation",
+            "diffusion distillation",
+            "diffusion",
+            "diffusion acceleration",
+            "text-to-music generation",
+            "layer dropping"
+          ]
+        },
+        "primary_area": {
+          "value": "applications to computer vision, audio, language, and other modalities"
+        },
+        "submission_guidelines": {
+          "value": "I certify that this submission complies with the submission instructions as described on https://iclr.cc/Conferences/2025/AuthorGuide."
+        },
+        "abstract": {
+          "value": "Despite advances in diffusion-based text-to-music (TTM) methods, efficient, high-quality generation remains a challenge. We introduce Presto!, an approach to inference acceleration for score-based diffusion transformers via reducing both sampling steps and cost per step. To reduce steps, we develop a new score-based distribution matching distillation (DMD) method for the EDM-family of diffusion models, the first GAN-based distillation method for TTM. To reduce the cost per step, we develop a simple, but powerful improvement to a recent layer distillation method that improves learning via better preserving hidden state variance. Finally, we combine our step and layer distillation methods together for a dual-faceted approach. We evaluate our step and layer distillation methods independently and show each yield best-in-class performance. Our combined distillation method can generate high-quality outputs with improved diversity, accelerating our base model by 10-18x (230/435ms latency for 32 second mono/stereo 44.1kHz, 15x faster than the comparable SOTA model) — the fastest TTM to our knowledge."
+        },
+        "_bibtex": {
+          "value": "@inproceedings{\nnovack2025presto,\ntitle={Presto! Distilling Steps and Layers for Accelerating Music Generation},\nauthor={Zachary Novack and Ge Zhu and Jonah Casebeer and Julian McAuley and Taylor Berg-Kirkpatrick and Nicholas J. Bryan},\nbooktitle={The Thirteenth International Conference on Learning Representations},\nyear={2025},\nurl={https://openreview.net/forum?id=Gj5JTAwdoy}\n}"
+        },
+        "title": {
+          "value": "Presto! Distilling Steps and Layers for Accelerating Music Generation"
+        },
+        "pdf": {
+          "value": "/pdf/e0b307e9b7220cc8ec5717503ac193aff6bb2737.pdf"
+        },
+        "venueid": {
+          "value": "ICLR.cc/2025/Conference"
+        },
+        "paperhash": {
+          "value": "novack|presto_distilling_steps_and_layers_for_accelerating_music_generation"
+        },
+        "authorids": {
+          "value": [
+            "~Zachary_Novack1",
+            "~Ge_Zhu1",
+            "~Jonah_Casebeer1",
+            "~Julian_McAuley1",
+            "~Taylor_Berg-Kirkpatrick1",
+            "~Nicholas_J._Bryan1"
+          ]
+        },
+        "anonymous_url": {
+          "value": "I certify that there is no URL (e.g., github page) that could be used to find authors’ identity."
+        },
+        "no_acknowledgement_section": {
+          "value": "I certify that there is no acknowledgement section in this submission for double blind review."
+        },
+        "authors": {
+          "value": [
+            "Zachary Novack",
+            "Ge Zhu",
+            "Jonah Casebeer",
+            "Julian McAuley",
+            "Taylor Berg-Kirkpatrick",
+            "Nicholas J. Bryan"
+          ]
+        }
+      },
+      "tmdate": 1739380024687,
+      "pdate": 1737562384096,
+      "tcdate": 1727290922703,
+      "writers": [
+        "ICLR.cc/2025/Conference",
+        "ICLR.cc/2025/Conference/Submission4966/Authors"
+      ],
+      "signatures": [
+        "ICLR.cc/2025/Conference/Submission4966/Authors"
+      ],
+      "forum": "Gj5JTAwdoy",
+      "license": "CC BY 4.0",
+      "number": 4966,
+      "cdate": 1727290922703,
+      "readers": [
+        "everyone"
+      ],
+      "invitations": [
+        "ICLR.cc/2025/Conference/-/Submission",
+        "ICLR.cc/2025/Conference/-/Post_Submission",
+        "ICLR.cc/2025/Conference/Submission4966/-/Full_Submission",
+        "ICLR.cc/2025/Conference/Submission4966/-/Rebuttal_Revision",
+        "ICLR.cc/2025/Conference/-/Edit",
+        "ICLR.cc/2025/Conference/Submission4966/-/Camera_Ready_Revision"
+      ],
+      "mdate": 1739380024687,
+      "odate": 1728008565725,
+      "domain": "ICLR.cc/2025/Conference",
+      "id": "Gj5JTAwdoy",
+      "version": 2
+    }
+  ]
+}

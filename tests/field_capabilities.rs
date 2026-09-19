@@ -95,6 +95,9 @@ fn papers(source: Source) -> Vec<Paper> {
             );
             all
         }
+        Source::Openreview => {
+            sources::openreview::parse_search_response(&f("openreview_search.json")).unwrap()
+        }
     }
 }
 

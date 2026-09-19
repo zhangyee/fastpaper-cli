@@ -80,6 +80,9 @@ fn unsupported_download(source: Source) -> CommandError {
         Source::Huggingface => {
             "\nEvery Hugging Face paper is an arXiv paper and its id is the arXiv id: fastpaper download <id>"
         }
+        Source::Openreview => {
+            "\nOpenReview keeps its PDFs behind a bot challenge. Accepted papers usually have an arXiv version: search arxiv or semantic by title"
+        }
         _ => "",
     };
     failed(format!("'{}' cannot provide PDFs.{}", source.name(), hint))

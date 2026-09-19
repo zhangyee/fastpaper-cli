@@ -36,6 +36,7 @@ pub enum Source {
     Ntrs,
     Datacite,
     Huggingface,
+    Openreview,
 }
 
 /// Every source, in the order `fastpaper sources` lists them.
@@ -62,6 +63,7 @@ pub const ALL: &[Source] = &[
     Source::Ntrs,
     Source::Datacite,
     Source::Huggingface,
+    Source::Openreview,
 ];
 
 /// The sources whose search honours `flag`, in `ALL` order.
@@ -185,6 +187,7 @@ impl Source {
             Source::Ntrs => &NTRS,
             Source::Datacite => &DATACITE,
             Source::Huggingface => &HUGGINGFACE,
+            Source::Openreview => &OPENREVIEW,
         }
     }
 }
@@ -941,6 +944,42 @@ static HUGGINGFACE: SourceEntry = SourceEntry {
     pdf_default_base: None,
     search: Some(sources::huggingface::search),
     get: Some(sources::huggingface::get_by_id),
+    pdf: None,
+    cite: None,
+    figures: None,
+};
+
+static OPENREVIEW: SourceEntry = SourceEntry {
+    name: "openreview",
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            // `--field` selects an OpenReview group (a venue or one edition).
+            field: true,
+            ..SearchCaps::BASIC
+        }),
+        get: false,
+        download: false,
+        cite: false,
+        max_limit: Some(1000),
+        fields: FieldCaps {
+            pdf_url: true,
+            open_access: false,
+            citations: false,
+            community: false,
+        },
+        notes: "search only: reading one record and every PDF sit behind a bot challenge, so \
+                pdf_url opens in a browser, not here. venue carries the decision (\"ICLR 2025 \
+                Poster\"; \"Submitted to ICLR 2024\" means rejected). --field takes an \
+                OpenReview group such as ICLR.cc/2025/Conference or ICLR.cc; without it, \
+                results include journal records imported from dblp. The API ignores sort",
+    },
+    env_var: "FASTPAPER_OPENREVIEW_URL",
+    default_base: "https://api2.openreview.net",
+    pdf_env_var: None,
+    pdf_default_base: None,
+    search: Some(sources::openreview::search),
+    get: None,
     pdf: None,
     cite: None,
     figures: None,

@@ -2438,3 +2438,55 @@ fn real_huggingface_month_list_works() {
         .collect();
     assert!(votes.windows(2).all(|w| w[0] >= w[1]), "not ranked: {:?}", votes);
 }
+
+// ── openreview ──────────────────────────────────
+
+#[test]
+fn search_openreview_mock_outputs_title() {
+    search_against_fixture(
+        "openreview",
+        "FASTPAPER_OPENREVIEW_URL",
+        include_str!("fixtures/openreview_search.json"),
+        "Lightweight Graph Neural Network Search",
+    );
+}
+
+#[test]
+fn openreview_refuses_sort_because_the_api_ignores_it() {
+    cmd()
+        .args(["search", "openreview", "diffusion", "--sort", "date"])
+        .assert()
+        .code(1)
+        .stderr(contains("openreview does not support --sort"));
+}
+
+#[test]
+fn openreview_challenge_is_named() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(403)
+        .with_body(r#"{"name":"ChallengeRequiredError","status":403}"#)
+        .create();
+    cmd()
+        .args(["search", "openreview", "diffusion"])
+        .env("FASTPAPER_OPENREVIEW_URL", server.url())
+        .assert()
+        .code(1)
+        .stderr(contains("bot challenge"));
+}
+
+#[test]
+fn download_openreview_explains_the_challenge() {
+    cmd()
+        .args(["download", "openreview", "IefMMX12yk"])
+        .assert()
+        .failure()
+        .stderr(contains("bot challenge"));
+}
+
+#[test]
+#[ignore]
+fn real_openreview_search_works() {
+    real_search_returns_results("openreview");
+}
