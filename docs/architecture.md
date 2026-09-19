@@ -84,6 +84,7 @@ Other commands:
 | `fields` | `Vec<String>` | Subject areas (e.g. `cs.CL`) |
 | `open_access` | `Option<bool>` | |
 | `source` | `String` | Source name, e.g. `"arxiv"` |
+| `community` | `Option<Community>` | Social signals — upvotes, comments, organization, GitHub repo and stars, the day it was listed, linked models/datasets/spaces. Only `huggingface` fills it; `null` everywhere else |
 
 In JSON output missing values are `null`, never omitted — the schema is stable so agents and scripts can rely on it.
 

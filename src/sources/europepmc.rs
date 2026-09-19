@@ -209,6 +209,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
             fields: vec![],
             open_access: is_oa,
             source: "europepmc".to_string(),
+            community: None,
         });
     }
 

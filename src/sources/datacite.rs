@@ -175,6 +175,7 @@ fn parse_record(item: &serde_json::Value) -> Option<Paper> {
             .unwrap_or_default(),
         open_access: None,
         source: "datacite".to_string(),
+        community: None,
     })
 }
 

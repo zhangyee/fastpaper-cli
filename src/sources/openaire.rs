@@ -243,6 +243,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
             fields,
             open_access,
             source: "openaire".to_string(),
+            community: None,
         });
     }
 

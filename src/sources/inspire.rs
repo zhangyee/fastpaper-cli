@@ -208,6 +208,7 @@ fn parse_record(hit: &serde_json::Value) -> Option<Paper> {
         fields: vec![],
         open_access: None,
         source: "inspire".to_string(),
+        community: None,
     })
 }
 

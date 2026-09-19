@@ -313,6 +313,26 @@ pub enum Direction {
     Outgoing,
 }
 
+/// Community signals: what a paper's audience does with it, as opposed to
+/// what the literature does with it (`citations`).
+///
+/// Only huggingface fills this. Every other source leaves `Paper::community`
+/// as `None`, which serializes as `null` like every other unknown.
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+pub struct Community {
+    pub upvotes: Option<u32>,
+    pub comments: Option<u32>,
+    pub organization: Option<String>,
+    pub github_repo: Option<String>,
+    pub github_stars: Option<u32>,
+    /// The day the paper went onto Hugging Face's daily list, `YYYY-MM-DD`.
+    pub listed_on: Option<String>,
+    /// Only the single-paper endpoint (`get`) reports these three.
+    pub linked_models: Option<u32>,
+    pub linked_datasets: Option<u32>,
+    pub linked_spaces: Option<u32>,
+}
+
 /// A paper returned from any source.
 #[derive(Debug, Clone, Serialize)]
 pub struct Paper {
@@ -330,6 +350,8 @@ pub struct Paper {
     pub fields: Vec<String>,
     pub open_access: Option<bool>,
     pub source: String,
+    /// Social signals; `None` everywhere except huggingface.
+    pub community: Option<Community>,
 }
 #[cfg(test)]
 mod tests {

@@ -134,6 +134,7 @@ fn parse_record(item: &serde_json::Value) -> Option<Paper> {
         // Only the ERIC-hosted subset is knowably free to read.
         open_access: has_full_text.then_some(true),
         source: "eric".to_string(),
+        community: None,
     })
 }
 

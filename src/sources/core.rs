@@ -192,6 +192,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
                 .unwrap_or_default(),
             open_access: Some(true),
             source: "core".to_string(),
+            community: None,
         });
     }
 

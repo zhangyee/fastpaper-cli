@@ -439,6 +439,7 @@ fn paper_from(item: &serde_json::Value) -> Paper {
         fields,
         open_access: Some(item["openAccessPdf"].is_object() && !item["openAccessPdf"].is_null()),
         source: "semantic".to_string(),
+        community: None,
     }
 }
 

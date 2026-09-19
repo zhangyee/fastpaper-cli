@@ -463,6 +463,7 @@ pub fn parse_search_response(xml: &str) -> Result<Vec<Paper>, String> {
                             fields: fields.clone(),
                             open_access: Some(true),
                             source: "arxiv".to_string(),
+                            community: None,
                         });
                         in_entry = false;
                     }

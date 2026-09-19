@@ -380,6 +380,7 @@ pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
                                 fields: vec![],
                                 open_access: Some(true),
                                 source: "pmc".to_string(),
+                                community: None,
                             });
                         }
                         in_article = false;

@@ -181,6 +181,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
             fields: vec![],
             open_access: Some(true),
             source: "hal".to_string(),
+            community: None,
         });
     }
 

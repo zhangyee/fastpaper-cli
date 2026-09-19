@@ -212,6 +212,7 @@ fn parse_record(item: &serde_json::Value) -> Option<Paper> {
         citations: None,
         fields: vec![],
         source: "osti".to_string(),
+        community: None,
     })
 }
 

@@ -50,6 +50,7 @@ pub fn parse_response(json: &str) -> Result<Paper, String> {
         fields: vec![],
         open_access: is_oa,
         source: "unpaywall".to_string(),
+        community: None,
     })
 }
 

@@ -55,6 +55,10 @@ pub fn to_table(papers: &[Paper]) -> String {
         }
         out.push_str(&format!("[{}] {}", p.id, p.title));
         let mut meta = Vec::new();
+        // Votes lead the line: on a ranked list they are why the row is here.
+        if let Some(up) = p.community.as_ref().and_then(|c| c.upvotes) {
+            meta.push(format!("▲{}", up));
+        }
         if let Some(year) = p.year {
             meta.push(year.to_string());
         }
@@ -110,6 +114,7 @@ mod tests {
             fields: vec!["cs.CL".to_string()],
             open_access: Some(true),
             source: "arxiv".to_string(),
+            community: None,
         }
     }
 
@@ -290,5 +295,29 @@ mod tests {
     #[test]
     fn to_jsonl_of_nothing_is_empty() {
         assert_eq!(to_jsonl(&[]), "");
+    }
+
+    #[test]
+    fn json_keeps_the_community_key_as_null_for_sources_without_it() {
+        let v: serde_json::Value = serde_json::from_str(&to_json(&[sample_paper()])).unwrap();
+        let first = v["results"][0].as_object().unwrap();
+        assert!(first.contains_key("community"), "key must not be omitted");
+        assert!(first["community"].is_null());
+    }
+
+    #[test]
+    fn table_leads_the_meta_line_with_upvotes_when_known() {
+        let mut p = sample_paper();
+        p.community = Some(crate::sources::Community {
+            upvotes: Some(781),
+            ..Default::default()
+        });
+        let out = to_table(&[p]);
+        assert!(out.contains("\n    ▲781 | "), "got: {}", out);
+    }
+
+    #[test]
+    fn table_is_unchanged_for_papers_without_community() {
+        assert!(!to_table(&[sample_paper()]).contains('▲'));
     }
 }

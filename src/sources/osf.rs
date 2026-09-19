@@ -252,6 +252,7 @@ fn parse_record(item: &serde_json::Value) -> Option<Paper> {
         // Every OSF preprint is publicly readable.
         open_access: Some(true),
         source: "osf".to_string(),
+        community: None,
     })
 }
 

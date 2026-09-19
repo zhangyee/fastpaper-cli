@@ -206,6 +206,7 @@ fn parse_crossref_item(item: &serde_json::Value) -> Paper {
         fields: vec![],
         open_access: None,
         source: "crossref".to_string(),
+        community: None,
     }
 }
 

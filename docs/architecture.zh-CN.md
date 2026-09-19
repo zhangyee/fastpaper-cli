@@ -80,6 +80,7 @@ src/
 | `fields` | `Vec<String>` | 学科领域(如 `cs.CL`) |
 | `open_access` | `Option<bool>` | |
 | `source` | `String` | 源名,如 `"arxiv"` |
+| `community` | `Option<Community>` | 社区信号 —— 票数、评论数、机构、GitHub 仓库与 star、上榜日期、关联的模型/数据集/Space 数。只有 `huggingface` 会填,其他源恒为 `null` |
 
 JSON 输出中缺失值一律为 `null`,绝不省略字段——schema 稳定,agent 和脚本可以放心依赖。
 

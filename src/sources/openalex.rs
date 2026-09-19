@@ -349,6 +349,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
             fields,
             open_access: is_oa,
             source: "openalex".to_string(),
+            community: None,
         });
     }
 

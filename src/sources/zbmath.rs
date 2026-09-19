@@ -179,6 +179,7 @@ fn parse_record(item: &serde_json::Value) -> Option<Paper> {
         fields,
         open_access: None,
         source: "zbmath".to_string(),
+        community: None,
     })
 }
 

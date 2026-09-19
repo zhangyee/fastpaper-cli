@@ -265,6 +265,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
                     fields: vec![],
                     open_access: None,
                     source: "dblp".to_string(),
+                    community: None,
                 });
                 bylines.push(Vec::new());
                 papers.len() - 1

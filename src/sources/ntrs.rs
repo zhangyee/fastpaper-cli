@@ -178,6 +178,7 @@ fn parse_record(item: &serde_json::Value) -> Option<Paper> {
         citations: None,
         fields,
         source: "ntrs".to_string(),
+        community: None,
     })
 }
 
