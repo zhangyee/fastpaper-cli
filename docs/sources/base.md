@@ -21,6 +21,20 @@ struct Paper {
     fields: Vec<String>,           // 学科领域 / 分类 (如 cs.CL, q-bio)
     open_access: Option<bool>,
     source: String,                // 来源平台名 (如 "arxiv", "pubmed")
+    community: Option<Community>,  // 社区信号,只有 huggingface 会填,其它源恒为 None
+}
+
+struct Community {
+    upvotes: Option<u32>,
+    comments: Option<u32>,
+    organization: Option<String>,
+    github_repo: Option<String>,
+    github_stars: Option<u32>,
+    listed_on: Option<String>,     // 上榜日期,YYYY-MM-DD
+    // 以下三项只有 get 单篇端点会填,列表 / 检索结果里恒为 None
+    linked_models: Option<u32>,
+    linked_datasets: Option<u32>,
+    linked_spaces: Option<u32>,
 }
 ```
 
@@ -54,6 +68,9 @@ struct SearchQuery {
     author: Option<String>,
     field: Option<String>,
     open_access: bool,
+    patents: bool,             // 只要专利;不支持的源忽略它就排除专利,结果不会混
+    listing: Option<Listing>,  // Trending | Day(YYYY-MM-DD) | Week(YYYY-Www) | Month(YYYY-MM)
+                                // --trending / --top 的榜单请求,此时 query 为空
 }
 ```
 
