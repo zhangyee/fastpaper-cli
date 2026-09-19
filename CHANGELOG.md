@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 0.9.0 (2026-09-19)
+## v0.9.0
 
 ### Breaking changes
 
