@@ -81,7 +81,7 @@ fn build_query(q: &super::SearchQuery) -> Result<String, String> {
         "PREFIX dblp: <https://dblp.org/rdf/schema#>\n\
          PREFIX ql: <http://qlever.cs.uni-freiburg.de/builtin-functions/>\n\
          PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n\
-         SELECT ?pub ?title ?year ?venue ?doi ?ordinal ?name WHERE {{\n  \
+         SELECT ?pub ?title ?year ?venue ?doi ?page ?ordinal ?name WHERE {{\n  \
            {{ SELECT DISTINCT ?pub ?title ?year WHERE {{\n      \
                ?pub dblp:title ?title .\n      \
                ?t ql:contains-entity ?title .\n      \
@@ -92,6 +92,7 @@ fn build_query(q: &super::SearchQuery) -> Result<String, String> {
            }} ORDER BY STRLEN(?title) DESC(?year) LIMIT {limit} OFFSET {offset} }}\n  \
            OPTIONAL {{ ?pub dblp:publishedIn ?venue }}\n  \
            OPTIONAL {{ ?pub dblp:doi ?doi }}\n  \
+           OPTIONAL {{ ?pub dblp:primaryDocumentPage ?page }}\n  \
            ?pub dblp:hasSignature ?s . ?s dblp:signatureOrdinal ?ordinal ; dblp:signatureDblpName ?name .\n\
          }} ORDER BY STRLEN(?title) DESC(?year) ?pub ?ordinal\n",
         words = sparql_string(&words),
@@ -258,7 +259,7 @@ pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
                     year: value(row, "year").and_then(|y| y.parse::<u16>().ok()),
                     doi: value(row, "doi")
                         .map(|d| d.strip_prefix("https://doi.org/").unwrap_or(&d).to_string()),
-                    url: Some(record.clone()),
+                    url: Some(value(row, "page").unwrap_or_else(|| record.clone())),
                     pdf_url: None,
                     venue: value(row, "venue"),
                     citations: None,
@@ -349,14 +350,30 @@ mod tests {
         assert_eq!(papers()[1].doi, None);
     }
 
+    // `url` is the landing page. dblp's own record page was standing in for it,
+    // and KyDog opens `url` to reach PMLR, USENIX, JMLR and IACR, none of which
+    // have DOIs.
     #[test]
-    fn id_is_the_dblp_key_and_url_its_record_page() {
+    fn url_is_the_publisher_landing_page_when_dblp_has_one() {
         let p = &papers()[0];
         assert_eq!(p.id, "conf/cvpr/HeZRS16");
+        assert_eq!(p.url.as_deref(), Some("https://doi.org/10.1109/CVPR.2016.90"));
+        assert_eq!(papers()[1].url.as_deref(), Some("http://arxiv.org/abs/1512.03385"));
+    }
+
+    #[test]
+    fn url_falls_back_to_the_dblp_record_page() {
         assert_eq!(
-            p.url.as_deref(),
-            Some("https://dblp.org/rec/conf/cvpr/HeZRS16")
+            papers()[2].url.as_deref(),
+            Some("https://dblp.org/rec/journals/corr/abs-2211-12320")
         );
+    }
+
+    #[test]
+    fn the_query_asks_for_the_landing_page() {
+        let q = build_query(&crate::sources::SearchQuery::simple("residual learning", 3)).unwrap();
+        assert!(q.contains("?doi ?page ?ordinal"), "{}", q);
+        assert!(q.contains("OPTIONAL { ?pub dblp:primaryDocumentPage ?page }"), "{}", q);
     }
 
     #[test]

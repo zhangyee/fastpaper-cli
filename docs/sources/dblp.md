@@ -26,13 +26,13 @@
 ## 用到的谓词(`dblp:` = `https://dblp.org/rdf/schema#`)
 
 - `dblp:title`(标题字面量,带末尾句点)· `dblp:yearOfPublication`(`xsd:gYear`,过滤要写 `"2023"^^xsd:gYear`,与整数比较不命中)
-- `dblp:publishedIn`(venue 字符串,如 `NIPS` `CoRR` `ACL (1)`)· `dblp:doi`(IRI `https://doi.org/...`)
+- `dblp:publishedIn`(venue 字符串,如 `NIPS` `CoRR` `ACL (1)`)· `dblp:doi`(IRI `https://doi.org/...`)· `dblp:primaryDocumentPage`(出版方落地页 IRI)
 - `dblp:hasSignature` → `dblp:signatureOrdinal`(作者序)、`dblp:signatureDblpName`(带同名编号,如 `Jian Sun 0001`)
 
 ## 响应映射(bindings → Paper)
 
 - 每行是"一条记录 × 一位作者",按 `?pub` 折叠,保持查询给出的顺序
-- `id` ← `?pub` 去掉 `https://dblp.org/rec/`(即 dblp key,如 `conf/cvpr/HeZRS16`);`url` ← `?pub`(记录页)
+- `id` ← `?pub` 去掉 `https://dblp.org/rec/`(即 dblp key,如 `conf/cvpr/HeZRS16`);`url` ← `?page`(`dblp:primaryDocumentPage`,出版方落地页),缺失时回退到 `?pub`(dblp 记录页),见下方「落地页」一节
 - `title`、`year`、`venue` 直取;`doi` 去掉 `https://doi.org/` 前缀
 - `authors` 按 ordinal 排序,去掉末尾 4 位同名编号(`Xiangyu Zhang 0005` → `Xiangyu Zhang`),与其他源一致
 - 恒缺:`abstract_text`、`pdf_url`、`citations` 为 None,`fields` 为空,`open_access` 为 None
@@ -54,3 +54,9 @@
 | `--year` | `?pub dblp:yearOfPublication "YYYY"^^xsd:gYear` |
 | `--author` | 任一署名的 `signatureDblpName` 小写后包含该字符串(`CONTAINS(LCASE(...))`) |
 | 其余全部 | 不支持(dblp 只有年份,`--after/--before` 会失真,故不开) |
+
+## 落地页(2026-09-19)
+
+`url` 取 `dblp:primaryDocumentPage`(出版方落地页),没有时回退到 `https://dblp.org/rec/<key>`。实测:PMLR `proceedings.mlr.press/v267/feng25a.html`、USENIX `usenix.org/conference/usenixsecurity25/presentation/raffa`、JMLR `jmlr.org/papers/v26/24-0737.html`、IACR `eprint.iacr.org/2025/1966`、NeurIPS `papers.nips.cc/…-Abstract-Conference.html`;有 DOI 的(ACL、CVPR)是 `https://doi.org/…`。下游 KyDog 从这里进 IAB 卡片下载无 DOI 的会议论文。
+
+`search dblp "retrieval augmented generation" -n 100` 中位耗时:改前 1.40 s,改后 1.65 s(单查询)。

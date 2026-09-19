@@ -7,7 +7,8 @@
       "venue",
       "doi",
       "ordinal",
-      "name"
+      "name",
+      "page"
     ]
   },
   "results": {
@@ -42,6 +43,10 @@
         "name": {
           "type": "literal",
           "value": "Kaiming He"
+        },
+        "page": {
+          "type": "uri",
+          "value": "https://doi.org/10.1109/CVPR.2016.90"
         }
       },
       {
@@ -74,6 +79,10 @@
         "name": {
           "type": "literal",
           "value": "Xiangyu Zhang 0005"
+        },
+        "page": {
+          "type": "uri",
+          "value": "https://doi.org/10.1109/CVPR.2016.90"
         }
       },
       {
@@ -106,6 +115,10 @@
         "name": {
           "type": "literal",
           "value": "Shaoqing Ren"
+        },
+        "page": {
+          "type": "uri",
+          "value": "https://doi.org/10.1109/CVPR.2016.90"
         }
       },
       {
@@ -138,6 +151,10 @@
         "name": {
           "type": "literal",
           "value": "Jian Sun 0001"
+        },
+        "page": {
+          "type": "uri",
+          "value": "https://doi.org/10.1109/CVPR.2016.90"
         }
       },
       {
@@ -166,6 +183,10 @@
         "name": {
           "type": "literal",
           "value": "Kaiming He"
+        },
+        "page": {
+          "type": "uri",
+          "value": "http://arxiv.org/abs/1512.03385"
         }
       },
       {
@@ -194,6 +215,10 @@
         "name": {
           "type": "literal",
           "value": "Xiangyu Zhang 0005"
+        },
+        "page": {
+          "type": "uri",
+          "value": "http://arxiv.org/abs/1512.03385"
         }
       },
       {
@@ -222,6 +247,10 @@
         "name": {
           "type": "literal",
           "value": "Shaoqing Ren"
+        },
+        "page": {
+          "type": "uri",
+          "value": "http://arxiv.org/abs/1512.03385"
         }
       },
       {
@@ -250,6 +279,10 @@
         "name": {
           "type": "literal",
           "value": "Jian Sun 0001"
+        },
+        "page": {
+          "type": "uri",
+          "value": "http://arxiv.org/abs/1512.03385"
         }
       },
       {
