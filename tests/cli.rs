@@ -2490,3 +2490,48 @@ fn download_openreview_explains_the_challenge() {
 fn real_openreview_search_works() {
     real_search_returns_results("openreview");
 }
+
+// ── jstage ──────────────────────────────────────
+
+#[test]
+fn search_jstage_mock_outputs_title() {
+    search_against_fixture(
+        "jstage",
+        "FASTPAPER_JSTAGE_URL",
+        include_str!("fixtures/jstage_search.xml"),
+        "AI医療の可能性と課題",
+    );
+}
+
+#[test]
+fn download_jstage_fetches_the_pdf_beside_the_article() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", "/article/faruawpsj/54/9/54_843/_pdf")
+        .with_body("%PDF-1.4 test")
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "jstage", "faruawpsj/54/9/54_843", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_JSTAGE_PDF_URL", server.url())
+        .assert()
+        .success();
+    assert!(dir.join("faruawpsj_54_9_54_843.pdf").exists());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn jstage_refuses_a_date_range_it_cannot_resolve() {
+    cmd()
+        .args(["search", "jstage", "catalyst", "--after", "2023-06-01"])
+        .assert()
+        .code(1)
+        .stderr(contains("jstage does not support --after"));
+}
+
+#[test]
+#[ignore]
+fn real_jstage_search_works() {
+    real_search_returns_results("jstage");
+}

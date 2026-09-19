@@ -98,6 +98,11 @@ fn papers(source: Source) -> Vec<Paper> {
         Source::Openreview => {
             sources::openreview::parse_search_response(&f("openreview_search.json")).unwrap()
         }
+        Source::Jstage => {
+            let mut all = sources::jstage::parse_search_response(&f("jstage_search.xml")).unwrap();
+            all.extend(sources::jstage::parse_search_response(&f("jstage_english.xml")).unwrap());
+            all
+        }
     }
 }
 

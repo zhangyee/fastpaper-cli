@@ -9,6 +9,7 @@ pub mod europepmc;
 pub mod hal;
 pub mod huggingface;
 pub mod inspire;
+pub mod jstage;
 pub mod ntrs;
 pub mod openaire;
 pub mod openreview;

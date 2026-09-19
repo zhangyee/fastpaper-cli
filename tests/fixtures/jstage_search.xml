@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed  xmlns="http://www.w3.org/2005/Atom"
+  xmlns:prism="http://prismstandard.org/namespaces/basic/2.0/"
+  xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/"
+  xml:lang="ja" > 
+  <result>
+    <status>WARN_002</status>
+    <message>WARN_002</message>
+  </result>
+  <title>Articles</title>
+  <link href="https://api.jstage.jst.go.jp/searchapi/do?service=3&amp;text=%E6%B7%B1%E5%B1%A4%E5%AD%A6%E7%BF%92&amp;count=3"/>
+  <id>https://api.jstage.jst.go.jp/searchapi/do?service=3&amp;text=%E6%B7%B1%E5%B1%A4%E5%AD%A6%E7%BF%92&amp;count=3</id>
+  <servicecd>3</servicecd>
+  <updated>2026-09-19T11:51+09:00</updated>
+  <opensearch:totalResults>12666</opensearch:totalResults>
+  <opensearch:startIndex>1</opensearch:startIndex>
+  <opensearch:itemsPerPage>3</opensearch:itemsPerPage>
+  <entry>
+    <article_title>
+      <en/>
+      <ja><![CDATA[AI医療の可能性と課題]]></ja>
+    </article_title>
+    <article_link>
+      <en>https://www.jstage.jst.go.jp/article/faruawpsj/54/9/54_843/_article</en>
+      <ja>https://www.jstage.jst.go.jp/article/faruawpsj/54/9/54_843/_article/-char/ja/</ja>
+    </article_link>
+    <author>
+      <en>
+        <name><![CDATA[Nobuyuki OTA]]></name>
+      </en>
+      <ja>
+        <name><![CDATA[大田 信行]]></name>
+      </ja>
+    </author>
+    <cdjournal>faruawpsj</cdjournal>
+    <material_title>
+      <en><![CDATA[Farumashia]]></en>
+      <ja><![CDATA[ファルマシア]]></ja>
+    </material_title>
+    <prism:issn>0014-8601</prism:issn>
+    <prism:eIssn>2189-7026</prism:eIssn>
+    <prism:volume>54</prism:volume>
+    <prism:number>9</prism:number>
+    <prism:startingPage>843</prism:startingPage>
+    <prism:endingPage>847</prism:endingPage>
+    <pubyear>2018</pubyear>
+    <prism:doi>10.14894/faruawpsj.54.9_843</prism:doi>
+    <systemcode>1</systemcode>
+    <systemname>J-STAGE</systemname>
+    <title><![CDATA[AI医療の可能性と課題]]></title>
+    <link href="https://www.jstage.jst.go.jp/article/faruawpsj/54/9/54_843/_article/-char/ja/"/>
+    <id>https://www.jstage.jst.go.jp/article/faruawpsj/54/9/54_843/_article/-char/ja/</id>
+    <updated>2018-09-01T09:00+09:00</updated>
+  </entry>
+  <entry>
+    <article_title>
+      <en/>
+      <ja><![CDATA[GPUを利用したPyTorch入門]]></ja>
+    </article_title>
+    <article_link>
+      <en>https://www.jstage.jst.go.jp/article/bplus/19/2/19_184/_article</en>
+      <ja>https://www.jstage.jst.go.jp/article/bplus/19/2/19_184/_article/-char/ja/</ja>
+    </article_link>
+    <author>
+      <en>
+        <name><![CDATA[Chee Siang Leo]]></name>
+        <name><![CDATA[Hiromitsu Nishizaki]]></name>
+      </en>
+      <ja>
+        <name><![CDATA[レオ チー シャン]]></name>
+        <name><![CDATA[西崎 博光]]></name>
+      </ja>
+    </author>
+    <cdjournal>bplus</cdjournal>
+    <material_title>
+      <en><![CDATA[IEICE Communications Society Magazine]]></en>
+      <ja><![CDATA[電子情報通信学会　通信ソサイエティマガジン]]></ja>
+    </material_title>
+    <prism:issn>         </prism:issn>
+    <prism:eIssn>2186-0661</prism:eIssn>
+    <prism:volume>19</prism:volume>
+    <prism:number>2</prism:number>
+    <prism:startingPage>184</prism:startingPage>
+    <pubyear>2025</pubyear>
+    <prism:doi>10.1587/bplus.19.184</prism:doi>
+    <systemcode>1</systemcode>
+    <systemname>J-STAGE</systemname>
+    <title><![CDATA[GPUを利用したPyTorch入門]]></title>
+    <link href="https://www.jstage.jst.go.jp/article/bplus/19/2/19_184/_article/-char/ja/"/>
+    <id>https://www.jstage.jst.go.jp/article/bplus/19/2/19_184/_article/-char/ja/</id>
+    <updated>2025-09-01T09:00+09:00</updated>
+  </entry>
+  <entry>
+    <article_title>
+      <en><![CDATA[One-step Advanced DNN Topics: I&apos;ve heard that, but I don&apos;t know well]]></en>
+      <ja><![CDATA[基礎から一歩進んだ深層学習トピックス]]></ja>
+    </article_title>
+    <article_link>
+      <en>https://www.jstage.jst.go.jp/article/isciesci/68/2/68_73/_article</en>
+      <ja>https://www.jstage.jst.go.jp/article/isciesci/68/2/68_73/_article/-char/ja/</ja>
+    </article_link>
+    <author>
+      <en>
+        <name><![CDATA[Kazuaki Kondo]]></name>
+      </en>
+      <ja>
+        <name><![CDATA[近藤 一晃]]></name>
+      </ja>
+    </author>
+    <cdjournal>isciesci</cdjournal>
+    <material_title>
+      <en><![CDATA[SYSTEMS, CONTROL AND INFORMATION]]></en>
+      <ja><![CDATA[システム／制御／情報]]></ja>
+    </material_title>
+    <prism:issn>0916-1600</prism:issn>
+    <prism:eIssn>2424-1806</prism:eIssn>
+    <prism:volume>68</prism:volume>
+    <prism:number>2</prism:number>
+    <prism:startingPage>73</prism:startingPage>
+    <prism:endingPage>74</prism:endingPage>
+    <pubyear>2024</pubyear>
+    <prism:doi>10.11509/isciesci.68.2_73</prism:doi>
+    <systemcode>1</systemcode>
+    <systemname>J-STAGE</systemname>
+    <title><![CDATA[基礎から一歩進んだ深層学習トピックス]]></title>
+    <link href="https://www.jstage.jst.go.jp/article/isciesci/68/2/68_73/_article/-char/ja/"/>
+    <id>https://www.jstage.jst.go.jp/article/isciesci/68/2/68_73/_article/-char/ja/</id>
+    <updated>2024-08-15T09:00+09:00</updated>
+  </entry>
+</feed>

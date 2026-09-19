@@ -481,6 +481,17 @@ pub fn pdf_bytes_osf(base_url: &str, identifier: &str, limit: u64) -> Result<Vec
     fetch_pdf(&format!("{}/download/{}/", base_url, identifier), limit)
 }
 
+/// Fetch a J-STAGE PDF. It sits at the article path with `_pdf` where the
+/// landing page has `_article`; a subscription journal answers 403.
+pub fn pdf_bytes_jstage(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
+    let path = identifier.trim().trim_matches('/');
+    fetch_pdf_named(
+        &format!("{}/article/{}/_pdf", base_url.trim_end_matches('/'), path),
+        limit,
+        &format!("J-STAGE has no article {}", path),
+    )
+}
+
 // The identifier reaches these straight from the command line, so it has to be
 // encoded: a multi-word one used to produce an invalid URI rather than a query.
 

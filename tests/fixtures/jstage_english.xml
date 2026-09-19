@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed  xmlns="http://www.w3.org/2005/Atom"
+  xmlns:prism="http://prismstandard.org/namespaces/basic/2.0/"
+  xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/"
+  xml:lang="ja" > 
+  <result>
+    <status>WARN_002</status>
+    <message>WARN_002</message>
+  </result>
+  <title>Articles</title>
+  <link href="https://api.jstage.jst.go.jp/searchapi/do?service=3&amp;article=catalyst&amp;count=2"/>
+  <id>https://api.jstage.jst.go.jp/searchapi/do?service=3&amp;article=catalyst&amp;count=2</id>
+  <servicecd>3</servicecd>
+  <updated>2026-09-19T11:48+09:00</updated>
+  <opensearch:totalResults>5460</opensearch:totalResults>
+  <opensearch:startIndex>1</opensearch:startIndex>
+  <opensearch:itemsPerPage>2</opensearch:itemsPerPage>
+  <entry>
+    <article_title>
+      <en><![CDATA[Liquid-Phase Oxidation of Ethylene Glycol on a Pt/C Catalyst. I. Deactivation and Regeneration of the Catalyst]]></en>
+      <ja/>
+    </article_title>
+    <article_link>
+      <en>https://www.jstage.jst.go.jp/article/cpb1958/31/4/31_4_1141/_article</en>
+      <ja>https://www.jstage.jst.go.jp/article/cpb1958/31/4/31_4_1141/_article/-char/ja/</ja>
+    </article_link>
+    <author>
+      <en>
+        <name><![CDATA[MUHAMMADISHAQALI KHAN]]></name>
+        <name><![CDATA[YOSHIHISA MIWA]]></name>
+        <name><![CDATA[SHUSHI MORITA]]></name>
+        <name><![CDATA[JUTARO OKADA]]></name>
+      </en>
+      <ja>
+        <name><![CDATA[/ 三輪 嘉尚]]></name>
+        <name><![CDATA[森田 修之]]></name>
+        <name><![CDATA[岡田 寿太郎]]></name>
+      </ja>
+    </author>
+    <cdjournal>cpb1958</cdjournal>
+    <material_title>
+      <en><![CDATA[Chemical and Pharmaceutical Bulletin]]></en>
+      <ja><![CDATA[Chemical and Pharmaceutical Bulletin]]></ja>
+    </material_title>
+    <prism:issn>0009-2363</prism:issn>
+    <prism:eIssn>1347-5223</prism:eIssn>
+    <prism:volume>31</prism:volume>
+    <prism:number>4</prism:number>
+    <prism:startingPage>1141</prism:startingPage>
+    <prism:endingPage>1150</prism:endingPage>
+    <pubyear>1983</pubyear>
+    <prism:doi>10.1248/cpb.31.1141</prism:doi>
+    <systemcode>1</systemcode>
+    <systemname>J-STAGE</systemname>
+    <title><![CDATA[Liquid-Phase Oxidation of Ethylene Glycol on a Pt/C Catalyst. I. Deactivation and Regeneration of the Catalyst]]></title>
+    <link href="https://www.jstage.jst.go.jp/article/cpb1958/31/4/31_4_1141/_article/-char/ja/"/>
+    <id>https://www.jstage.jst.go.jp/article/cpb1958/31/4/31_4_1141/_article/-char/ja/</id>
+    <updated>2008-03-31T09:00+09:00</updated>
+  </entry>
+  <entry>
+    <article_title>
+      <en><![CDATA[2304 Deposition of Catalyst and Catalyst-Support Thin Films for Aligned Carbon Nanotube Growth]]></en>
+      <ja><![CDATA[2304 Deposition of Catalyst and Catalyst-Support Thin Films for Aligned Carbon Nanotube Growth]]></ja>
+    </article_title>
+    <article_link>
+      <en>https://www.jstage.jst.go.jp/article/jsmedsd/2014.24/0/2014.24__2304-1_/_article</en>
+      <ja>https://www.jstage.jst.go.jp/article/jsmedsd/2014.24/0/2014.24__2304-1_/_article/-char/ja/</ja>
+    </article_link>
+    <author>
+      <en>
+        <name><![CDATA[Mohd Asyadi AZAM]]></name>
+        <name><![CDATA[Mohd Shahril Amin BISTAMAM]]></name>
+        <name><![CDATA[Nor Syafira Abdul MANAF]]></name>
+        <name><![CDATA[Effendi MOHAMAD]]></name>
+        <name><![CDATA[Teruaki ITO]]></name>
+      </en>
+      <ja/>
+    </author>
+    <cdjournal>jsmedsd</cdjournal>
+    <material_title>
+      <en><![CDATA[The Proceedings of Design & Systems Conference]]></en>
+      <ja><![CDATA[設計工学・システム部門講演会講演論文集]]></ja>
+    </material_title>
+    <prism:issn>         </prism:issn>
+    <prism:eIssn>2424-3078</prism:eIssn>
+    <prism:volume>2014.24</prism:volume>
+    <prism:number>0</prism:number>
+    <prism:startingPage>_2304-1_</prism:startingPage>
+    <prism:endingPage>_2304-8_</prism:endingPage>
+    <pubyear>2014</pubyear>
+    <prism:doi>10.1299/jsmedsd.2014.24._2304-1_</prism:doi>
+    <systemcode>1</systemcode>
+    <systemname>J-STAGE</systemname>
+    <title><![CDATA[2304 Deposition of Catalyst and Catalyst-Support Thin Films for Aligned Carbon Nanotube Growth]]></title>
+    <link href="https://www.jstage.jst.go.jp/article/jsmedsd/2014.24/0/2014.24__2304-1_/_article/-char/ja/"/>
+    <id>https://www.jstage.jst.go.jp/article/jsmedsd/2014.24/0/2014.24__2304-1_/_article/-char/ja/</id>
+    <updated>2017-06-19T09:00+09:00</updated>
+  </entry>
+</feed>

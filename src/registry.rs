@@ -37,6 +37,7 @@ pub enum Source {
     Datacite,
     Huggingface,
     Openreview,
+    Jstage,
 }
 
 /// Every source, in the order `fastpaper sources` lists them.
@@ -64,6 +65,7 @@ pub const ALL: &[Source] = &[
     Source::Datacite,
     Source::Huggingface,
     Source::Openreview,
+    Source::Jstage,
 ];
 
 /// The sources whose search honours `flag`, in `ALL` order.
@@ -188,6 +190,7 @@ impl Source {
             Source::Datacite => &DATACITE,
             Source::Huggingface => &HUGGINGFACE,
             Source::Openreview => &OPENREVIEW,
+            Source::Jstage => &JSTAGE,
         }
     }
 }
@@ -981,6 +984,42 @@ static OPENREVIEW: SourceEntry = SourceEntry {
     search: Some(sources::openreview::search),
     get: None,
     pdf: None,
+    cite: None,
+    figures: None,
+};
+
+static JSTAGE: SourceEntry = SourceEntry {
+    name: "jstage",
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            year: true,
+            author: true,
+            ..SearchCaps::BASIC
+        }),
+        get: false,
+        download: true,
+        cite: false,
+        max_limit: Some(1000),
+        fields: FieldCaps {
+            pdf_url: true,
+            open_access: false,
+            citations: false,
+            community: false,
+        },
+        notes: "Japanese society journals. The query searches full text; space-separated \
+                words must all match. Title, authors and journal are in Japanese when the \
+                record has Japanese, English otherwise. No abstracts. --year is the only date \
+                filter because the API resolves years only. A few journals need a subscription \
+                and answer 403 on download",
+    },
+    env_var: "FASTPAPER_JSTAGE_URL",
+    default_base: "https://api.jstage.jst.go.jp",
+    pdf_env_var: Some("FASTPAPER_JSTAGE_PDF_URL"),
+    pdf_default_base: Some("https://www.jstage.jst.go.jp"),
+    search: Some(sources::jstage::search),
+    get: None,
+    pdf: Some(download::pdf_bytes_jstage),
     cite: None,
     figures: None,
 };
