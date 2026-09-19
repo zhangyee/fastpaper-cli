@@ -1,0 +1,35 @@
+{
+  "responseHeader": {
+    "status": 0,
+    "QTime": 110,
+    "params": {
+      "q": "citations(bibcode:1929PNAS...15..168H)",
+      "fl": "bibcode,title",
+      "start": "0",
+      "sort": "citation_count desc",
+      "rows": "2",
+      "wt": "json"
+    }
+  },
+  "response": {
+    "numFound": 1275,
+    "start": 0,
+    "numFoundExact": true,
+    "docs": [
+      {
+        "bibcode": "2003RvMP...75..559P",
+        "title": [
+          "The cosmological constant and dark energy"
+        ]
+      },
+      {
+        "bibcode": "2003PhR...380..235P",
+        "title": [
+          "Cosmological constant-the weight of the vacuum"
+        ]
+      }
+    ]
+  },
+  "allocatedBytes": 6674536,
+  "filtered": "true"
+}

@@ -1,3 +1,4 @@
+pub mod ads;
 pub mod arxiv;
 pub mod core;
 pub mod crossref;

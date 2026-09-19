@@ -39,6 +39,7 @@ pub enum Source {
     Openreview,
     Jstage,
     Oapen,
+    Ads,
 }
 
 /// Every source, in the order `fastpaper sources` lists them.
@@ -68,6 +69,7 @@ pub const ALL: &[Source] = &[
     Source::Openreview,
     Source::Jstage,
     Source::Oapen,
+    Source::Ads,
 ];
 
 /// The sources whose search honours `flag`, in `ALL` order.
@@ -194,6 +196,7 @@ impl Source {
             Source::Openreview => &OPENREVIEW,
             Source::Jstage => &JSTAGE,
             Source::Oapen => &OAPEN,
+            Source::Ads => &ADS,
         }
     }
 }
@@ -1054,6 +1057,42 @@ static OAPEN: SourceEntry = SourceEntry {
     search: Some(sources::oapen::search),
     get: Some(sources::oapen::get_by_id),
     pdf: Some(download::pdf_bytes_oapen),
+    cite: None,
+    figures: None,
+};
+
+static ADS: SourceEntry = SourceEntry {
+    name: "ads",
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            sort: true,
+            year: true,
+            author: true,
+            // `--field` selects an ADS database: astronomy, physics, general.
+            field: true,
+            open_access: true,
+            ..SearchCaps::BASIC
+        }),
+        get: true,
+        download: false,
+        cite: false,
+        // The API allows 2000 rows, but at ~4.8 KB a record that nears the
+        // 10 MB response cap (measured 2026-09-19).
+        max_limit: Some(1000),
+        fields: FieldCaps::ALL,
+        notes: "astronomy and physics; needs a free token in ADS_API_TOKEN (5000 searches a \
+                day, reset at 00:00 UTC). The query takes ADS syntax as is: title:, abs:, \
+                author:\"^Hubble\", property:refereed, pubdate:[2023-06 TO *]. --field takes a \
+                database: astronomy, physics or general. get takes a bibcode, DOI or arXiv id",
+    },
+    env_var: "FASTPAPER_ADS_URL",
+    default_base: "https://api.adsabs.harvard.edu/v1",
+    pdf_env_var: None,
+    pdf_default_base: None,
+    search: Some(sources::ads::search),
+    get: Some(sources::ads::get_by_id),
+    pdf: None,
     cite: None,
     figures: None,
 };

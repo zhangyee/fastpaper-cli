@@ -2635,3 +2635,103 @@ fn search_oapen_names_an_html_page() {
         .code(1)
         .stderr(contains("HTML page"));
 }
+
+// ── ads ─────────────────────────────────────────
+
+#[test]
+fn search_ads_sends_the_token_and_outputs_title() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .match_header("authorization", "Bearer test-token")
+        .with_body(include_str!("fixtures/ads_search.json"))
+        .create();
+    cmd()
+        .args(["search", "ads", "black holes"])
+        .env("FASTPAPER_ADS_URL", server.url())
+        .env("ADS_API_TOKEN", "test-token")
+        .assert()
+        .success()
+        .stdout(contains("Event Horizon Telescope"));
+}
+
+#[test]
+fn search_ads_without_a_token_asks_for_one_and_sends_nothing() {
+    let mut server = mockito::Server::new();
+    let any = server.mock("GET", mockito::Matcher::Any).expect(0).create();
+    cmd()
+        .args(["search", "ads", "black holes"])
+        .env("FASTPAPER_ADS_URL", server.url())
+        .env_remove("ADS_API_TOKEN")
+        .assert()
+        .code(1)
+        .stderr(contains("ADS_API_TOKEN").and(contains("scixplorer.org")));
+    any.assert();
+}
+
+#[test]
+fn a_rejected_ads_token_is_named() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(401)
+        .with_body(r#"{"message": "The access token provided is expired, revoked, malformed, or invalid for other reasons."}"#)
+        .create();
+    cmd()
+        .args(["search", "ads", "black holes"])
+        .env("FASTPAPER_ADS_URL", server.url())
+        .env("ADS_API_TOKEN", "stale")
+        .assert()
+        .code(1)
+        .stderr(contains("rejected ADS_API_TOKEN").and(contains("expired, revoked")));
+}
+
+#[test]
+fn an_exhausted_ads_quota_is_not_retried() {
+    let mut server = mockito::Server::new();
+    let limited = server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(429)
+        .with_header("x-ratelimit-remaining", "0")
+        .with_header("x-ratelimit-reset", "1789884864")
+        .expect(1)
+        .create();
+    cmd()
+        .args(["search", "ads", "black holes"])
+        .env("FASTPAPER_ADS_URL", server.url())
+        .env("ADS_API_TOKEN", "t")
+        .assert()
+        .code(1)
+        .stderr(contains("quota").and(contains("00:00 UTC")));
+    limited.assert();
+}
+
+#[test]
+fn get_ads_by_doi_queries_the_identifier_field() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", "/search/query")
+        .match_query(mockito::Matcher::UrlEncoded(
+            "q".into(),
+            r#"identifier:"10.3847/2041-8213/ac6674""#.into(),
+        ))
+        .with_body(include_str!("fixtures/ads_search.json"))
+        .create();
+    cmd()
+        .args(["get", "ads", "10.3847/2041-8213/ac6674"])
+        .env("FASTPAPER_ADS_URL", server.url())
+        .env("ADS_API_TOKEN", "t")
+        .assert()
+        .success()
+        .stdout(contains("Event Horizon Telescope"));
+}
+
+#[test]
+#[ignore]
+fn real_ads_search_works() {
+    if std::env::var("ADS_API_TOKEN").is_err() {
+        eprintln!("skipped: set ADS_API_TOKEN to run the real ADS check");
+        return;
+    }
+    real_search_returns_results("ads");
+}

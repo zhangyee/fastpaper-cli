@@ -104,6 +104,7 @@ fn papers(source: Source) -> Vec<Paper> {
             all
         }
         Source::Oapen => sources::oapen::parse_search_response(&f("oapen_search.json")).unwrap(),
+        Source::Ads => sources::ads::parse_search_response(&f("ads_search.json")).unwrap(),
     }
 }
 

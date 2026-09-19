@@ -1,0 +1,34 @@
+{
+  "responseHeader": {
+    "status": 0,
+    "QTime": 50,
+    "params": {
+      "q": "references(bibcode:2022ApJ...930L..12E)",
+      "fl": "bibcode,title",
+      "start": "0",
+      "rows": "2",
+      "wt": "json"
+    }
+  },
+  "response": {
+    "numFound": 121,
+    "start": 0,
+    "numFoundExact": true,
+    "docs": [
+      {
+        "bibcode": "2016PhRvL.116f1102A",
+        "title": [
+          "Observation of Gravitational Waves from a Binary Black Hole Merger"
+        ]
+      },
+      {
+        "bibcode": "2019ApJ...875L...1E",
+        "title": [
+          "First M87 Event Horizon Telescope Results. I. The Shadow of the Supermassive Black Hole"
+        ]
+      }
+    ]
+  },
+  "allocatedBytes": 11545016,
+  "filtered": "true"
+}
