@@ -189,6 +189,14 @@ pub fn build_cite_url(
     )
 }
 
+/// A bibcode is exactly 19 characters, the first four of which are the
+/// publication year; a bare DOI, an arXiv id, or an `arXiv:`-prefixed id are
+/// not bibcodes even though ADS accepts them elsewhere (`get`, `identifier`).
+pub(crate) fn looks_like_bibcode(id: &str) -> bool {
+    let id = id.trim();
+    id.len() == 19 && id.as_bytes().iter().take(4).all(u8::is_ascii_digit)
+}
+
 /// Citation edges: what cites a bibcode, or what it cites, most-cited first.
 pub fn cite(
     base_url: &str,
@@ -196,9 +204,17 @@ pub fn cite(
     direction: super::Direction,
     limit: u32,
 ) -> Result<Vec<Paper>, String> {
+    let id = bibcode.trim();
+    if !looks_like_bibcode(id) {
+        return Err(format!(
+            "cite ads takes an ADS bibcode (19 characters, e.g. 1929PNAS...15..168H); got '{}'.\n\
+             Find it with: fastpaper get ads {}",
+            id, id
+        ));
+    }
     let token = token()?;
     parse_search_response(&http_get(
-        &build_cite_url(base_url, bibcode, direction, limit),
+        &build_cite_url(base_url, id, direction, limit),
         &token,
     )?)
 }
@@ -427,6 +443,38 @@ mod tests {
             "{}",
             err
         );
+    }
+
+    #[test]
+    fn looks_like_bibcode_accepts_real_bibcodes_and_rejects_other_ids() {
+        for ok in [
+            "1929PNAS...15..168H",
+            "1979A&A....75..228L",
+            "2022ApJ...930L..12E",
+        ] {
+            assert!(looks_like_bibcode(ok), "{}", ok);
+        }
+        for bad in [
+            "1805.00001",
+            "10.3847/2041-8213/ac6674",
+            "arXiv:1805.00001",
+            "",
+        ] {
+            assert!(!looks_like_bibcode(bad), "{}", bad);
+        }
+    }
+
+    #[test]
+    fn cite_refuses_a_non_bibcode_id_before_any_request() {
+        let err = cite(
+            "http://127.0.0.1:9",
+            "1805.00001",
+            crate::sources::Direction::Incoming,
+            20,
+        )
+        .unwrap_err();
+        assert!(err.contains("takes an ADS bibcode"), "{}", err);
+        assert!(err.contains("fastpaper get ads 1805.00001"), "{}", err);
     }
 
     #[test]

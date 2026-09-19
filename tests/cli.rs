@@ -2813,6 +2813,20 @@ fn cite_ads_walks_citations() {
 }
 
 #[test]
+fn cite_ads_with_a_non_bibcode_id_is_refused_before_any_request() {
+    let mut server = mockito::Server::new();
+    let any = server.mock("GET", mockito::Matcher::Any).expect(0).create();
+    cmd()
+        .args(["cite", "ads", "1805.00001"])
+        .env("FASTPAPER_ADS_URL", server.url())
+        .env("ADS_API_TOKEN", "t")
+        .assert()
+        .code(1)
+        .stderr(contains("takes an ADS bibcode").and(contains("fastpaper get ads 1805.00001")));
+    any.assert();
+}
+
+#[test]
 fn download_ads_falls_through_to_the_next_listed_copy() {
     let mut server = mockito::Server::new();
     server
