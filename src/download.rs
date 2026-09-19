@@ -520,9 +520,28 @@ pub fn pdf_bytes_ads(gateway: &str, identifier: &str, limit: u64) -> Result<Vec<
     if route.is_empty() {
         return Err(FetchError::NotFound(format!("ADS lists no PDF for {}", bibcode)));
     }
+    fetch_ads_route(
+        gateway,
+        &bibcode,
+        &route,
+        limit,
+        std::time::Duration::from_secs(10),
+    )
+}
 
+/// Walk `route`, best copy first, fetching each from the link gateway.
+///
+/// Split out of `pdf_bytes_ads` so a test can pass `Duration::ZERO` for the
+/// scan-retry pause instead of actually waiting 10 s.
+fn fetch_ads_route(
+    gateway: &str,
+    bibcode: &str,
+    route: &[&'static str],
+    limit: u64,
+    pause: std::time::Duration,
+) -> Result<Vec<u8>, FetchError> {
     let mut last = FetchError::NotFound(format!("ADS lists no PDF for {}", bibcode));
-    for kind in route {
+    for kind in route.iter().copied() {
         let url = format!(
             "{}/{}/{}",
             gateway.trim_end_matches('/'),
@@ -532,7 +551,7 @@ pub fn pdf_bytes_ads(gateway: &str, identifier: &str, limit: u64) -> Result<Vec<
         let attempts = if kind == "ADS_PDF" { 2 } else { 1 };
         for attempt in 0..attempts {
             if attempt > 0 {
-                std::thread::sleep(std::time::Duration::from_secs(10));
+                std::thread::sleep(pause);
             }
             match fetch_pdf(&url, limit) {
                 Ok(bytes) => return Ok(bytes),
@@ -1248,6 +1267,59 @@ mod tests {
             err
         );
         assert!(err.message().contains("--max-size"), "got: {}", err);
+    }
+
+    // ADS renders a scan of an old journal on demand and answers 504 while it
+    // does; one retry after a pause is worth it, but a second failure is not
+    // -- this pins "exactly twice", not "keeps trying". The bibcode's `&`
+    // also has to reach the gateway as `%26`, or the mock below would never
+    // match at all.
+    #[test]
+    fn an_ads_scan_that_504s_is_tried_exactly_twice() {
+        let mut server = mockito::Server::new();
+        let m = server
+            .mock("GET", "/1979A%26A....75..228L/ADS_PDF")
+            .with_status(504)
+            .expect(2)
+            .create();
+        let err = fetch_ads_route(
+            &server.url(),
+            "1979A&A....75..228L",
+            &["ADS_PDF"],
+            u64::MAX,
+            std::time::Duration::ZERO,
+        )
+        .unwrap_err();
+        assert!(matches!(err, FetchError::Failed(_)), "got: {:?}", err);
+        m.assert();
+    }
+
+    // A 404 on one copy means "try the next listed copy", not "retry this
+    // one": only ADS_PDF's on-demand rendering earns a retry.
+    #[test]
+    fn a_missing_copy_is_not_retried() {
+        let mut server = mockito::Server::new();
+        let missing = server
+            .mock("GET", "/2022ApJ...930L..12E/EPRINT_PDF")
+            .with_status(404)
+            .expect(1)
+            .create();
+        let found = server
+            .mock("GET", "/2022ApJ...930L..12E/PUB_PDF")
+            .with_body("%PDF-1.5 test")
+            .expect(1)
+            .create();
+        let bytes = fetch_ads_route(
+            &server.url(),
+            "2022ApJ...930L..12E",
+            &["EPRINT_PDF", "PUB_PDF"],
+            u64::MAX,
+            std::time::Duration::ZERO,
+        )
+        .unwrap();
+        assert!(bytes.starts_with(b"%PDF"));
+        missing.assert();
+        found.assert();
     }
 }
 

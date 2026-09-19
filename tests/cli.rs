@@ -2785,6 +2785,50 @@ fn download_ads_falls_through_to_the_next_listed_copy() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+// The metadata lookup (file_sources) has to go to the API host, and the PDF
+// fetch to the gateway host -- the unit test above pointed both env vars at
+// one server, which could not catch the two swapped.
+#[test]
+fn download_ads_reads_the_record_from_the_api_host_and_the_file_from_the_gateway() {
+    let mut api = mockito::Server::new();
+    let mut gateway = mockito::Server::new();
+    let meta = api
+        .mock("GET", "/search/query")
+        .match_query(mockito::Matcher::UrlEncoded("fl".into(), "bibcode,esources".into()))
+        .with_body(r#"{"response":{"docs":[{"bibcode":"2022ApJ...930L..12E","esources":["EPRINT_PDF"]}]}}"#)
+        .expect(1)
+        .create();
+    let api_pdf = api
+        .mock("GET", "/2022ApJ...930L..12E/EPRINT_PDF")
+        .expect(0)
+        .create();
+    let pdf = gateway
+        .mock("GET", "/2022ApJ...930L..12E/EPRINT_PDF")
+        .with_body("%PDF-1.5 test")
+        .expect(1)
+        .create();
+    let gateway_search = gateway
+        .mock("GET", "/search/query")
+        .match_query(mockito::Matcher::Any)
+        .expect(0)
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "ads", "2022ApJ...930L..12E", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ADS_URL", api.url())
+        .env("FASTPAPER_ADS_PDF_URL", gateway.url())
+        .env("ADS_API_TOKEN", "t")
+        .assert()
+        .success();
+    assert!(dir.join("2022ApJ...930L..12E.pdf").exists());
+    meta.assert();
+    api_pdf.assert();
+    pdf.assert();
+    gateway_search.assert();
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 #[test]
 fn download_ads_with_no_listed_pdf_is_exit_4() {
     let mut server = mockito::Server::new();
