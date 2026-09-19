@@ -2535,3 +2535,53 @@ fn jstage_refuses_a_date_range_it_cannot_resolve() {
 fn real_jstage_search_works() {
     real_search_returns_results("jstage");
 }
+
+// ── oapen ───────────────────────────────────────
+
+#[test]
+fn search_oapen_mock_outputs_title() {
+    search_against_fixture(
+        "oapen",
+        "FASTPAPER_OAPEN_URL",
+        include_str!("fixtures/oapen_search.json"),
+        "Practical Machine Learning",
+    );
+}
+
+#[test]
+fn download_oapen_follows_the_pdf_bitstream() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", "/rest/handle/20.500.12657/98246")
+        .match_query(mockito::Matcher::Any)
+        .with_body(include_str!("fixtures/oapen_item.json"))
+        .create();
+    server
+        .mock("GET", "/rest/bitstreams/7ed5481a-3418-4316-b28e-d092d0b8df20/retrieve")
+        .with_body("%PDF-1.7 test")
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "oapen", "20.500.12657/98246", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_OAPEN_URL", server.url())
+        .assert()
+        .success();
+    assert!(dir.join("20.500.12657_98246.pdf").exists());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn oapen_refuses_more_than_100() {
+    cmd()
+        .args(["search", "oapen", "history", "-n", "101"])
+        .assert()
+        .code(1)
+        .stderr(contains("at most 100"));
+}
+
+#[test]
+#[ignore]
+fn real_oapen_search_works() {
+    real_search_returns_results("oapen");
+}

@@ -1,0 +1,1728 @@
+[
+  {
+    "uuid": "6845d90d-fabc-417d-b7ce-fccc9b75fb66",
+    "name": null,
+    "handle": "20.500.12657/66016",
+    "type": "item",
+    "expand": [
+      "parentCollection",
+      "parentCollectionList",
+      "parentCommunityList",
+      "all"
+    ],
+    "lastModified": "2023-07-31 04:11:58.563",
+    "parentCollection": null,
+    "parentCollectionList": null,
+    "parentCommunityList": null,
+    "bitstreams": [],
+    "archived": "true",
+    "withdrawn": "false",
+    "link": "/rest/items/6845d90d-fabc-417d-b7ce-fccc9b75fb66",
+    "metadata": [
+      {
+        "key": "dc.date.accessioned",
+        "value": "2023-07-31T04:09:06Z",
+        "language": null,
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "accessioned"
+      },
+      {
+        "key": "dc.date.available",
+        "value": "2023-07-31T04:09:06Z",
+        "language": null,
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "available"
+      },
+      {
+        "key": "dc.identifier.uri",
+        "value": "https://library.oapen.org/handle/20.500.12657/66016",
+        "language": null,
+        "schema": "dc",
+        "element": "identifier",
+        "qualifier": "uri"
+      },
+      {
+        "key": "dc.type",
+        "value": "grantor",
+        "language": null,
+        "schema": "dc",
+        "element": "type",
+        "qualifier": null
+      },
+      {
+        "key": "grantor.name",
+        "value": "Center for Machine Learning and Health, School of Computer Science, Carnegie Mellon University",
+        "language": null,
+        "schema": "grantor",
+        "element": "name",
+        "qualifier": null
+      },
+      {
+        "key": "grantor.acronym",
+        "value": "Center for Machine Learning and Health",
+        "language": null,
+        "schema": "grantor",
+        "element": "acronym",
+        "qualifier": null
+      },
+      {
+        "key": "grantor.acronym",
+        "value": "Center for Machine Learning & Health",
+        "language": null,
+        "schema": "grantor",
+        "element": "acronym",
+        "qualifier": null
+      },
+      {
+        "key": "grantor.acronym",
+        "value": "CMU Center for Machine Learning & Health",
+        "language": null,
+        "schema": "grantor",
+        "element": "acronym",
+        "qualifier": null
+      },
+      {
+        "key": "grantor.acronym",
+        "value": "Center for Machine Learning and Health, Carnegie Mellon University",
+        "language": null,
+        "schema": "grantor",
+        "element": "acronym",
+        "qualifier": null
+      },
+      {
+        "key": "grantor.acronym",
+        "value": "CMLH, SCS, CMU",
+        "language": null,
+        "schema": "grantor",
+        "element": "acronym",
+        "qualifier": null
+      },
+      {
+        "key": "grantor.acronym",
+        "value": "CMLH",
+        "language": null,
+        "schema": "grantor",
+        "element": "acronym",
+        "qualifier": null
+      },
+      {
+        "key": "grantor.doi",
+        "value": "10.13039/100018489",
+        "language": null,
+        "schema": "grantor",
+        "element": "doi",
+        "qualifier": null
+      }
+    ]
+  },
+  {
+    "uuid": "9dc7b50b-08df-4d52-a0b2-bcab0b16cea6",
+    "name": "Practical Machine Learning",
+    "handle": "20.500.12657/98246",
+    "type": "item",
+    "expand": [
+      "parentCollection",
+      "parentCollectionList",
+      "parentCommunityList",
+      "all"
+    ],
+    "lastModified": "2025-03-13 14:49:30.498",
+    "parentCollection": null,
+    "parentCollectionList": null,
+    "parentCommunityList": null,
+    "bitstreams": [
+      {
+        "uuid": "7ed5481a-3418-4316-b28e-d092d0b8df20",
+        "name": "9781040267639.pdf",
+        "handle": null,
+        "type": "bitstream",
+        "expand": [
+          "parent",
+          "policies",
+          "all"
+        ],
+        "bundleName": "ORIGINAL",
+        "description": null,
+        "format": "Adobe PDF",
+        "mimeType": "application/pdf",
+        "sizeBytes": 14875595,
+        "parentObject": null,
+        "retrieveLink": "/rest/bitstreams/7ed5481a-3418-4316-b28e-d092d0b8df20/retrieve",
+        "checkSum": {
+          "value": "372e57f97ffe397c82715c29d480a55a",
+          "checkSumAlgorithm": "MD5"
+        },
+        "sequenceId": 1,
+        "code": "CC-BY-NC-ND",
+        "policies": null,
+        "link": "/rest/bitstreams/7ed5481a-3418-4316-b28e-d092d0b8df20",
+        "metadata": [
+          {
+            "key": "dc.rights.uri",
+            "value": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+            "language": null,
+            "schema": "dc",
+            "element": "rights",
+            "qualifier": "uri"
+          },
+          {
+            "key": "dc.source",
+            "value": "http://oapen-ftpserver.org/9781040267639.pdf",
+            "language": null,
+            "schema": "dc",
+            "element": "source",
+            "qualifier": null
+          },
+          {
+            "key": "dc.title",
+            "value": "9781040267639.pdf",
+            "language": null,
+            "schema": "dc",
+            "element": "title",
+            "qualifier": null
+          },
+          {
+            "key": "dc.identifier.urlwebshop",
+            "value": "https://www.taylorfrancis.com/books/9781003486817",
+            "language": null,
+            "schema": "dc",
+            "element": "identifier",
+            "qualifier": "urlwebshop"
+          },
+          {
+            "key": "oapen.relation.isbn",
+            "value": "9781040267639",
+            "language": null,
+            "schema": "oapen",
+            "element": "relation",
+            "qualifier": "isbn"
+          }
+        ]
+      },
+      {
+        "uuid": "4b3f311a-f72d-409f-89e1-a90708e0e91c",
+        "name": "9dc7b50b-08df-4d52-a0b2-bcab0b16cea6.marc.xml",
+        "handle": null,
+        "type": "bitstream",
+        "expand": [
+          "parent",
+          "policies",
+          "all"
+        ],
+        "bundleName": "EXPORT",
+        "description": null,
+        "format": "Unknown",
+        "mimeType": "application/octet-stream",
+        "sizeBytes": 9274,
+        "parentObject": null,
+        "retrieveLink": "/rest/bitstreams/4b3f311a-f72d-409f-89e1-a90708e0e91c/retrieve",
+        "checkSum": {
+          "value": "8ab69cc7acdc400f643f55a2e536e806",
+          "checkSumAlgorithm": "MD5"
+        },
+        "sequenceId": 8,
+        "code": "Other open license",
+        "policies": null,
+        "link": "/rest/bitstreams/4b3f311a-f72d-409f-89e1-a90708e0e91c",
+        "metadata": [
+          {
+            "key": "dc.title",
+            "value": "9dc7b50b-08df-4d52-a0b2-bcab0b16cea6.marc.xml",
+            "language": null,
+            "schema": "dc",
+            "element": "title",
+            "qualifier": null
+          }
+        ]
+      },
+      {
+        "uuid": "8bc54586-c22c-4573-8860-40692894aa7d",
+        "name": "9dc7b50b-08df-4d52-a0b2-bcab0b16cea6.onix_3.0.xml",
+        "handle": null,
+        "type": "bitstream",
+        "expand": [
+          "parent",
+          "policies",
+          "all"
+        ],
+        "bundleName": "EXPORT",
+        "description": null,
+        "format": "Unknown",
+        "mimeType": "application/octet-stream",
+        "sizeBytes": 8704,
+        "parentObject": null,
+        "retrieveLink": "/rest/bitstreams/8bc54586-c22c-4573-8860-40692894aa7d/retrieve",
+        "checkSum": {
+          "value": "3bb96b47b417127b6e1de164b5a1fcea",
+          "checkSumAlgorithm": "MD5"
+        },
+        "sequenceId": 9,
+        "code": "Other open license",
+        "policies": null,
+        "link": "/rest/bitstreams/8bc54586-c22c-4573-8860-40692894aa7d",
+        "metadata": [
+          {
+            "key": "dc.title",
+            "value": "9dc7b50b-08df-4d52-a0b2-bcab0b16cea6.onix_3.0.xml",
+            "language": null,
+            "schema": "dc",
+            "element": "title",
+            "qualifier": null
+          }
+        ]
+      },
+      {
+        "uuid": "f9c66224-1d3f-40f5-bda7-c6ae75642770",
+        "name": "9dc7b50b-08df-4d52-a0b2-bcab0b16cea6.ris",
+        "handle": null,
+        "type": "bitstream",
+        "expand": [
+          "parent",
+          "policies",
+          "all"
+        ],
+        "bundleName": "EXPORT",
+        "description": null,
+        "format": "Unknown",
+        "mimeType": "application/octet-stream",
+        "sizeBytes": 2094,
+        "parentObject": null,
+        "retrieveLink": "/rest/bitstreams/f9c66224-1d3f-40f5-bda7-c6ae75642770/retrieve",
+        "checkSum": {
+          "value": "04613475ed71620e69d6740515afd1c2",
+          "checkSumAlgorithm": "MD5"
+        },
+        "sequenceId": 10,
+        "code": "Other open license",
+        "policies": null,
+        "link": "/rest/bitstreams/f9c66224-1d3f-40f5-bda7-c6ae75642770",
+        "metadata": [
+          {
+            "key": "dc.title",
+            "value": "9dc7b50b-08df-4d52-a0b2-bcab0b16cea6.ris",
+            "language": null,
+            "schema": "dc",
+            "element": "title",
+            "qualifier": null
+          }
+        ]
+      },
+      {
+        "uuid": "74cb9d33-89f6-4663-af46-f08d16759710",
+        "name": "9dc7b50b-08df-4d52-a0b2-bcab0b16cea6.tsv",
+        "handle": null,
+        "type": "bitstream",
+        "expand": [
+          "parent",
+          "policies",
+          "all"
+        ],
+        "bundleName": "EXPORT",
+        "description": null,
+        "format": "Unknown",
+        "mimeType": "application/octet-stream",
+        "sizeBytes": 493,
+        "parentObject": null,
+        "retrieveLink": "/rest/bitstreams/74cb9d33-89f6-4663-af46-f08d16759710/retrieve",
+        "checkSum": {
+          "value": "7b7e118e549812768e9044081d9bf0f5",
+          "checkSumAlgorithm": "MD5"
+        },
+        "sequenceId": -1,
+        "code": "Other open license",
+        "policies": null,
+        "link": "/rest/bitstreams/74cb9d33-89f6-4663-af46-f08d16759710",
+        "metadata": [
+          {
+            "key": "dc.title",
+            "value": "9dc7b50b-08df-4d52-a0b2-bcab0b16cea6.tsv",
+            "language": null,
+            "schema": "dc",
+            "element": "title",
+            "qualifier": null
+          }
+        ]
+      },
+      {
+        "uuid": "5a1c944e-03a0-4f7a-b69c-496974e3abf1",
+        "name": "9781040267639.pdf.txt",
+        "handle": null,
+        "type": "bitstream",
+        "expand": [
+          "parent",
+          "policies",
+          "all"
+        ],
+        "bundleName": "TEXT",
+        "description": "Extracted text",
+        "format": "Text",
+        "mimeType": "text/plain",
+        "sizeBytes": 448989,
+        "parentObject": null,
+        "retrieveLink": "/rest/bitstreams/5a1c944e-03a0-4f7a-b69c-496974e3abf1/retrieve",
+        "checkSum": {
+          "value": "9ff7505f9d8f4a874bd15ac57b1bb1b4",
+          "checkSumAlgorithm": "MD5"
+        },
+        "sequenceId": 6,
+        "code": "Other open license",
+        "policies": null,
+        "link": "/rest/bitstreams/5a1c944e-03a0-4f7a-b69c-496974e3abf1",
+        "metadata": [
+          {
+            "key": "dc.description",
+            "value": "Extracted text",
+            "language": null,
+            "schema": "dc",
+            "element": "description",
+            "qualifier": null
+          },
+          {
+            "key": "dc.source",
+            "value": "Written by FormatFilter org.dspace.app.mediafilter.PDFFilter on 2025-02-07T03:15:12Z (GMT).",
+            "language": null,
+            "schema": "dc",
+            "element": "source",
+            "qualifier": null
+          },
+          {
+            "key": "dc.title",
+            "value": "9781040267639.pdf.txt",
+            "language": null,
+            "schema": "dc",
+            "element": "title",
+            "qualifier": null
+          }
+        ]
+      },
+      {
+        "uuid": "7798282e-9a5d-423e-87fa-50a40a9c0228",
+        "name": "9781040267639.pdf.jpg",
+        "handle": null,
+        "type": "bitstream",
+        "expand": [
+          "parent",
+          "policies",
+          "all"
+        ],
+        "bundleName": "THUMBNAIL",
+        "description": "Generated Thumbnail",
+        "format": "JPEG",
+        "mimeType": "image/jpeg",
+        "sizeBytes": 7078,
+        "parentObject": null,
+        "retrieveLink": "/rest/bitstreams/7798282e-9a5d-423e-87fa-50a40a9c0228/retrieve",
+        "checkSum": {
+          "value": "daa42de123a89698c9711280d25846d5",
+          "checkSumAlgorithm": "MD5"
+        },
+        "sequenceId": 7,
+        "code": "Other open license",
+        "policies": null,
+        "link": "/rest/bitstreams/7798282e-9a5d-423e-87fa-50a40a9c0228",
+        "metadata": [
+          {
+            "key": "dc.description",
+            "value": "Generated Thumbnail",
+            "language": null,
+            "schema": "dc",
+            "element": "description",
+            "qualifier": null
+          },
+          {
+            "key": "dc.source",
+            "value": "Written by FormatFilter org.dspace.app.mediafilter.PDFBoxThumbnail on 2025-02-07T03:15:14Z (GMT).",
+            "language": null,
+            "schema": "dc",
+            "element": "source",
+            "qualifier": null
+          },
+          {
+            "key": "dc.title",
+            "value": "9781040267639.pdf.jpg",
+            "language": null,
+            "schema": "dc",
+            "element": "title",
+            "qualifier": null
+          }
+        ]
+      }
+    ],
+    "archived": "true",
+    "withdrawn": "false",
+    "link": "/rest/items/9dc7b50b-08df-4d52-a0b2-bcab0b16cea6",
+    "metadata": [
+      {
+        "key": "dc.contributor.author",
+        "value": "Nyamawe, Ally S.",
+        "language": null,
+        "schema": "dc",
+        "element": "contributor",
+        "qualifier": "author"
+      },
+      {
+        "key": "dc.contributor.author",
+        "value": "Mjahidi, Mohamedi M.",
+        "language": null,
+        "schema": "dc",
+        "element": "contributor",
+        "qualifier": "author"
+      },
+      {
+        "key": "dc.contributor.author",
+        "value": "Nnko, Noe E.",
+        "language": null,
+        "schema": "dc",
+        "element": "contributor",
+        "qualifier": "author"
+      },
+      {
+        "key": "dc.contributor.author",
+        "value": "Diwani, Salim A.",
+        "language": null,
+        "schema": "dc",
+        "element": "contributor",
+        "qualifier": "author"
+      },
+      {
+        "key": "dc.contributor.author",
+        "value": "Minja, Godbless G.",
+        "language": null,
+        "schema": "dc",
+        "element": "contributor",
+        "qualifier": "author"
+      },
+      {
+        "key": "dc.contributor.author",
+        "value": "Malyango, Kulwa",
+        "language": null,
+        "schema": "dc",
+        "element": "contributor",
+        "qualifier": "author"
+      },
+      {
+        "key": "dc.date.accessioned",
+        "value": "2025-02-06T15:10:27Z",
+        "language": null,
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "accessioned"
+      },
+      {
+        "key": "dc.date.available",
+        "value": "2025-02-06T15:10:27Z",
+        "language": null,
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "available"
+      },
+      {
+        "key": "dc.date.issued",
+        "value": "2025",
+        "language": null,
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "issued"
+      },
+      {
+        "key": "dc.identifier",
+        "value": "ONIX_20250206_9781040267639_2",
+        "language": null,
+        "schema": "dc",
+        "element": "identifier",
+        "qualifier": null
+      },
+      {
+        "key": "dc.identifier.uri",
+        "value": "https://library.oapen.org/handle/20.500.12657/98246",
+        "language": null,
+        "schema": "dc",
+        "element": "identifier",
+        "qualifier": "uri"
+      },
+      {
+        "key": "dc.description.abstract",
+        "value": "The book provides an accessible, comprehensive introduction for beginners to machine learning, equipping them with the fundamental skills and techniques essential for this field. It enables beginners to construct practical, real-world solutions powered by machine learning across diverse application domains. It demonstrates the fundamental techniques involved in data collection, integration, cleansing, transformation, development, and deployment of machine learning models. This book emphasizes the importance of integrating responsible and explainable AI into machine learning models, ensuring these principles are prioritized rather than treated as an afterthought. To support learning, this book also offers information on accessing additional machine learning resources such as datasets, libraries, pre-trained models, and tools for tracking machine learning models. This is a core resource for students and instructors of machine learning and data science looking for a beginner-friendly material which offers real-world applications and takes ethical discussions into account. The Open Access version of this book, available at http://www.taylorfrancis.com, has been made available under a Creative Commons Attribution-Non Commercial-No Derivatives (CC-BY-NC-ND) 4.0 license.",
+        "language": null,
+        "schema": "dc",
+        "element": "description",
+        "qualifier": "abstract"
+      },
+      {
+        "key": "dc.language",
+        "value": "English",
+        "language": null,
+        "code": "eng",
+        "schema": "dc",
+        "element": "language",
+        "qualifier": null
+      },
+      {
+        "key": "dc.subject.classification",
+        "value": "thema EDItEUR::T Technology, Engineering, Agriculture, Industrial processes::TJ Electronics and communications engineering::TJF Electronics engineering::TJFM Automatic control engineering",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "classification"
+      },
+      {
+        "key": "dc.subject.classification",
+        "value": "thema EDItEUR::U Computing and Information Technology::UY Computer science::UYQ Artificial intelligence",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "classification"
+      },
+      {
+        "key": "dc.subject.classification",
+        "value": "thema EDItEUR::U Computing and Information Technology::UM Computer programming / software engineering::UMX Programming and scripting languages: general",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "classification"
+      },
+      {
+        "key": "dc.subject.classification",
+        "value": "thema EDItEUR::U Computing and Information Technology::UM Computer programming / software engineering::UMZ Software Engineering",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "classification"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "Ethics",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "pre-processing",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "data collection",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "hyperparameter optimization",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "data cleaning",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "programming",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "choosing algorith",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "models",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "cloud computing",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "responsible AI",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "explainable AI",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "XAI",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "classification",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "regression",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "python",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.title",
+        "value": "Practical Machine Learning",
+        "language": null,
+        "schema": "dc",
+        "element": "title",
+        "qualifier": null
+      },
+      {
+        "key": "dc.title.alternative",
+        "value": "A Beginner's Guide with Ethical Insights",
+        "language": null,
+        "schema": "dc",
+        "element": "title",
+        "qualifier": "alternative"
+      },
+      {
+        "key": "dc.type",
+        "value": "book",
+        "language": "",
+        "schema": "dc",
+        "element": "type",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.identifier.doi",
+        "value": "10.1201/9781003486817",
+        "language": null,
+        "schema": "oapen",
+        "element": "identifier",
+        "qualifier": "doi"
+      },
+      {
+        "key": "oapen.relation.isPublishedBy",
+        "value": "https://library.oapen.org/handle/20.500.12657/22274",
+        "language": null,
+        "schema": "oapen",
+        "element": "relation",
+        "qualifier": "isPublishedBy"
+      },
+      {
+        "key": "publisher.name",
+        "value": "Taylor & Francis",
+        "language": null,
+        "schema": "publisher",
+        "element": "name",
+        "qualifier": null
+      },
+      {
+        "key": "publisher.website",
+        "value": "https://taylorandfrancis.com/",
+        "language": "",
+        "schema": "publisher",
+        "element": "website",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.imprint",
+        "value": "Chapman and Hall/CRC Press",
+        "language": null,
+        "schema": "oapen",
+        "element": "imprint",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.pages",
+        "value": "226",
+        "language": null,
+        "schema": "oapen",
+        "element": "pages",
+        "qualifier": null
+      },
+      {
+        "key": "peerreview.anonymity",
+        "value": "Single-anonymised",
+        "language": null,
+        "schema": "peerreview",
+        "element": "anonymity",
+        "qualifier": null
+      },
+      {
+        "key": "peerreview.id",
+        "value": "bc80075c-96cc-4740-a9f3-a234bc2598f1",
+        "language": null,
+        "schema": "peerreview",
+        "element": "id",
+        "qualifier": null
+      },
+      {
+        "key": "peerreview.open.review",
+        "value": "No",
+        "language": null,
+        "schema": "peerreview",
+        "element": "open",
+        "qualifier": "review"
+      },
+      {
+        "key": "peerreview.publish.responsibility",
+        "value": "Publisher",
+        "language": null,
+        "schema": "peerreview",
+        "element": "publish",
+        "qualifier": "responsibility"
+      },
+      {
+        "key": "peerreview.review.stage",
+        "value": "Pre-publication",
+        "language": null,
+        "schema": "peerreview",
+        "element": "review",
+        "qualifier": "stage"
+      },
+      {
+        "key": "peerreview.review.type",
+        "value": "Proposal",
+        "language": null,
+        "schema": "peerreview",
+        "element": "review",
+        "qualifier": "type"
+      },
+      {
+        "key": "peerreview.reviewer.type",
+        "value": "Internal editor",
+        "language": null,
+        "schema": "peerreview",
+        "element": "reviewer",
+        "qualifier": "type"
+      },
+      {
+        "key": "peerreview.reviewer.type",
+        "value": "External peer reviewer",
+        "language": null,
+        "schema": "peerreview",
+        "element": "reviewer",
+        "qualifier": "type"
+      },
+      {
+        "key": "peerreview.title",
+        "value": "Proposal review",
+        "language": null,
+        "schema": "peerreview",
+        "element": "title",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.review.comments",
+        "value": "Taylor & Francis open access titles are reviewed as a minimum at proposal stage by at least two external peer reviewers and an internal editor (additional reviews may be sought and additional content reviewed as required).",
+        "language": null,
+        "schema": "oapen",
+        "element": "review",
+        "qualifier": "comments"
+      }
+    ]
+  },
+  {
+    "uuid": "46340b8a-8a2a-43d1-a1dd-80021fb90da4",
+    "name": "Errant Intelligence",
+    "handle": "20.500.12657/113838",
+    "type": "item",
+    "expand": [
+      "parentCollection",
+      "parentCollectionList",
+      "parentCommunityList",
+      "all"
+    ],
+    "lastModified": "2026-06-03 12:16:06.821",
+    "parentCollection": null,
+    "parentCollectionList": null,
+    "parentCommunityList": null,
+    "bitstreams": [
+      {
+        "uuid": "a2147b8a-0bb4-492d-a586-8654b8145efe",
+        "name": "9781040838440.pdf",
+        "handle": null,
+        "type": "bitstream",
+        "expand": [
+          "parent",
+          "policies",
+          "all"
+        ],
+        "bundleName": "ORIGINAL",
+        "description": null,
+        "format": "Adobe PDF",
+        "mimeType": "application/pdf",
+        "sizeBytes": 4946660,
+        "parentObject": null,
+        "retrieveLink": "/rest/bitstreams/a2147b8a-0bb4-492d-a586-8654b8145efe/retrieve",
+        "checkSum": {
+          "value": "46f8d8d8acd2730468c229d858cd9b77",
+          "checkSumAlgorithm": "MD5"
+        },
+        "sequenceId": 1,
+        "code": "CC-BY-NC-ND",
+        "policies": null,
+        "link": "/rest/bitstreams/a2147b8a-0bb4-492d-a586-8654b8145efe",
+        "metadata": [
+          {
+            "key": "dc.rights.uri",
+            "value": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+            "language": null,
+            "schema": "dc",
+            "element": "rights",
+            "qualifier": "uri"
+          },
+          {
+            "key": "dc.source",
+            "value": "http://oapen-ftpserver.org/9781040838440.pdf",
+            "language": null,
+            "schema": "dc",
+            "element": "source",
+            "qualifier": null
+          },
+          {
+            "key": "dc.title",
+            "value": "9781040838440.pdf",
+            "language": null,
+            "schema": "dc",
+            "element": "title",
+            "qualifier": null
+          },
+          {
+            "key": "oapen.relation.isbn",
+            "value": "9781040838440",
+            "language": null,
+            "schema": "oapen",
+            "element": "relation",
+            "qualifier": "isbn"
+          }
+        ]
+      },
+      {
+        "uuid": "76189527-2066-4533-9d1f-fd3d1f7149e0",
+        "name": "9781040838440.pdf.txt",
+        "handle": null,
+        "type": "bitstream",
+        "expand": [
+          "parent",
+          "policies",
+          "all"
+        ],
+        "bundleName": "TEXT",
+        "description": "Extracted text",
+        "format": "Text",
+        "mimeType": "text/plain",
+        "sizeBytes": 517364,
+        "parentObject": null,
+        "retrieveLink": "/rest/bitstreams/76189527-2066-4533-9d1f-fd3d1f7149e0/retrieve",
+        "checkSum": {
+          "value": "b8e2b28033c85e0a0b49e08a3d214142",
+          "checkSumAlgorithm": "MD5"
+        },
+        "sequenceId": 2,
+        "code": "Other open license",
+        "policies": null,
+        "link": "/rest/bitstreams/76189527-2066-4533-9d1f-fd3d1f7149e0",
+        "metadata": [
+          {
+            "key": "dc.description",
+            "value": "Extracted text",
+            "language": null,
+            "schema": "dc",
+            "element": "description",
+            "qualifier": null
+          },
+          {
+            "key": "dc.source",
+            "value": "Written by FormatFilter org.dspace.app.mediafilter.PDFFilter on 2026-05-30T01:27:53Z (GMT).",
+            "language": null,
+            "schema": "dc",
+            "element": "source",
+            "qualifier": null
+          },
+          {
+            "key": "dc.title",
+            "value": "9781040838440.pdf.txt",
+            "language": null,
+            "schema": "dc",
+            "element": "title",
+            "qualifier": null
+          }
+        ]
+      },
+      {
+        "uuid": "7f209b16-8eef-4ad2-84c5-265700b208ab",
+        "name": "9781040838440.pdf.jpg",
+        "handle": null,
+        "type": "bitstream",
+        "expand": [
+          "parent",
+          "policies",
+          "all"
+        ],
+        "bundleName": "THUMBNAIL",
+        "description": "Generated Thumbnail",
+        "format": "JPEG",
+        "mimeType": "image/jpeg",
+        "sizeBytes": 8176,
+        "parentObject": null,
+        "retrieveLink": "/rest/bitstreams/7f209b16-8eef-4ad2-84c5-265700b208ab/retrieve",
+        "checkSum": {
+          "value": "58ed34f6a54caaf8db03d686ba808c5d",
+          "checkSumAlgorithm": "MD5"
+        },
+        "sequenceId": 3,
+        "code": "Other open license",
+        "policies": null,
+        "link": "/rest/bitstreams/7f209b16-8eef-4ad2-84c5-265700b208ab",
+        "metadata": [
+          {
+            "key": "dc.description",
+            "value": "Generated Thumbnail",
+            "language": null,
+            "schema": "dc",
+            "element": "description",
+            "qualifier": null
+          },
+          {
+            "key": "dc.source",
+            "value": "Written by FormatFilter org.dspace.app.mediafilter.PDFBoxThumbnail on 2026-05-30T01:27:55Z (GMT).",
+            "language": null,
+            "schema": "dc",
+            "element": "source",
+            "qualifier": null
+          },
+          {
+            "key": "dc.title",
+            "value": "9781040838440.pdf.jpg",
+            "language": null,
+            "schema": "dc",
+            "element": "title",
+            "qualifier": null
+          }
+        ]
+      }
+    ],
+    "archived": "true",
+    "withdrawn": "false",
+    "link": "/rest/items/46340b8a-8a2a-43d1-a1dd-80021fb90da4",
+    "metadata": [
+      {
+        "key": "dc.contributor.author",
+        "value": "Apprich, Clemens",
+        "language": null,
+        "schema": "dc",
+        "element": "contributor",
+        "qualifier": "author"
+      },
+      {
+        "key": "dc.date",
+        "value": "20260608",
+        "language": null,
+        "schema": "dc",
+        "element": "date",
+        "qualifier": null
+      },
+      {
+        "key": "dc.date.accessioned",
+        "value": "2026-05-29T11:30:48Z",
+        "language": null,
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "accessioned"
+      },
+      {
+        "key": "dc.date.available",
+        "value": "2026-05-29T11:30:48Z",
+        "language": null,
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "available"
+      },
+      {
+        "key": "dc.date.issued",
+        "value": "2026",
+        "language": null,
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "issued"
+      },
+      {
+        "key": "dc.identifier",
+        "value": "ONIX_20260529T115621_9781040838440_9",
+        "language": null,
+        "schema": "dc",
+        "element": "identifier",
+        "qualifier": null
+      },
+      {
+        "key": "dc.identifier.uri",
+        "value": "https://library.oapen.org/handle/20.500.12657/113838",
+        "language": null,
+        "schema": "dc",
+        "element": "identifier",
+        "qualifier": "uri"
+      },
+      {
+        "key": "dc.description.abstract",
+        "value": "Artificial intelligence is often framed as a quest to replicate the human brain, promising frictionless cognition and a future of seamless automation. But what if this pervasive narrative obscures a deeper, more “errant” truth? Errant Intelligence challenges the prevailing biological and individualistic interpretations of machine learning, arguing instead for a radical understanding of machine intelligence. The book embraces the deviations, inconsistencies, and “errant behaviour” as fundamental to the discovery of new knowledge, moving beyond the illusion of mere optimisation. Drawing on media theory, cybernetics, and a unique psychoanalytic lens, it explores the “technological unconscious” of machine learning. It traces the historical roots of AI, from early automatons and the Turing machine to natural language processing and contemporary machine learning systems. Challenging the idea of an autonomous, self-generating AI, the book exposes the hidden labour, assumed logics, and inherent biases that animate its operation. It re-evaluates computational thinking, insisting on its inherently social, collective, and symbolic character, and revealing how language and logical paradoxes are not obstacles but constitutive forces that shape intelligent machines. Errant Intelligence offers a vital new framework for understanding the profound co-evolution of human and machine learning. It’s time to “unlearn” our assumptions and embrace the productive ambiguity and fallibility at the core of machine intelligence.",
+        "language": null,
+        "schema": "dc",
+        "element": "description",
+        "qualifier": "abstract"
+      },
+      {
+        "key": "dc.language",
+        "value": "English",
+        "language": null,
+        "code": "eng",
+        "schema": "dc",
+        "element": "language",
+        "qualifier": null
+      },
+      {
+        "key": "dc.relation.ispartofseries",
+        "value": "Recursions",
+        "language": null,
+        "schema": "dc",
+        "element": "relation",
+        "qualifier": "ispartofseries"
+      },
+      {
+        "key": "dc.subject.classification",
+        "value": "thema EDItEUR::J Society and Social Sciences::JB Society and culture: general::JBC Cultural and media studies::JBCT Media studies",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "classification"
+      },
+      {
+        "key": "dc.subject.classification",
+        "value": "thema EDItEUR::U Computing and Information Technology::UY Computer science::UYQ Artificial intelligence::UYQL Natural language and machine translation",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "classification"
+      },
+      {
+        "key": "dc.subject.classification",
+        "value": "thema EDItEUR::U Computing and Information Technology::UY Computer science::UYQ Artificial intelligence::UYQM Machine learning",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "classification"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "Media archaeology",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "Technological unconscious",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "Cybernetic systems",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "Computational epistemology",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "Algorithmic bias",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "Psychoanalytic theory technology",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "Social dimensions of artificial intelligence",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.title",
+        "value": "Errant Intelligence",
+        "language": null,
+        "schema": "dc",
+        "element": "title",
+        "qualifier": null
+      },
+      {
+        "key": "dc.title.alternative",
+        "value": "A Media Theory of Machine Learning",
+        "language": null,
+        "schema": "dc",
+        "element": "title",
+        "qualifier": "alternative"
+      },
+      {
+        "key": "dc.type",
+        "value": "book",
+        "language": "",
+        "schema": "dc",
+        "element": "type",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.identifier.doi",
+        "value": "10.4324/9781003690146",
+        "language": null,
+        "schema": "oapen",
+        "element": "identifier",
+        "qualifier": "doi"
+      },
+      {
+        "key": "oapen.relation.isPublishedBy",
+        "value": "https://library.oapen.org/handle/20.500.12657/22274",
+        "language": null,
+        "schema": "oapen",
+        "element": "relation",
+        "qualifier": "isPublishedBy"
+      },
+      {
+        "key": "publisher.name",
+        "value": "Taylor & Francis",
+        "language": null,
+        "schema": "publisher",
+        "element": "name",
+        "qualifier": null
+      },
+      {
+        "key": "publisher.website",
+        "value": "https://taylorandfrancis.com/",
+        "language": "",
+        "schema": "publisher",
+        "element": "website",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.relation.isFundedBy",
+        "value": "https://library.oapen.org/handle/20.500.12657/113837",
+        "language": null,
+        "schema": "oapen",
+        "element": "relation",
+        "qualifier": "isFundedBy"
+      },
+      {
+        "key": "grantor.name",
+        "value": "University of Applied Arts Vienna",
+        "language": "",
+        "schema": "grantor",
+        "element": "name",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.imprint",
+        "value": "Routledge",
+        "language": null,
+        "schema": "oapen",
+        "element": "imprint",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.pages",
+        "value": "168",
+        "language": null,
+        "schema": "oapen",
+        "element": "pages",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.place.publication",
+        "value": "Oxford",
+        "language": null,
+        "schema": "oapen",
+        "element": "place",
+        "qualifier": "publication"
+      },
+      {
+        "key": "oapen.grant.number",
+        "value": "[...]",
+        "language": null,
+        "schema": "oapen",
+        "element": "grant",
+        "qualifier": "number"
+      }
+    ]
+  },
+  {
+    "uuid": "029a4153-fff8-429d-bd8a-43a334f4110d",
+    "name": "Chapter Machine Learning Models for Industrial Applications",
+    "handle": "20.500.12657/49384",
+    "type": "item",
+    "expand": [
+      "parentCollection",
+      "parentCollectionList",
+      "parentCommunityList",
+      "bitstreams",
+      "all"
+    ],
+    "lastModified": "2024-03-26 14:05:42.821",
+    "parentCollection": null,
+    "parentCollectionList": null,
+    "parentCommunityList": null,
+    "bitstreams": null,
+    "archived": "true",
+    "withdrawn": "false",
+    "link": "/rest/items/029a4153-fff8-429d-bd8a-43a334f4110d",
+    "metadata": [
+      {
+        "key": "dc.contributor.author",
+        "value": "Enislay, Ramentol",
+        "language": null,
+        "schema": "dc",
+        "element": "contributor",
+        "qualifier": "author"
+      },
+      {
+        "key": "dc.contributor.author",
+        "value": "Tomas, Olsson",
+        "language": null,
+        "schema": "dc",
+        "element": "contributor",
+        "qualifier": "author"
+      },
+      {
+        "key": "dc.contributor.author",
+        "value": "Shaibal, Barua",
+        "language": null,
+        "schema": "dc",
+        "element": "contributor",
+        "qualifier": "author"
+      },
+      {
+        "key": "dc.date.accessioned",
+        "value": "2021-06-02T10:13:42Z",
+        "language": null,
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "accessioned"
+      },
+      {
+        "key": "dc.date.available",
+        "value": "2021-06-02T10:13:42Z",
+        "language": null,
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "available"
+      },
+      {
+        "key": "dc.date.issued",
+        "value": "2021",
+        "language": null,
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "issued"
+      },
+      {
+        "key": "dc.identifier",
+        "value": "ONIX_20210602_10.5772/intechopen.93043_498",
+        "language": null,
+        "schema": "dc",
+        "element": "identifier",
+        "qualifier": null
+      },
+      {
+        "key": "dc.identifier.uri",
+        "value": "https://library.oapen.org/handle/20.500.12657/49384",
+        "language": null,
+        "schema": "dc",
+        "element": "identifier",
+        "qualifier": "uri"
+      },
+      {
+        "key": "dc.description.abstract",
+        "value": "More and more industries are aspiring to achieve a successful production using the known artificial intelligence. Machine learning (ML) stands as a powerful tool for making very accurate predictions, concept classification, intelligent control, maintenance predictions, and even fault and anomaly detection in real time. The use of machine learning models in industry means an increase in efficiency: energy savings, human resources efficiency, increase in product quality, decrease in environmental pollution, and many other advantages. In this chapter, we will present two industrial applications of machine learning. In all cases we achieve interesting results that in practice can be translated as an increase in production efficiency. The solutions described cover areas such as prediction of production quality in an oil and gas refinery and predictive maintenance for micro gas turbines. The results of the experiments carried out show the viability of the solutions.",
+        "language": null,
+        "schema": "dc",
+        "element": "description",
+        "qualifier": "abstract"
+      },
+      {
+        "key": "dc.language",
+        "value": "English",
+        "language": null,
+        "code": "eng",
+        "schema": "dc",
+        "element": "language",
+        "qualifier": null
+      },
+      {
+        "key": "dc.subject.classification",
+        "value": "thema EDItEUR::T Technology, Engineering, Agriculture, Industrial processes::TB Technology: general issues::TBC Engineering: general",
+        "language": "en_US",
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "classification"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "machine learning, prediction, regression methods, maintenance, degradation prediction",
+        "language": null,
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.title",
+        "value": "Chapter Machine Learning Models for Industrial Applications",
+        "language": null,
+        "schema": "dc",
+        "element": "title",
+        "qualifier": null
+      },
+      {
+        "key": "dc.type",
+        "value": "chapter",
+        "language": "",
+        "schema": "dc",
+        "element": "type",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.identifier.doi",
+        "value": "10.5772/intechopen.93043",
+        "language": null,
+        "schema": "oapen",
+        "element": "identifier",
+        "qualifier": "doi"
+      },
+      {
+        "key": "oapen.relation.isPublishedBy",
+        "value": "https://library.oapen.org/handle/20.500.12657/29622",
+        "language": null,
+        "schema": "oapen",
+        "element": "relation",
+        "qualifier": "isPublishedBy"
+      },
+      {
+        "key": "publisher.name",
+        "value": "IntechOpen",
+        "language": "",
+        "schema": "publisher",
+        "element": "name",
+        "qualifier": null
+      },
+      {
+        "key": "publisher.website",
+        "value": "https://www.intechopen.com/",
+        "language": "",
+        "schema": "publisher",
+        "element": "website",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.grant.number",
+        "value": "723523",
+        "language": null,
+        "schema": "oapen",
+        "element": "grant",
+        "qualifier": "number"
+      },
+      {
+        "key": "oapen.grant.acronym",
+        "value": "FUDIPO",
+        "language": null,
+        "schema": "oapen",
+        "element": "grant",
+        "qualifier": "acronym"
+      }
+    ]
+  },
+  {
+    "uuid": "2bbd9a7a-02d3-4cc9-bd5e-9a0c28748135",
+    "name": "Data Science and Reliable Machine Learning",
+    "handle": "20.500.12657/97300",
+    "type": "item",
+    "expand": [
+      "parentCollection",
+      "parentCollectionList",
+      "parentCommunityList",
+      "bitstreams",
+      "all"
+    ],
+    "lastModified": "2025-07-29 11:29:04.934",
+    "parentCollection": null,
+    "parentCollectionList": null,
+    "parentCommunityList": null,
+    "bitstreams": null,
+    "archived": "true",
+    "withdrawn": "false",
+    "link": "/rest/items/2bbd9a7a-02d3-4cc9-bd5e-9a0c28748135",
+    "metadata": [
+      {
+        "key": "dc.contributor.editor",
+        "value": "Hajian, Aram",
+        "language": "",
+        "schema": "dc",
+        "element": "contributor",
+        "qualifier": "editor"
+      },
+      {
+        "key": "dc.contributor.editor",
+        "value": "Baloian, Nelson",
+        "language": "",
+        "schema": "dc",
+        "element": "contributor",
+        "qualifier": "editor"
+      },
+      {
+        "key": "dc.date.accessioned",
+        "value": "2025-01-17T05:30:55Z",
+        "language": "",
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "accessioned"
+      },
+      {
+        "key": "dc.date.available",
+        "value": "2025-01-17T05:30:55Z",
+        "language": "",
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "available"
+      },
+      {
+        "key": "dc.date.issued",
+        "value": "2022",
+        "language": "",
+        "schema": "dc",
+        "element": "date",
+        "qualifier": "issued"
+      },
+      {
+        "key": "dc.identifier.uri",
+        "value": "https://library.oapen.org/handle/20.500.12657/97300",
+        "language": "",
+        "schema": "dc",
+        "element": "identifier",
+        "qualifier": "uri"
+      },
+      {
+        "key": "dc.description.abstract",
+        "value": "In October 2024, researchers, students, and practitioners from Armenia, Chile, Germany, and Japan met at the American University of Armenia for the fourth edition of the Cadassca Workshop on Collaborative Technologies and Data Science in Smart City Applications. This book presents their contributions to emerging methodologies in data science, machine learning, applied and human-centered computing.",
+        "language": "",
+        "schema": "dc",
+        "element": "description",
+        "qualifier": "abstract"
+      },
+      {
+        "key": "dc.language",
+        "value": "English",
+        "language": "",
+        "code": "eng",
+        "schema": "dc",
+        "element": "language",
+        "qualifier": null
+      },
+      {
+        "key": "dc.subject.classification",
+        "value": "bic Book Industry Communication::U Computing & information technology::UY Computer science",
+        "language": "",
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "classification"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "Computers",
+        "language": "",
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.subject.other",
+        "value": "Computer Science",
+        "language": "",
+        "schema": "dc",
+        "element": "subject",
+        "qualifier": "other"
+      },
+      {
+        "key": "dc.title",
+        "value": "Data Science and Reliable Machine Learning",
+        "language": "",
+        "schema": "dc",
+        "element": "title",
+        "qualifier": null
+      },
+      {
+        "key": "dc.type",
+        "value": "book",
+        "language": "",
+        "schema": "dc",
+        "element": "type",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.identifier.doi",
+        "value": "10.30819/5855",
+        "language": "",
+        "schema": "oapen",
+        "element": "identifier",
+        "qualifier": "doi"
+      },
+      {
+        "key": "oapen.relation.isPublishedBy",
+        "value": "https://library.oapen.org/handle/20.500.12657/46238",
+        "language": "",
+        "schema": "oapen",
+        "element": "relation",
+        "qualifier": "isPublishedBy"
+      },
+      {
+        "key": "publisher.name",
+        "value": "Logos Verlag Berlin",
+        "language": "en_US",
+        "schema": "publisher",
+        "element": "name",
+        "qualifier": null
+      },
+      {
+        "key": "publisher.country",
+        "value": "Germany",
+        "language": "en_US",
+        "schema": "publisher",
+        "element": "country",
+        "qualifier": null
+      },
+      {
+        "key": "publisher.website",
+        "value": "https://www.logos-verlag.com/",
+        "language": "en_US",
+        "schema": "publisher",
+        "element": "website",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.relation.isFundedBy",
+        "value": "https://library.oapen.org/handle/20.500.12657/22294",
+        "language": "",
+        "schema": "oapen",
+        "element": "relation",
+        "qualifier": "isFundedBy"
+      },
+      {
+        "key": "grantor.name",
+        "value": "Knowledge Unlatched",
+        "language": null,
+        "schema": "grantor",
+        "element": "name",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.collection",
+        "value": "Knowledge Unlatched (KU)",
+        "language": "*",
+        "schema": "oapen",
+        "element": "collection",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.collection",
+        "value": "KU Open Services",
+        "language": "*",
+        "schema": "oapen",
+        "element": "collection",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.imprint",
+        "value": "Logos Verlag Berlin",
+        "language": "",
+        "schema": "oapen",
+        "element": "imprint",
+        "qualifier": null
+      },
+      {
+        "key": "oapen.identifier",
+        "value": "https://openresearchlibrary.org/viewer/a24d23ee-85d1-4296-96e5-494950ab7807",
+        "language": "",
+        "schema": "oapen",
+        "element": "identifier",
+        "qualifier": null
+      },
+      {
+        "key": "grantor.number",
+        "value": "a24d23ee-85d1-4296-96e5-494950ab7807",
+        "language": "",
+        "schema": "grantor",
+        "element": "number",
+        "qualifier": null
+      }
+    ]
+  }
+]

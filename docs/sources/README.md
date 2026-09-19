@@ -32,4 +32,5 @@ The sources fall into a few families: an open preprint server with free full tex
 | [huggingface](huggingface.md) | Hugging Face Papers | REST JSON | none; optional `HF_TOKEN` | 500 req / 5 min per IP; daily/weekly/monthly lists ranked by upvotes, `sort=trending` ignores dates |
 | [openreview](openreview.md) | OpenReview | REST JSON (API v2) | none | search only — records and PDFs are behind a bot challenge; needs `source=forum`; ignores `sort` |
 | [jstage](jstage.md) | J-STAGE | REST, Atom/XML | none | Japanese society journals; zero hits is status `ERR_001`; no abstracts; years only |
+| [oapen](oapen.md) | OAPEN Library | DSpace REST JSON | none | open access books; the index also holds funder records, excluded; slow, `-n` ≤ 100 |
 

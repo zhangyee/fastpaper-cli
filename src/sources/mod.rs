@@ -11,6 +11,7 @@ pub mod huggingface;
 pub mod inspire;
 pub mod jstage;
 pub mod ntrs;
+pub mod oapen;
 pub mod openaire;
 pub mod openreview;
 pub mod openalex;

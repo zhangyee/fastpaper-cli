@@ -38,6 +38,7 @@ pub enum Source {
     Huggingface,
     Openreview,
     Jstage,
+    Oapen,
 }
 
 /// Every source, in the order `fastpaper sources` lists them.
@@ -66,6 +67,7 @@ pub const ALL: &[Source] = &[
     Source::Huggingface,
     Source::Openreview,
     Source::Jstage,
+    Source::Oapen,
 ];
 
 /// The sources whose search honours `flag`, in `ALL` order.
@@ -191,6 +193,7 @@ impl Source {
             Source::Huggingface => &HUGGINGFACE,
             Source::Openreview => &OPENREVIEW,
             Source::Jstage => &JSTAGE,
+            Source::Oapen => &OAPEN,
         }
     }
 }
@@ -1020,6 +1023,37 @@ static JSTAGE: SourceEntry = SourceEntry {
     search: Some(sources::jstage::search),
     get: None,
     pdf: Some(download::pdf_bytes_jstage),
+    cite: None,
+    figures: None,
+};
+
+static OAPEN: SourceEntry = SourceEntry {
+    name: "oapen",
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            offset: true,
+            year: true,
+            author: true,
+            ..SearchCaps::BASIC
+        }),
+        get: true,
+        download: true,
+        cite: false,
+        max_limit: Some(100),
+        fields: FieldCaps::OPEN_FILES,
+        notes: "peer-reviewed open access books and chapters, mostly humanities and social \
+                sciences. Chapter titles start with \"Chapter\", and a chapter is sometimes \
+                filed twice. The query takes dc.* clauses (dc.title:...). An edited volume \
+                lists its editors, marked (ed.). get takes a handle. The API is slow, so -n \
+                caps at 100",
+    },
+    env_var: "FASTPAPER_OAPEN_URL",
+    default_base: "https://library.oapen.org",
+    pdf_env_var: None,
+    pdf_default_base: None,
+    search: Some(sources::oapen::search),
+    get: Some(sources::oapen::get_by_id),
+    pdf: Some(download::pdf_bytes_oapen),
     cite: None,
     figures: None,
 };

@@ -103,6 +103,7 @@ fn papers(source: Source) -> Vec<Paper> {
             all.extend(sources::jstage::parse_search_response(&f("jstage_english.xml")).unwrap());
             all
         }
+        Source::Oapen => sources::oapen::parse_search_response(&f("oapen_search.json")).unwrap(),
     }
 }
 
