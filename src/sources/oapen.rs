@@ -51,16 +51,23 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
     parse_search_response(&http_get(&build_search_url(base_url, q))?)
 }
 
+/// The URL for `fetch_item`: the handle is percent-encoded like any other
+/// query text, except `/` stays literal since DSpace's REST path needs it as
+/// a separator (`<prefix>/<suffix>`) rather than `%2F`.
+fn item_url(base_url: &str, handle: &str) -> String {
+    format!(
+        "{}/rest/handle/{}?expand=metadata,bitstreams",
+        base_url.trim_end_matches('/'),
+        super::encode_query(handle.trim()).replace("%2F", "/")
+    )
+}
+
 /// Fetch an item's metadata and bitstreams by handle.
 ///
 /// Returns `Ok(None)` if the handle does not exist (404), `Ok(Some(body))` if
 /// found, or `Err` if the request failed (including Cloudflare challenges).
 pub fn fetch_item(base_url: &str, handle: &str) -> Result<Option<String>, String> {
-    let url = format!(
-        "{}/rest/handle/{}?expand=metadata,bitstreams",
-        base_url.trim_end_matches('/'),
-        handle.trim()
-    );
+    let url = item_url(base_url, handle);
     match http_get(&url) {
         Ok(body) => Ok(Some(body)),
         Err(e) if e.contains("oapen returned 404") => Ok(None),
@@ -311,5 +318,21 @@ mod tests {
     #[test]
     fn a_non_array_body_is_an_error() {
         assert!(parse_search_response(r#"{"error":"x"}"#).is_err());
+    }
+
+    // The handle's `/` has to stay literal for DSpace's REST path, but a
+    // handle-shaped query like "machine learning" still needs encoding, or it
+    // reaches the HTTP client as a raw space and comes back as "invalid uri
+    // character" instead of a clean not-found/HTTP answer.
+    #[test]
+    fn item_url_keeps_the_handle_slash_but_encodes_everything_else() {
+        assert_eq!(
+            item_url("https://library.oapen.org", "20.500.12657/98246"),
+            "https://library.oapen.org/rest/handle/20.500.12657/98246?expand=metadata,bitstreams"
+        );
+        assert_eq!(
+            item_url("https://library.oapen.org", "machine learning"),
+            "https://library.oapen.org/rest/handle/machine+learning?expand=metadata,bitstreams"
+        );
     }
 }
