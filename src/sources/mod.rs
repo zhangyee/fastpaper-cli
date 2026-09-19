@@ -308,6 +308,8 @@ pub struct FieldCaps {
     pub open_access: bool,
     /// How many papers cite this one.
     pub citations: bool,
+    /// Social signals (`Paper::community`).
+    pub community: bool,
 }
 
 impl FieldCaps {
@@ -317,6 +319,7 @@ impl FieldCaps {
         pdf_url: false,
         open_access: false,
         citations: false,
+        community: false,
     };
 
     /// Everything a source that only indexes open access material can say
@@ -325,6 +328,7 @@ impl FieldCaps {
         pdf_url: true,
         open_access: true,
         citations: false,
+        community: false,
     };
 
     /// Files, access and citation counts -- the full set.
@@ -332,6 +336,7 @@ impl FieldCaps {
         pdf_url: true,
         open_access: true,
         citations: true,
+        community: false,
     };
 }
 

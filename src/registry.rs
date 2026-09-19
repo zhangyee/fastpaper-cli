@@ -35,6 +35,7 @@ pub enum Source {
     Osti,
     Ntrs,
     Datacite,
+    Huggingface,
 }
 
 /// Every source, in the order `fastpaper sources` lists them.
@@ -60,6 +61,7 @@ pub const ALL: &[Source] = &[
     Source::Osti,
     Source::Ntrs,
     Source::Datacite,
+    Source::Huggingface,
 ];
 
 /// The sources whose search honours `flag`, in `ALL` order.
@@ -182,6 +184,7 @@ impl Source {
             Source::Osti => &OSTI,
             Source::Ntrs => &NTRS,
             Source::Datacite => &DATACITE,
+            Source::Huggingface => &HUGGINGFACE,
         }
     }
 }
@@ -391,6 +394,7 @@ static CROSSREF: SourceEntry = SourceEntry {
             pdf_url: false,
             open_access: false,
             citations: true,
+            community: false,
         },
         notes: "metadata only, no PDF links; --offset caps at 10000",
     },
@@ -720,6 +724,7 @@ static INSPIRE: SourceEntry = SourceEntry {
             pdf_url: true,
             open_access: false,
             citations: true,
+            community: false,
         },
         notes: "--author and --year go through INSPIRE's own query language. \
                 pdf_url points at the arXiv copy, which is where the file is; \
@@ -902,6 +907,40 @@ static DATACITE: SourceEntry = SourceEntry {
     pdf_default_base: None,
     search: Some(sources::datacite::search),
     get: Some(sources::datacite::get_by_id),
+    pdf: None,
+    cite: None,
+    figures: None,
+};
+
+static HUGGINGFACE: SourceEntry = SourceEntry {
+    name: "huggingface",
+    caps: Capabilities {
+        search: Some(SearchCaps {
+            trending: true,
+            ..SearchCaps::BASIC
+        }),
+        get: true,
+        download: false,
+        cite: false,
+        max_limit: Some(1000),
+        fields: FieldCaps {
+            pdf_url: true,
+            open_access: true,
+            citations: false,
+            community: true,
+        },
+        notes: "community attention, not impact. --top ranks one day (2026-09-18), ISO week \
+                (2026-W38) or month (2026-08) by upvotes; --trending is Hugging Face's own \
+                rolling order and ignores dates; neither takes a query. Keyword search caps \
+                -n at 120. Every id is an arXiv id: download with `fastpaper download <id>`. \
+                HF_TOKEN raises the anonymous 500 requests per 5 minutes",
+    },
+    env_var: "FASTPAPER_HUGGINGFACE_URL",
+    default_base: "https://huggingface.co",
+    pdf_env_var: None,
+    pdf_default_base: None,
+    search: Some(sources::huggingface::search),
+    get: Some(sources::huggingface::get_by_id),
     pdf: None,
     cite: None,
     figures: None,
@@ -1148,5 +1187,14 @@ mod tests {
                 .unwrap()
                 .contains(r#"PUBLISHER:"medRxiv""#)
         );
+    }
+
+    // --trending/--top are Hugging Face's published lists; nothing else has one.
+    #[test]
+    fn only_huggingface_publishes_listings() {
+        for s in ALL {
+            let declared = s.caps().search.is_some_and(|c| c.supports("--trending"));
+            assert_eq!(declared, matches!(s, Source::Huggingface), "{}", s.name());
+        }
     }
 }

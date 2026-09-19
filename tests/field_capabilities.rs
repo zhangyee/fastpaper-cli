@@ -84,10 +84,21 @@ fn papers(source: Source) -> Vec<Paper> {
         Source::Unpaywall => {
             vec![sources::unpaywall::parse_response(&f("unpaywall_lookup.json")).unwrap()]
         }
+        Source::Huggingface => {
+            let mut all =
+                sources::huggingface::parse_list_response(&f("huggingface_daily.json")).unwrap();
+            all.extend(
+                sources::huggingface::parse_list_response(&f("huggingface_search.json")).unwrap(),
+            );
+            all.extend(
+                sources::huggingface::parse_paper_response(&f("huggingface_paper.json")).unwrap(),
+            );
+            all
+        }
     }
 }
 
-/// The three fields, as `(column name, declared, observed)`.
+/// The four fields, as `(column name, declared, observed)`.
 fn coverage(source: Source) -> Vec<(&'static str, bool, bool)> {
     let caps = source.caps().fields;
     let papers = papers(source);
@@ -106,6 +117,11 @@ fn coverage(source: Source) -> Vec<(&'static str, bool, bool)> {
             "citations",
             caps.citations,
             papers.iter().any(|p| p.citations.is_some()),
+        ),
+        (
+            "community",
+            caps.community,
+            papers.iter().any(|p| p.community.is_some()),
         ),
     ]
 }
@@ -139,7 +155,10 @@ fn every_source_declares_the_fields_its_parser_actually_fills() {
 // worth deleting rather than printing.
 #[test]
 fn each_field_column_actually_discriminates_between_sources() {
-    for (i, field) in ["pdf_url", "open_access", "citations"].iter().enumerate() {
+    for (i, field) in ["pdf_url", "open_access", "citations", "community"]
+        .iter()
+        .enumerate()
+    {
         let declared: Vec<bool> = ALL.iter().map(|s| coverage(*s)[i].1).collect();
         assert!(
             declared.iter().any(|d| *d) && declared.iter().any(|d| !*d),

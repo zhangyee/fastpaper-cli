@@ -29,4 +29,5 @@ The sources fall into a few families: an open preprint server with free full tex
 | [osti](osti.md) | OSTI.GOV | REST JSON | none | US-format dates (MM/DD/YYYY) on date filters |
 | [ntrs](ntrs.md) | NASA NTRS | REST JSON | none | ignores page size; always 10 per page |
 | [datacite](datacite.md) | DataCite | REST JSON:API | none | publication-year param is silently ignored |
+| [huggingface](huggingface.md) | Hugging Face Papers | REST JSON | none; optional `HF_TOKEN` | 500 req / 5 min per IP; daily/weekly/monthly lists ranked by upvotes, `sort=trending` ignores dates |
 

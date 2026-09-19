@@ -77,6 +77,9 @@ fn unsupported_download(source: Source) -> CommandError {
         | Source::Europepmc => {
             "\nThis source is metadata only. Resolve the DOI to an open access copy: fastpaper download <DOI>"
         }
+        Source::Huggingface => {
+            "\nEvery Hugging Face paper is an arXiv paper and its id is the arXiv id: fastpaper download <id>"
+        }
         _ => "",
     };
     failed(format!("'{}' cannot provide PDFs.{}", source.name(), hint))

@@ -60,6 +60,121 @@ pub fn build_listing_url(
     ))
 }
 
+/// `api/daily_papers` pages in blocks of at most this many.
+const PAGE_MAX: u32 = 100;
+
+pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
+    match &q.listing {
+        Some(listing) => listing_search(base_url, listing, q.limit),
+        None => {
+            if q.limit > KEYWORD_MAX {
+                return Err(format!(
+                    "huggingface keyword search returns at most {} results per request (asked for {})",
+                    KEYWORD_MAX, q.limit
+                ));
+            }
+            parse_list_response(&http_get(&build_search_url(base_url, &q.query, q.limit))?)
+        }
+    }
+}
+
+fn listing_search(base_url: &str, listing: &Listing, limit: u32) -> Result<Vec<Paper>, String> {
+    let page_size = limit.clamp(1, PAGE_MAX);
+    let mut papers = Vec::new();
+    let mut page = 0;
+    loop {
+        let url = build_listing_url(base_url, listing, page_size, page)?;
+        let (held, batch) = parse_list(&http_get(&url)?)?;
+        papers.extend(batch);
+        if (held as u32) < page_size || papers.len() as u32 >= limit {
+            break;
+        }
+        page += 1;
+    }
+    papers.truncate(limit as usize);
+    if papers.is_empty() && matches!(listing, Listing::Day(_)) {
+        eprintln!(
+            "[huggingface] no daily list for that day: Hugging Face publishes none on \
+             weekends and some holidays, so try the nearest weekday."
+        );
+    }
+    Ok(papers)
+}
+
+/// Fetch one paper by its arXiv id, with its linked model/dataset/Space counts.
+pub fn get_by_id(base_url: &str, id: &str) -> Result<Option<Paper>, String> {
+    let url = format!(
+        "{}/api/papers/{}",
+        base_url.trim_end_matches('/'),
+        super::encode_query(id.trim())
+    );
+    match http_get(&url) {
+        Ok(body) => parse_paper_response(&body),
+        Err(e) if e.contains("404") => Ok(None),
+        Err(e) => Err(e),
+    }
+}
+
+/// Anonymous callers get 500 API requests per 5 minutes per IP; `HF_TOKEN`
+/// raises that. A 429 carries the seconds until the window resets.
+fn http_get(url: &str) -> Result<String, String> {
+    for attempt in 0..3u32 {
+        let mut req = crate::http::api()
+            .get(url)
+            .config()
+            .http_status_as_error(false)
+            .build()
+            .header("User-Agent", USER_AGENT);
+        if let Ok(token) = std::env::var("HF_TOKEN")
+            && !token.trim().is_empty()
+        {
+            req = req.header("Authorization", &format!("Bearer {}", token.trim()));
+        }
+        let resp = req.call().map_err(|e| format!("HTTP error: {}", e))?;
+        let status = resp.status().as_u16();
+        let reset = reset_seconds(resp.headers().get("ratelimit").and_then(|v| v.to_str().ok()));
+        let body = resp
+            .into_body()
+            .read_to_string()
+            .map_err(|e| format!("Failed to read response: {}", e))?;
+
+        match status {
+            200..=299 => return Ok(body),
+            429 if attempt < 2 => {
+                std::thread::sleep(std::time::Duration::from_secs(reset.unwrap_or(5).min(60)));
+            }
+            429 => {
+                return Err(format!(
+                    "huggingface rate limited (429): anonymous callers get 500 API requests \
+                     per 5 minutes per IP; set HF_TOKEN to raise it{}",
+                    reset
+                        .map(|s| format!(", or retry in {} s", s))
+                        .unwrap_or_default()
+                ));
+            }
+            404 => return Err("huggingface returned 404".to_string()),
+            _ => {
+                let reason = serde_json::from_str::<serde_json::Value>(&body)
+                    .ok()
+                    .and_then(|v| v["error"].as_str().map(|s| s.trim().to_string()))
+                    .unwrap_or_default();
+                return Err(format!("huggingface returned HTTP {}: {}", status, reason)
+                    .trim_end_matches([':', ' '])
+                    .to_string());
+            }
+        }
+    }
+    Err("huggingface rate limited (429) after 3 attempts".to_string())
+}
+
+/// `RateLimit: "api";r=487;t=16` — `t` is the seconds until the window resets.
+fn reset_seconds(header: Option<&str>) -> Option<u64> {
+    header?
+        .split(';')
+        .find_map(|part| part.trim().strip_prefix("t="))
+        .and_then(|t| t.parse().ok())
+}
+
 /// Parse `api/daily_papers` or `api/papers/search`: both answer an array of
 /// `{paper: {...}, numComments, organization, ...}`.
 pub fn parse_list_response(json: &str) -> Result<Vec<Paper>, String> {
@@ -328,5 +443,19 @@ mod tests {
         let err = build_listing_url("https://huggingface.co", &Listing::Week("2026-W53".into()), 10, 0)
             .unwrap_err();
         assert!(err.contains("W52") && err.contains("--top 2026-12-28"), "got: {}", err);
+    }
+
+    #[test]
+    fn the_reset_is_read_off_the_ratelimit_header() {
+        assert_eq!(reset_seconds(Some(r#""api";r=487;t=16"#)), Some(16));
+        assert_eq!(reset_seconds(Some(r#""api";r=0"#)), None);
+        assert_eq!(reset_seconds(None), None);
+    }
+
+    #[test]
+    fn keyword_search_refuses_more_than_the_endpoint_returns() {
+        let q = crate::sources::SearchQuery::simple("diffusion", 121);
+        let err = search("http://127.0.0.1:9", &q).unwrap_err();
+        assert!(err.contains("at most 120"), "got: {}", err);
     }
 }

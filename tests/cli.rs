@@ -2270,3 +2270,171 @@ fn a_source_without_listings_refuses_top() {
         .code(1)
         .stderr(contains("arxiv does not support --top"));
 }
+
+// ── huggingface ─────────────────────────────────
+
+#[test]
+fn search_huggingface_mock_outputs_title() {
+    search_against_fixture(
+        "huggingface",
+        "FASTPAPER_HUGGINGFACE_URL",
+        include_str!("fixtures/huggingface_search.json"),
+        "Denoising Diffusion",
+    );
+}
+
+#[test]
+fn huggingface_top_month_keeps_the_upvote_ranking() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", "/api/daily_papers")
+        .match_query(mockito::Matcher::AllOf(vec![
+            mockito::Matcher::UrlEncoded("month".into(), "2026-08".into()),
+            mockito::Matcher::UrlEncoded("p".into(), "0".into()),
+        ]))
+        .with_status(200)
+        .with_body(include_str!("fixtures/huggingface_daily.json"))
+        .create();
+    let output = cmd()
+        .args(["search", "huggingface", "--top", "2026-08", "-n", "3", "--format", "json"])
+        .env("FASTPAPER_HUGGINGFACE_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    let v: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(v["results"][0]["id"], "2608.09888");
+    assert_eq!(v["results"][0]["community"]["upvotes"], 781);
+    assert_eq!(v["results"][2]["community"]["upvotes"], 283);
+}
+
+fn synthetic_page(from: usize, n: usize) -> String {
+    let items: Vec<serde_json::Value> = (from..from + n)
+        .map(|i| {
+            serde_json::json!({
+                "paper": {"id": format!("2608.{:05}", i), "title": format!("Paper {}", i), "upvotes": 1000 - i}
+            })
+        })
+        .collect();
+    serde_json::to_string(&items).unwrap()
+}
+
+#[test]
+fn huggingface_listing_pages_until_n_is_met() {
+    let mut server = mockito::Server::new();
+    let first = server
+        .mock("GET", "/api/daily_papers")
+        .match_query(mockito::Matcher::UrlEncoded("p".into(), "0".into()))
+        .with_body(synthetic_page(0, 100))
+        .expect(1)
+        .create();
+    let second = server
+        .mock("GET", "/api/daily_papers")
+        .match_query(mockito::Matcher::UrlEncoded("p".into(), "1".into()))
+        .with_body(synthetic_page(100, 50))
+        .expect(1)
+        .create();
+    let output = cmd()
+        .args(["search", "huggingface", "--top", "2026-08", "-n", "150", "--format", "json"])
+        .env("FASTPAPER_HUGGINGFACE_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    let v: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(v["results"].as_array().unwrap().len(), 150);
+    first.assert();
+    second.assert();
+}
+
+#[test]
+fn huggingface_refuses_week_53() {
+    cmd()
+        .args(["search", "huggingface", "--top", "2026-W53"])
+        .env("FASTPAPER_HUGGINGFACE_URL", "http://127.0.0.1:9")
+        .assert()
+        .code(1)
+        .stderr(contains("W52").and(contains("--top 2026-12-28")));
+}
+
+#[test]
+fn huggingface_rate_limit_names_hf_token() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(429)
+        .with_header("ratelimit", r#""api";r=0;t=0"#)
+        .create();
+    cmd()
+        .args(["search", "huggingface", "--trending"])
+        .env("FASTPAPER_HUGGINGFACE_URL", server.url())
+        .assert()
+        .code(1)
+        .stderr(contains("HF_TOKEN"));
+}
+
+#[test]
+fn a_listing_on_another_source_points_at_huggingface() {
+    cmd()
+        .args(["search", "arxiv", "--top", "2026-08"])
+        .assert()
+        .code(1)
+        .stderr(contains("--top works on: huggingface"));
+}
+
+#[test]
+fn get_huggingface_reports_linked_counts() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", "/api/papers/2608.09888")
+        .with_body(include_str!("fixtures/huggingface_paper.json"))
+        .create();
+    let output = cmd()
+        .args(["get", "huggingface", "2608.09888", "--format", "json"])
+        .env("FASTPAPER_HUGGINGFACE_URL", server.url())
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    let v: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(v["results"][0]["community"]["linked_datasets"], 1);
+}
+
+#[test]
+fn download_huggingface_points_at_arxiv() {
+    cmd()
+        .args(["download", "huggingface", "2608.09888"])
+        .assert()
+        .failure()
+        .stderr(contains("fastpaper download <id>"));
+}
+
+#[test]
+fn sources_shows_the_community_column() {
+    cmd()
+        .arg("sources")
+        .assert()
+        .success()
+        .stdout(contains("community").and(contains("huggingface")));
+}
+
+#[test]
+#[ignore]
+fn real_huggingface_search_works() {
+    real_search_returns_results("huggingface");
+}
+
+#[test]
+#[ignore]
+fn real_huggingface_month_list_works() {
+    let output = cmd()
+        .args(["search", "huggingface", "--top", "2026-08", "-n", "5", "--format", "json"])
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    let v: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let votes: Vec<u64> = v["results"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|p| p["community"]["upvotes"].as_u64().unwrap())
+        .collect();
+    assert!(votes.windows(2).all(|w| w[0] >= w[1]), "not ranked: {:?}", votes);
+}

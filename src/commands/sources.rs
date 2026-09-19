@@ -12,15 +12,15 @@ pub fn run(args: &SourcesArgs) -> CommandResult {
 fn render(detailed: bool) -> String {
     let mut out = String::new();
     out.push_str(
-        "Source      search  get  download  cite  figures   pdf_url  open_access  citations\n",
+        "Source      search  get  download  cite  figures   pdf_url  open_access  citations  community\n",
     );
     out.push_str(
-        "─────────────────────────────────────────────────────────────────────────────────\n",
+        "────────────────────────────────────────────────────────────────────────────────────────────\n",
     );
     for source in registry::ALL {
         let caps = source.caps();
         out.push_str(&format!(
-            "{:<11} {:^6}  {:^3}  {:^8}  {:^4}  {:^7}  {:^7}  {:^11}  {:^9}\n",
+            "{:<11} {:^6}  {:^3}  {:^8}  {:^4}  {:^7}  {:^7}  {:^11}  {:^9}  {:^9}\n",
             source.name(),
             mark(caps.search.is_some()),
             mark(caps.get),
@@ -33,14 +33,15 @@ fn render(detailed: bool) -> String {
             mark(caps.fields.pdf_url),
             mark(caps.fields.open_access),
             mark(caps.fields.citations),
+            mark(caps.fields.community),
         ));
     }
-    // The first five columns say which commands work; the last three say which
+    // The first five columns say which commands work; the last four say which
     // fields come back filled. Both are needed to pick a source: `crossref`
     // answers `get` but never carries a PDF link, so a caller who reads only
     // the left half asks it for something it structurally cannot supply.
     out.push_str(
-        "\nThe last three columns are which fields this source can fill.\n\
+        "\nThe last four columns are which fields this source can fill.\n\
          `null` in a result means unknown -- a `✗` here says the source never\n\
          supplies it, so ask a source marked `✓` instead of giving up.\n",
     );
@@ -164,5 +165,16 @@ mod tests {
             "the note must name the variable sources::unpaywall reads, got:\n{}",
             out
         );
+    }
+
+    #[test]
+    fn the_community_column_tracks_the_field_caps() {
+        let out = render(false);
+        for source in registry::ALL {
+            let row = out.lines().find(|l| l.starts_with(source.name())).unwrap();
+            let marks: Vec<&str> = row.split_whitespace().skip(1).collect();
+            let expected = if source.caps().fields.community { "\u{2713}" } else { "\u{2717}" };
+            assert_eq!(marks[8], expected, "{}", source.name());
+        }
     }
 }
