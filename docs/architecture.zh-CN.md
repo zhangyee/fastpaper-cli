@@ -21,7 +21,7 @@ src/
 ├── sources/
 │   ├── mod.rs       # Paper(共享数据契约)、SearchQuery、Capabilities / SearchCaps、
 │   │                #   encode_query、validate_ymd、contact_email
-│   └── <source>.rs  # 每个数据源一个完全自包含的模块(目前 21 个)
+│   └── <source>.rs  # 每个数据源一个完全自包含的模块(目前 26 个)
 ├── download.rs      # fetch_pdf、各源 pdf_bytes_<src> 解析函数、save_pdf
 ├── http.rs          # 共享的 http::api() 与 http::download();每个请求都有上限:
 │                    #   连接 10 秒、30 秒无新数据、接口请求整体 30 秒,下载不设总时长
@@ -52,7 +52,8 @@ src/
 第 3 步之前,`commands/search.rs` 会拿请求去对该源的 `Capabilities`:空查询、
 超过该源上限的 `-n`、或它无法支持的过滤参数,都会直接报错并说明**它支持哪些**,
 以及**哪些源支持被拒的那个参数**——错的通常是源,不是参数本身。被静默丢掉的过滤
-条件会产出看着对、其实不对的结果。
+条件会产出看着对、其实不对的结果。`--trending` / `--top` 问的是某个源发布的一份
+列表(huggingface),而不是搜索;它们不带查询词,和其他过滤参数一样按源声明。
 
 其他命令:
 
@@ -103,7 +104,7 @@ JSON 输出中缺失值一律为 `null`,绝不省略字段——schema 稳定,ag
 
 | 原则 | 理由 |
 |---|---|
-| 零配置 | 所有源开箱即用(Unpaywall 需邮箱是唯一例外);无配置文件。API key 只用于提高限额。 |
+| 零配置 | 所有源开箱即用,只有两个例外:Unpaywall 需邮箱,ads 需 token;无配置文件。除此之外 API key 只用于提高限额。 |
 | 单源单命令 | 并行属于外层 agent/shell 多进程调度,不属于本二进制。 |
 | Source 作为位置参数 | `fastpaper search arxiv <q>` 打字快,agent 构造命令直接。 |
 | 输出可管道化 | 默认人类可读表格,`--format json` 供机器消费。 |

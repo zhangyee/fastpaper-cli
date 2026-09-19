@@ -86,7 +86,7 @@ wait
 
 ## 数据源
 
-21 个学术数据源，每条命令独立访问单个数据源。
+26 个学术数据源，每条命令独立访问单个数据源。
 
 这里不列 `read`：它读的是已经落到磁盘上的 PDF，所以凡是 `download` 列能取到的，
 它都能读。
@@ -114,6 +114,11 @@ wait
 | `osti` | OSTI.GOV | yes | yes | yes | | | 美国能源部科技报告 |
 | `ntrs` | NASA NTRS | yes | yes | yes | | | NASA 航空航天报告 |
 | `datacite` | DataCite | yes | yes | | | | 数据集、软件、学位论文的 DOI 注册库（与 crossref 互补） |
+| `huggingface` | Hugging Face Papers | yes | yes | | | | AI 社区关注度：按票数排的日 / 周 / 月榜（`--top`）与实时 `--trending`；id 即 arXiv id |
+| `openreview` | OpenReview | yes | | | | | 机器学习会议投稿及录用结果（ICLR、NeurIPS …）；只能检索 |
+| `jstage` | J-STAGE | yes | | yes | | | 日本学协会期刊（有日文标题时用日文；无摘要） |
+| `oapen` | OAPEN Library | yes | yes | yes | | | 同行评审的开放获取学术专著，人文社科为主 |
+| `ads` | NASA ADS（SciX） | yes | yes | yes | yes | | 天文与物理，带引用图（需要 `ADS_API_TOKEN`） |
 
 `figures` 取的是作者的原始插图文件，而不是 PDF 页面——详见下文。只有 `arxiv`
 （其源码包）与 `europepmc`（其附件包）能提供；PMC ID 或 DOI 都会路由到
@@ -324,7 +329,7 @@ fastpaper completions bash >> ~/.bashrc
 
 ## 环境变量
 
-除特别标注外均为可选。21 个数据源中有 20 个无需任何配置即可使用。
+除特别标注外均为可选。26 个数据源中有 24 个无需任何配置即可使用。
 
 | 变量 | 用途 |
 |------|------|
@@ -336,11 +341,14 @@ fastpaper completions bash >> ~/.bashrc
 | `CORE_API_KEY` | 提升 CORE 频率限制 |
 | `NCBI_API_KEY` | 提升 PubMed / PMC 频率限制 |
 | `UNPAYWALL_EMAIL` | Unpaywall **必需**，且必须是真实邮箱 |
+| `ADS_API_TOKEN` | ads **必需**；在 https://scixplorer.org/user/settings/token 免费生成 |
+| `HF_TOKEN` | 提高 Hugging Face 限额（匿名每 5 分钟 500 次） |
 
 每个源还支持用 `FASTPAPER_<SOURCE>_URL` 覆盖它的 base URL——`FASTPAPER_ARXIV_URL`、
 `FASTPAPER_PUBMED_URL` 等等——测试就是靠它指向本地 mock 服务器的。文件与 API 不在同一
 主机的源另有一个文件主机的覆盖项：`FASTPAPER_ARXIV_PDF_URL`、
-`FASTPAPER_PMC_DL_URL`（指向 AWS Open Data 上的 PMC Cloud Service，不是文章页）。
+`FASTPAPER_PMC_DL_URL`（指向 AWS Open Data 上的 PMC Cloud Service，不是文章页）、
+`FASTPAPER_JSTAGE_PDF_URL`、`FASTPAPER_ADS_PDF_URL`。
 
 有一个覆盖项不符合这个模式，因为它不是数据源：`FASTPAPER_IDCONV_URL` 指向 NCBI 的
 ID 转换服务（默认 `https://pmc.ncbi.nlm.nih.gov`），`figures` 用它把 DOI 换成

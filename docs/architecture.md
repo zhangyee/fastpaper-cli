@@ -21,7 +21,7 @@ src/
 ├── sources/
 │   ├── mod.rs       # Paper (shared data contract), SearchQuery, Capabilities / SearchCaps,
 │   │                #   encode_query, validate_ymd, contact_email
-│   └── <source>.rs  # One fully self-contained module per source (21 today)
+│   └── <source>.rs  # One fully self-contained module per source (26 today)
 ├── download.rs      # fetch_pdf, per-source pdf_bytes_<src> resolvers, save_pdf
 ├── http.rs          # The shared agents, http::api() and http::download(); every request is
 │                    #   bounded: 10 s to connect, 30 s without new bytes, 30 s in total for
@@ -56,7 +56,9 @@ Before step 3, `commands/search.rs` checks the request against the source's
 source cannot honour is refused with an error naming what *is* supported here,
 plus the sources that do honour the rejected filter — the usual mistake is the
 source, not the flag. A silently dropped filter would produce results that look
-right and are not.
+right and are not. `--trending` / `--top` ask a source for a list it publishes
+(huggingface) instead of a search; they take no query and are declared per
+source like any other filter.
 
 Other commands:
 
@@ -108,7 +110,7 @@ Duplication between source modules is accepted on purpose — see the philosophy
 
 | Principle | Why |
 |---|---|
-| Zero configuration | Every source works out of the box (Unpaywall's email is the one exception); no config file. API keys only ever raise limits. |
+| Zero configuration | Every source works out of the box except two: Unpaywall needs an email and ADS a token; no config file. API keys otherwise only raise limits. |
 | One source per command | Parallelism belongs to the agent/shell spawning multiple processes, not to this binary. |
 | Source as positional arg | `fastpaper search arxiv <q>` is fast to type and trivial for agents to construct. |
 | Pipeable output | Human table by default, `--format json` for machines. |

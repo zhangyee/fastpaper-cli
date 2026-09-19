@@ -86,7 +86,7 @@ wait
 
 ## Sources
 
-21 academic sources, each accessed independently per command.
+26 academic sources, each accessed independently per command.
 
 `read` is not listed here: it works on a PDF already on disk, so it applies
 equally to anything the `download` column can fetch.
@@ -114,6 +114,11 @@ equally to anything the `download` column can fetch.
 | `osti` | OSTI.GOV | yes | yes | yes | | | US Dept. of Energy technical reports |
 | `ntrs` | NASA NTRS | yes | yes | yes | | | NASA aerospace reports |
 | `datacite` | DataCite | yes | yes | | | | DOI registry for datasets, software and theses (complements crossref) |
+| `huggingface` | Hugging Face Papers | yes | yes | | | | AI community attention: daily / weekly / monthly lists ranked by upvotes (`--top`), rolling `--trending`; ids are arXiv ids |
+| `openreview` | OpenReview | yes | | | | | ML conference submissions with their decision (ICLR, NeurIPS, …); search only |
+| `jstage` | J-STAGE | yes | | yes | | | Japanese society journals (Japanese titles where they exist; no abstracts) |
+| `oapen` | OAPEN Library | yes | yes | yes | | | Peer-reviewed open access books, mostly humanities and social sciences |
+| `ads` | NASA ADS (SciX) | yes | yes | yes | yes | | Astronomy and physics, with a citation graph (requires `ADS_API_TOKEN`) |
 
 `figures` fetches the authors' original figure files rather than PDF pages —
 see below. Only `arxiv` (its e-print source package) and `europepmc` (its
@@ -345,7 +350,7 @@ fastpaper completions bash >> ~/.bashrc
 
 ## Environment variables
 
-All optional except where noted. 20 of 21 sources work with zero configuration.
+All optional except where noted. 24 of 26 sources work with zero configuration.
 
 | Variable | Purpose |
 |----------|---------|
@@ -357,13 +362,16 @@ All optional except where noted. 20 of 21 sources work with zero configuration.
 | `CORE_API_KEY` | Higher rate limit for CORE |
 | `NCBI_API_KEY` | Higher rate limit for PubMed / PMC |
 | `UNPAYWALL_EMAIL` | **Required** for Unpaywall, and it must be a real address |
+| `ADS_API_TOKEN` | **Required** for ads; free from https://scixplorer.org/user/settings/token |
+| `HF_TOKEN` | Higher rate limit for Hugging Face (anonymous: 500 requests per 5 minutes) |
 
 Every source also takes `FASTPAPER_<SOURCE>_URL` to override its base URL —
 `FASTPAPER_ARXIV_URL`, `FASTPAPER_PUBMED_URL` and so on — which is what the
 tests point at a local mock server. Sources whose files live on a different host
 than their API have a second override for that host: `FASTPAPER_ARXIV_PDF_URL`,
 `FASTPAPER_PMC_DL_URL` (which points at the PMC
-Cloud Service on AWS Open Data, not the article pages).
+Cloud Service on AWS Open Data, not the article pages), `FASTPAPER_JSTAGE_PDF_URL`,
+`FASTPAPER_ADS_PDF_URL`.
 
 One override does not fit that pattern, because it is not a source:
 `FASTPAPER_IDCONV_URL` points at NCBI's ID converter (default
