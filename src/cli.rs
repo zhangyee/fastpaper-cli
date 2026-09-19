@@ -67,8 +67,9 @@ pub struct SearchArgs {
     /// Academic source to search
     pub source: Source,
 
-    /// Search query string
-    pub query: String,
+    /// Search query string (leave it out with --trending or --top)
+    #[arg(required_unless_present_any = ["trending", "top"])]
+    pub query: Option<String>,
 
     /// Max results
     #[arg(short = 'n', long, default_value = "10")]
@@ -114,6 +115,20 @@ pub struct SearchArgs {
     #[arg(long)]
     pub patents: bool,
 
+    /// Hugging Face's rolling "hot right now" list instead of a search
+    #[arg(long, conflicts_with_all = ["query", "top"])]
+    pub trending: bool,
+
+    /// Hugging Face's list for one period, ranked by upvotes: a day
+    /// (2026-09-18), an ISO week (2026-W38) or a month (2026-08)
+    #[arg(
+        long,
+        value_name = "PERIOD",
+        value_parser = crate::sources::Listing::parse_period,
+        conflicts_with = "query"
+    )]
+    pub top: Option<crate::sources::Listing>,
+
     /// Write results to a file instead of stdout
     #[arg(short, long)]
     pub output: Option<PathBuf>,
@@ -122,7 +137,7 @@ pub struct SearchArgs {
 impl SearchArgs {
     pub fn to_query(&self) -> SearchQuery {
         SearchQuery {
-            query: self.query.clone(),
+            query: self.query.clone().unwrap_or_default(),
             limit: self.limit,
             offset: self.offset,
             sort: self.sort,
@@ -134,6 +149,11 @@ impl SearchArgs {
             field: self.field.clone(),
             open_access: self.open_access,
             patents: self.patents,
+            listing: if self.trending {
+                Some(crate::sources::Listing::Trending)
+            } else {
+                self.top.clone()
+            },
         }
     }
 }

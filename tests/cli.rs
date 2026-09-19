@@ -2227,3 +2227,46 @@ fn sources_no_longer_lists_biorxiv_or_medrxiv() {
         .success()
         .stdout(contains("biorxiv").not().and(contains("medrxiv").not()));
 }
+
+// ── listings (--trending / --top) ───────────────
+
+#[test]
+fn a_listing_flag_cannot_be_combined_with_a_query() {
+    cmd()
+        .args(["search", "arxiv", "attention", "--trending"])
+        .assert()
+        .code(2)
+        .stderr(contains("cannot be used with"));
+}
+
+#[test]
+fn trending_and_top_cannot_be_combined() {
+    cmd()
+        .args(["search", "arxiv", "--trending", "--top", "2026-08"])
+        .assert()
+        .code(2)
+        .stderr(contains("cannot be used with"));
+}
+
+#[test]
+fn a_malformed_period_is_a_usage_error() {
+    cmd()
+        .args(["search", "arxiv", "--top", "soon"])
+        .assert()
+        .code(2)
+        .stderr(contains("is not a period"));
+}
+
+#[test]
+fn a_search_without_a_query_or_listing_is_still_a_usage_error() {
+    cmd().args(["search", "arxiv"]).assert().code(2);
+}
+
+#[test]
+fn a_source_without_listings_refuses_top() {
+    cmd()
+        .args(["search", "arxiv", "--top", "2026-W38"])
+        .assert()
+        .code(1)
+        .stderr(contains("arxiv does not support --top"));
+}

@@ -50,7 +50,7 @@ fn unsupported_search(source: Source) -> CommandError {
 /// arxiv return HTTP 400, and zenodo and europepmc quietly ignore the filters
 /// and answer with unrelated papers. None of that is worth passing along.
 fn check_query(query: &SearchQuery) -> CommandResult {
-    if query.query.trim().is_empty() {
+    if query.listing.is_none() && query.query.trim().is_empty() {
         return Err(failed(
             "Search query is empty.\n\
              To list a single author's papers, pair a term with --author, or use \
@@ -337,5 +337,12 @@ mod tests {
             "got: {}",
             err.message()
         );
+    }
+
+    #[test]
+    fn a_listing_needs_no_query() {
+        let mut q = SearchQuery::simple("", 10);
+        q.listing = Some(crate::sources::Listing::Trending);
+        assert!(check_query(&q).is_ok());
     }
 }

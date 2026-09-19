@@ -54,6 +54,59 @@ pub enum SortOrder {
     Desc,
 }
 
+/// A ranked list a source publishes on its own, as opposed to results matched
+/// against a query. Only huggingface has these today.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Listing {
+    /// The source's rolling "hot right now" order, which ignores dates.
+    Trending,
+    /// Papers listed on one day, `YYYY-MM-DD`.
+    Day(String),
+    /// Papers listed in one ISO week, `YYYY-Www`.
+    Week(String),
+    /// Papers listed in one month, `YYYY-MM`.
+    Month(String),
+}
+
+impl Listing {
+    /// Read a `--top` period; its shape says which kind it is.
+    pub fn parse_period(raw: &str) -> Result<Listing, String> {
+        let raw = raw.trim();
+        let digits = |s: &str, n: usize| s.len() == n && s.chars().all(|c| c.is_ascii_digit());
+        let in_range = |s: &str, max: u32| s.parse::<u32>().is_ok_and(|v| (1..=max).contains(&v));
+
+        if validate_ymd(raw).is_ok() {
+            return Ok(Listing::Day(raw.to_string()));
+        }
+        if let Some((year, week)) = raw.split_once("-W")
+            && digits(year, 4)
+            && digits(week, 2)
+            && in_range(week, 53)
+        {
+            return Ok(Listing::Week(raw.to_string()));
+        }
+        if let Some((year, month)) = raw.split_once('-')
+            && digits(year, 4)
+            && digits(month, 2)
+            && in_range(month, 12)
+        {
+            return Ok(Listing::Month(raw.to_string()));
+        }
+        Err(format!(
+            "'{}' is not a period. Use a day (2026-09-18), an ISO week (2026-W38) or a month (2026-08).",
+            raw
+        ))
+    }
+
+    /// The CLI flag that asks for this listing.
+    pub fn flag(&self) -> &'static str {
+        match self {
+            Listing::Trending => "--trending",
+            _ => "--top",
+        }
+    }
+}
+
 /// A normalized search request.
 ///
 /// Each source maps the fields it supports onto its own API parameters. The
@@ -76,6 +129,9 @@ pub struct SearchQuery {
     /// subset; without it they exclude patents. Results are never mixed, so a
     /// caller always knows which it asked for.
     pub patents: bool,
+    /// A published ranked list instead of a keyword search (`--trending`,
+    /// `--top`). The query is empty when this is set.
+    pub listing: Option<Listing>,
 }
 
 impl SearchQuery {
@@ -94,6 +150,7 @@ impl SearchQuery {
             field: None,
             open_access: false,
             patents: false,
+            listing: None,
         }
     }
 
@@ -127,6 +184,9 @@ impl SearchQuery {
         if self.patents {
             used.push("--patents");
         }
+        if let Some(ref listing) = self.listing {
+            used.push(listing.flag());
+        }
         used
     }
 }
@@ -142,6 +202,8 @@ pub struct SearchCaps {
     pub field: bool,
     pub open_access: bool,
     pub patents: bool,
+    /// `--trending` / `--top`: the source publishes ranked lists of its own.
+    pub trending: bool,
 }
 
 impl SearchCaps {
@@ -155,6 +217,7 @@ impl SearchCaps {
         field: false,
         open_access: false,
         patents: false,
+        trending: false,
     };
 
     /// Whether this source supports the named CLI flag.
@@ -168,6 +231,7 @@ impl SearchCaps {
             "--field" => self.field,
             "--open-access" => self.open_access,
             "--patents" => self.patents,
+            "--trending" | "--top" => self.trending,
             _ => false,
         }
     }
@@ -198,6 +262,9 @@ impl SearchCaps {
         }
         if self.patents {
             flags.push("--patents");
+        }
+        if self.trending {
+            flags.push("--trending/--top");
         }
         flags
     }
@@ -382,5 +449,58 @@ mod tests {
         };
         assert!(caps.supports("--patents"));
         assert!(caps.supported_flags().contains(&"--patents"));
+    }
+
+    #[test]
+    fn a_period_is_read_by_its_shape() {
+        assert_eq!(
+            Listing::parse_period("2026-09-18"),
+            Ok(Listing::Day("2026-09-18".into()))
+        );
+        assert_eq!(
+            Listing::parse_period("2026-W38"),
+            Ok(Listing::Week("2026-W38".into()))
+        );
+        assert_eq!(
+            Listing::parse_period("2026-08"),
+            Ok(Listing::Month("2026-08".into()))
+        );
+    }
+
+    // W53 is a real ISO week; whether a source takes it is the source's call.
+    #[test]
+    fn week_53_parses() {
+        assert_eq!(
+            Listing::parse_period("2026-W53"),
+            Ok(Listing::Week("2026-W53".into()))
+        );
+    }
+
+    #[test]
+    fn a_malformed_period_says_which_shapes_work() {
+        for bad in ["2026-8", "2026-W60", "2026-13", "last week", ""] {
+            let err = Listing::parse_period(bad).unwrap_err();
+            assert!(err.contains("2026-W38"), "{bad}: {err}");
+        }
+    }
+
+    #[test]
+    fn a_listing_reports_the_flag_that_asked_for_it() {
+        let mut q = SearchQuery::simple("", 10);
+        q.listing = Some(Listing::Trending);
+        assert_eq!(q.active_filters(), vec!["--trending"]);
+        q.listing = Some(Listing::Month("2026-08".into()));
+        assert_eq!(q.active_filters(), vec!["--top"]);
+    }
+
+    #[test]
+    fn both_listing_flags_follow_one_capability() {
+        let caps = SearchCaps {
+            trending: true,
+            ..SearchCaps::BASIC
+        };
+        assert!(caps.supports("--trending") && caps.supports("--top"));
+        assert_eq!(caps.supported_flags(), vec!["--trending/--top"]);
+        assert!(!SearchCaps::BASIC.supports("--top"));
     }
 }
