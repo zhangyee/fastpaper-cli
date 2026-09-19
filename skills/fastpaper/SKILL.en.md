@@ -1,6 +1,6 @@
 ---
 name: fastpaper
-description: Use when the user asks to find academic papers or patents, survey a literature, look up a paper by DOI, arXiv id, PMID or PMC id, trace who cites what, get a paper's PDF, fetch its original figure files, or read one. Covers 21 sources — arXiv, PubMed, PMC, Europe PMC (including bioRxiv / medRxiv preprints), OSF Preprints, Semantic Scholar, OpenAlex, Crossref, DataCite, DBLP, CORE, OpenAIRE, DOAJ, HAL, Zenodo, Unpaywall, INSPIRE-HEP, zbMATH Open, ERIC, OSTI.GOV, NASA NTRS.
+description: Use when the user asks to find academic papers or patents, survey a literature, find out which papers in a field are drawing attention today, this week or this month, look up a paper by DOI, arXiv id, PMID or PMC id, trace who cites what, get a paper's PDF, fetch its original figure files, or read one. Covers 26 sources — arXiv, PubMed, PMC, Europe PMC (including bioRxiv / medRxiv preprints), OSF Preprints, Semantic Scholar, OpenAlex, Crossref, DataCite, DBLP, CORE, OpenAIRE, DOAJ, HAL, Zenodo, Unpaywall, INSPIRE-HEP, zbMATH Open, ERIC, OSTI.GOV, NASA NTRS, Hugging Face Papers (trend lists), OpenReview, J-STAGE (Japanese journals), OAPEN (open access books), NASA ADS (astronomy).
 ---
 
 # fastpaper
@@ -26,11 +26,17 @@ fill. A `null` from a source marked `✗` means **ask a different source**; from
 one marked `✓` it means the answer really is unknown. Checking that column first
 is cheaper than a download attempt that was never going to work.
 
+`community` carries social signals (upvotes, comments, organization, GitHub repo and stars, the day it was listed, linked models / datasets), **filled only by `huggingface`** and `null` everywhere else. It measures attention, not citation impact.
+
 ## Commands
 
 ```bash
 # search one source
 fastpaper search <source> "<query>" -n 20 --format json
+
+# Hugging Face lists: one day / week / month ranked by upvotes, or what is hot right now (no query)
+fastpaper search huggingface --top 2026-W38 -n 30 --format json
+fastpaper search huggingface --trending --format json
 
 # metadata for one paper; source inferred from the identifier shape
 fastpaper get <DOI|arXiv_ID|PMID|PMC_ID>
@@ -69,7 +75,9 @@ never saw. **Do not read `pdf_url` from `get <DOI>` to predict whether
 directly: `fastpaper get semantic DOI:<doi>`.
 
 `cite` routes a bare DOI→`openalex` (no key needed), and arXiv or `S2:` ids→
-`semantic`. Those two are the only sources here that carry citation edges.
+`semantic`. For astronomy and physics use `fastpaper cite ads <bibcode>` (needs
+`ADS_API_TOKEN`; most-cited first). Those three are the only sources here that
+carry citation edges.
 
 `figures` fetches the authors' **original** figure files — an arXiv source
 package or a Europe PMC supplementary package — it does not extract images
@@ -124,17 +132,21 @@ run these commands with `2>/dev/null`, or an exit code is all you get back:
 | `-n <N>` | max results (per-source caps differ; zenodo is 25) |
 | `--offset <N>` | skip N; several sources require a multiple of `-n` |
 | `--sort relevance\|date` + `--order asc\|desc` | ordering — not every source accepts `--sort`; those that do not raise an explicit error |
-| `--sort citations` | **only `europepmc`, `semantic`, `crossref`, `openalex`, `openaire`, `inspire` have citation counts to sort on**, and that is the whole list; the rest either raise an explicit error (`arxiv`, `pubmed`, `pmc`, `zenodo`, `hal`, `osf`, `osti`) or do not take `--sort` at all. When in doubt run `fastpaper sources --capabilities`, whose Notes spell it out per source |
+| `--sort citations` | **only `europepmc`, `semantic`, `crossref`, `openalex`, `openaire`, `inspire`, `ads` have citation counts to sort on**, and that is the whole list; the rest either raise an explicit error (`arxiv`, `pubmed`, `pmc`, `zenodo`, `hal`, `osf`, `osti`) or do not take `--sort` at all. When in doubt run `fastpaper sources --capabilities`, whose Notes spell it out per source |
 | `--year <YYYY>` · `--after <YYYY-MM-DD>` · `--before <YYYY-MM-DD>` | dates |
-| `--author "<name>"` | author — *not* on `semantic`, `osf`, `eric`, `osti`, `ntrs`, `datacite`; put the name in the query there |
-| `--field <code>` | subject/category — takes a *source-specific code*, see below |
+| `--author "<name>"` | author — *not* on `semantic`, `osf`, `eric`, `osti`, `ntrs`, `datacite`, `huggingface`, `openreview`; put the name in the query there |
+| `--field <code>` | subject/category — takes a *source-specific code*, see below; openreview takes a venue code (`ICLR.cc/2025/Conference`), ads a database (`astronomy` / `physics` / `general`) |
 | `--open-access` | OA only |
 | `--patents` | **patents only** (europepmc) |
+| `--trending` | **`huggingface` only**: what is hot right now, in Hugging Face's own order; takes no query |
+| `--top <period>` | **`huggingface` only**: one day `2026-09-18` / ISO week `2026-W38` / month `2026-08`, ranked by upvotes; takes no query |
 | `-o <file>` | write to a file instead of stdout |
 
-**Env vars.** `UNPAYWALL_EMAIL` is required by unpaywall. `SEMANTIC_SCHOLAR_API_KEY`
+**Env vars.** `UNPAYWALL_EMAIL` is required by unpaywall and `ADS_API_TOKEN` by
+ads (without it the call exits 1 before sending anything). `SEMANTIC_SCHOLAR_API_KEY`
 and `CORE_API_KEY` lift those two out of the throttled tier. `FASTPAPER_EMAIL`
 joins the polite pool for crossref/openalex. Also `NCBI_API_KEY`, `OPENALEX_API_KEY`.
+`HF_TOKEN` is optional and only raises Hugging Face's rate limit.
 
 ## Examples
 
@@ -161,6 +173,45 @@ fastpaper read papers/1706.03762.pdf --section methods --max-length 4000
 fastpaper cite 10.1038/nature12373 --direction incoming -n 30 --format json
 ```
 
+## Finding trends: Hugging Face lists
+
+Hugging Face Papers is where the AI community picks and upvotes papers every day. It answers "what are people paying attention to", **not** "which paper has impact" — for impact read `citations` from `semantic` / `openalex`.
+
+| The user asks for | Command |
+|---|---|
+| One day's hot papers | `fastpaper search huggingface --top 2026-09-18 --format json` |
+| This week / last week | `--top 2026-W38` (compute the current week with `date +%G-W%V`) |
+| This month / last month | `--top 2026-08 -n 1000` |
+| What is hot right now | `--trending` |
+
+- Daily lists exist only on weekdays. Zero results on a weekend is normal; ask for the nearest weekday.
+- Weeks go W01–W52 only; W53 (the week of 2026-12-28) is an error — ask for its days instead.
+- `--top` is ranked by upvotes. `--trending` is Hugging Face's own hotness order and mixes in papers that took off again years later — **do not re-rank it by upvotes, and do not present it as "this month's list"**.
+- A query cannot be combined with `--top` / `--trending` (exit 2).
+
+**Hot papers on one topic in one period**: write the whole list to a file, then filter. Do not read a month of JSON into context — about 900 papers, hundreds of KB:
+
+```bash
+fastpaper search huggingface --top 2026-08 -n 1000 --format json -o hf-2026-08.json
+jq -r '.results[] | select((.title+" "+(.abstract//"")) | test("agent";"i")) | [.community.upvotes, .id, .title] | @tsv' hf-2026-08.json | head -20
+```
+
+**Reading `community`**:
+
+- Compare `upvotes` only within one list. Votes accumulate: this week's papers have fewer than last month's by construction, and Monday's have had days more than Friday's.
+- `github_stars` / `linked_models` show whether code and models were released; `null` means none is linked on Hugging Face, not that none exists. Only `fastpaper get huggingface <id>` reports the linked counts.
+- `organization` is the publishing lab — good for "what has lab X put out lately".
+- The lists are community-picked and lean to LLMs, multimodal, generative and agents. **Not being listed does not mean unimportant, let alone that nobody works on it.**
+
+**After you have the list**:
+
+- The abstract is already in each record — **do not `get arxiv` them one by one**: arXiv lets one request through every 3 seconds, so 30 papers take a minute and a half.
+- The `id` is the arXiv id: `fastpaper download <id>` fetches the PDF, and downloads are not queued.
+- Was it accepted at a venue? `fastpaper search openreview "<title words>"` and read `venue` (`ICLR 2025 Poster` = accepted, `Submitted to …` = not).
+- Scholarly impact: `fastpaper cite <id>` or `semantic`.
+
+**When reporting**, state which list (which day, week or month, or right now), how many from the top, and that this is Hugging Face community attention, not citation impact.
+
 ## Choosing a source
 
 Two independent axes. **Discipline coverage** decides what gets found at all;
@@ -174,18 +225,20 @@ only option.
 
 | Field | Dedicated sources | Cross-discipline sources that serve it well |
 |---|---|---|
-| CS · AI · ML | `arxiv` (`cs.*`), `dblp` | `semantic` (best CS coverage of the three, with citations), `openalex` |
+| CS · AI · ML | `arxiv` (`cs.*`), `dblp`, `openreview` (submissions and decisions, rejected and withdrawn too), `huggingface` (community attention, see above) | `semantic` (best CS coverage of the three, with citations), `openalex` |
 | Math · physics · stats · quant bio/fin/econ | `arxiv` (`math.*` `physics.*` `stat.*` `q-bio.*` `q-fin.*` `econ.*` `eess.*`) | `openalex` `core` `hal` |
 | Mathematics (published record) | `zbmath` (MSC classes + reviews, 1868 onwards) | `crossref` `openalex` |
 | High-energy physics | `inspire` (surest citation counts; `--sort citations` works) | `arxiv` `openalex` |
+| Astronomy · astrophysics | `ads` (needs `ADS_API_TOKEN`; surest citation counts, `--sort citations`, citation edges) | `arxiv` (`astro-ph`) `openalex` |
 | Biomedicine · clinical | `pubmed` `pmc` `europepmc` (bioRxiv / medRxiv preprints go through it too, see below) | `semantic` `openalex` |
 | Chemistry · materials · engineering | — | `openalex` `semantic` `crossref` `core` |
 | Earth · environment · agriculture | `europepmc 'SRC:AGR'` (Agricola) | `openalex` `core` `doaj` |
-| Humanities · social science | — | `openalex` `core` `doaj` `hal` (strong on French/European work) |
+| Humanities · social science | `oapen` (open access academic books) | `openalex` `core` `doaj` `hal` (strong on French/European work) |
 | Psychology · sociology · education · law (preprints) | `osf --field psyarxiv` (or `socarxiv` / `edarxiv` / `lawarxiv`) | `openalex` `core` |
 | Education research | `eric` | `openalex` `core` `doaj` |
 | Technical reports · grey literature | `osti` (US DOE), `ntrs` (NASA aerospace) | `core` |
 | Datasets · software · theses | `datacite` `zenodo` | `openaire` |
+| Japanese journals | `jstage` (Japanese society journals; Japanese titles where they exist) | `crossref` |
 | Chinese journals | — | **none.** `europepmc`'s `LANG:chi` and `SRC:CBA` do not count as Chinese journal coverage — see below |
 | Patents | `europepmc --patents` | — |
 
@@ -228,7 +281,7 @@ Report the URL to the user instead; exit is `1`, not `4`.
 | `semantic` | ✓ | — | ✓ | **cross-discipline**, and the surest citation counts here — the basis for any ranking by impact | throttles hard without `SEMANTIC_SCHOLAR_API_KEY`. Carries a DOI on most hits and a PDF on about half |
 | `openalex` | — | — | ✓ | **cross-discipline**, 200M+ works | `--field` takes a concept ID (`C154945302`), not a name. Rarely carries a PDF link — good for finding and ranking, not for fetching. Relevance drifts on title lookups |
 | `crossref` | — | — | ✓ | **cross-discipline** DOI registry — the best title→DOI lookup here | registered metadata only: no PDFs, no OA status, and an abstract on few hits. Use it to resolve, then go elsewhere for content |
-| `dblp` | — | — | — | **computer science** bibliography — conference and journal records, curated and clean | no abstracts at all; metadata only. **Searches title words only**: every word must appear in the title, matched as a prefix (`network` finds `Networks`; end a word with `$` for the exact word). Names and venues in the query match nothing — use `--author` and `--year`; venues cannot be filtered. Ranked shortest-title-first, not by citations. The old `year:` `author:` `venue:` syntax is an error |
+| `dblp` | — | — | — | **computer science** bibliography — conference and journal records, curated and clean | `url` is the publisher's landing page (the dblp record page only when it has none). no abstracts at all; metadata only. **Searches title words only**: every word must appear in the title, matched as a prefix (`network` finds `Networks`; end a word with `$` for the exact word). Names and venues in the query match nothing — use `--author` and `--year`; venues cannot be filtered. Ranked shortest-title-first, not by citations. The old `year:` `author:` `venue:` syntax is an error |
 | `core` | ✓ | — | 0 | **cross-discipline** OA aggregate, 400M+ from repositories and journals — a PDF on nearly every hit | a DOI on few hits and no journal name. `CORE_API_KEY` lifts the rate limit |
 | `openaire` | — | — | ✓ | **cross-discipline** EU open science graph | `download` does not work here, but a `pdf_url` comes back on the minority of hits where a publisher file link is on record — most of its links are DOI resolvers and are not offered as PDFs. `get` wants an OpenAIRE id, not a DOI |
 | `doaj` | — | — | — | **cross-discipline** peer-reviewed OA journals — complete metadata, with a journal name and abstract on nearly every hit | **its `pdf_url` is a landing page, not a file** — fetching one returns HTML. Year granularity only, no sorting |
@@ -241,6 +294,11 @@ Report the URL to the user instead; exit is `1`, not `4`.
 | `ntrs` | ~ | ~ | — | **NASA aerospace reports** | the API **ignores every page-size parameter and always returns 10 per page**, so a larger `-n` costs one request per 10. **Never carries a DOI** (report numbers are not DOIs). `--offset` is a true record offset |
 | `datacite` | — | — | — | **the DOI registry for datasets, software and theses** — the half crossref does not cover, including many university theses and repository deposits | registry metadata only: no full text, no access status. `--year` rides in the query because its own `publication-year` parameter **is silently ignored**. `--offset` must be a multiple of `-n` |
 | `zenodo` | ✓ | — | — | **cross-discipline** CERN general-purpose repository — papers, datasets and software, with a DOI on nearly every hit | `-n` capped at 25. No journal name, and some records are metadata-only |
+| `huggingface` | — | — | — | **AI community attention** — daily / weekly / monthly lists and what is hot now; see "Finding trends" | every paper is an arXiv paper: `pdf_url` points at arXiv, download with `fastpaper download <id>`. Keyword search caps `-n` at 120, ranks by relevance, classics first. `citations` is always null; votes are in `community` |
+| `openreview` | — | — | — | **ML conference submissions and their decisions** (ICLR, NeurIPS, …), rejected and withdrawn ones too | **search only**: single records and PDFs sit behind a bot challenge, so `pdf_url` needs a browser. `venue` carries the outcome (`Submitted to ICLR 2024` = not accepted). Without `--field`, journal records imported from dblp are mixed in. The API ignores sorting, and on 2026-09-05 it blocked search entirely |
+| `jstage` | ✓ | — | — | **Japanese society journals** — the Japanese-language literature | Japanese title when the record has one (authors and journal follow). **No abstracts.** Dates: `--year` only. A few journals need a subscription and 403 on download |
+| `oapen` | ✓ | — | — | **open access academic books and chapters**, mostly humanities and social science | chapter titles start with `Chapter`, and a chapter is sometimes filed twice. An edited volume lists its editors, marked `(ed.)`. `-n` caps at 100 (slow API). The query takes `dc.title:` and similar clauses |
+| `ads` | ✓ | — | ✓ | **astronomy and physics** (NASA ADS / SciX) — the surest citation counts and edges for the field | **needs `ADS_API_TOKEN`** (5000 a day). The query passes ADS syntax through. Download tries the arXiv copy, ADS's scan of old journals (a first request can take a minute), then the publisher's. `cite ads <bibcode>` |
 | `unpaywall` | — | — | — | **DOI → a downloadable URL.** No search, no discipline — a resolver | needs `UNPAYWALL_EMAIL`; one DOI per call, and the URL must be fetched separately |
 
 **One field that lies.** `core` returns `citations` but leaves it 0 on most
@@ -278,15 +336,18 @@ results **without any error**. Use the flags instead — `--field`, `--author`,
 arXiv categories for `--field`: `cs.CL` `cs.LG` `cs.CV` `cs.AI` `cs.RO`,
 `math.*`, `physics.*`, `q-bio.*`, `q-fin.*`, `econ.*`, `stat.ML`, `eess.*`.
 
-**`europepmc`, `pubmed`, `pmc`, `doaj`, `zenodo`, `hal` and `core` pass
-your query through verbatim**, so their own field syntax works:
+**`europepmc`, `pubmed`, `pmc`, `doaj`, `zenodo`, `hal`, `core`, `ads` and
+`oapen` pass your query through verbatim**, so their own field syntax works:
 
 - `pubmed` / `pmc`: `[pt]` publication type · `[mh]` MeSH · `[tiab]` title/abstract · `[au]` author · `[dp]` date
 - `europepmc`: `CITED:[N TO *]` · `AUTH:` · `PUB_YEAR:` · `OPEN_ACCESS:y` · `HAS_FT:y` · `LANG:` · `KW:` · `PUBLISHER:` (preprint server, e.g. `"bioRxiv"`) · `SRC:` subsets (`PPR` preprints, `CTX` NICE guidelines, `AGR` Agricola, `CBA` Chinese Biological Abstracts (2000–2007 only, discontinued), `MED`, `PMC`)
 - `doaj`: Lucene on `bibjson.*` · `zenodo`: Elasticsearch · `hal`: Solr
+- `ads`: `title:` · `abs:` · `author:"^Hubble"` (`^` = first author) · `property:refereed` · `pubdate:[2023-06 TO *]` · `oapen`: `dc.title:` · `dc.contributor.author:` · `dc.date.issued:`
 
 **`crossref`, `openalex`, `semantic` are free-text only** —
-relevance matching, no field syntax. Filter them with the CLI flags.
+relevance matching, no field syntax. Filter them with the CLI flags. `jstage`
+takes space-separated words that must all appear; `openreview` and
+`huggingface` are free text too.
 
 ## Rate limits
 
@@ -295,10 +356,12 @@ fails or is throttled takes down only itself.
 
 | Tier | Sources | Limit |
 |---|---|---|
-| **A — generous** | `europepmc` `crossref` `openalex` `dblp` `doaj` `zenodo` `hal` `openaire` `osf` `inspire` `zbmath` `eric` `osti` `ntrs` `datacite` | no auth needed |
+| **A — generous** | `europepmc` `crossref` `openalex` `dblp` `doaj` `zenodo` `hal` `openaire` `osf` `inspire` `zbmath` `eric` `osti` `ntrs` `datacite` `openreview` `jstage` `oapen` | no auth needed |
 | **arXiv — one at a time** | `arxiv` (`search`, `get`) | arXiv allows one request every 3 seconds over a single connection, counted across every machine the caller controls |
 | **A with a key** | `semantic` (`SEMANTIC_SCHOLAR_API_KEY`: 1 req/s → 100), `core` (`CORE_API_KEY`) | without a key both have to be treated as serial-only — anonymous `semantic` has been observed failing outright with "rate limited after 5 retries" |
 | **B — shared budget** | `pubmed` + `pmc` | one NCBI E-utilities budget between them: 3 req/s, 10 with `NCBI_API_KEY` |
+| **Hugging Face** | `huggingface` | 500 requests per 5 minutes per IP anonymously; `HF_TOKEN` raises it |
+| **A — key required** | `ads` (`ADS_API_TOKEN`) | 5000 a day per token, reset at 00:00 UTC; once spent the call errors — do not retry |
 
 **Put at most one `arxiv` call (`search` or `get`) in any batch of parallel
 calls**; it can run alongside calls to other sources. The CLI queues arXiv
@@ -312,7 +375,7 @@ reworded query.
 ## What this tool cannot do
 
 1. **No impact factors.** No source provides JIF or quartiles.
-2. **Citation edges come only from `semantic` and `openalex`**, via `cite`.
+2. **Citation edges come only from `semantic`, `openalex` and `ads`**, via `cite`.
    Anything else you assemble (shared authors, venue, concepts) is a proxy — say
    so when you report it.
 3. **It cannot fetch an arbitrary URL.** A `pdf_url` from `unpaywall` or
