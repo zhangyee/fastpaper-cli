@@ -2735,3 +2735,69 @@ fn real_ads_search_works() {
     }
     real_search_returns_results("ads");
 }
+
+#[test]
+fn cite_ads_walks_citations() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", "/search/query")
+        .match_query(mockito::Matcher::UrlEncoded(
+            "q".into(),
+            "citations(bibcode:1929PNAS...15..168H)".into(),
+        ))
+        .with_body(include_str!("fixtures/ads_citations.json"))
+        .create();
+    cmd()
+        .args(["cite", "ads", "1929PNAS...15..168H", "--direction", "incoming"])
+        .env("FASTPAPER_ADS_URL", server.url())
+        .env("ADS_API_TOKEN", "t")
+        .assert()
+        .success()
+        .stdout(contains("2003RvMP...75..559P"));
+}
+
+#[test]
+fn download_ads_falls_through_to_the_next_listed_copy() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", "/search/query")
+        .match_query(mockito::Matcher::UrlEncoded("fl".into(), "bibcode,esources".into()))
+        .with_body(r#"{"response":{"docs":[{"bibcode":"2022ApJ...930L..12E","esources":["EPRINT_PDF","PUB_PDF"]}]}}"#)
+        .create();
+    server
+        .mock("GET", "/2022ApJ...930L..12E/EPRINT_PDF")
+        .with_status(404)
+        .create();
+    server
+        .mock("GET", "/2022ApJ...930L..12E/PUB_PDF")
+        .with_body("%PDF-1.5 test")
+        .create();
+    let dir = temp_dir();
+    cmd()
+        .args(["download", "ads", "2022ApJ...930L..12E", "--dir"])
+        .arg(dir.to_str().unwrap())
+        .env("FASTPAPER_ADS_URL", server.url())
+        .env("FASTPAPER_ADS_PDF_URL", server.url())
+        .env("ADS_API_TOKEN", "t")
+        .assert()
+        .success();
+    assert!(dir.join("2022ApJ...930L..12E.pdf").exists());
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn download_ads_with_no_listed_pdf_is_exit_4() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", "/search/query")
+        .match_query(mockito::Matcher::Any)
+        .with_body(r#"{"response":{"docs":[{"bibcode":"1983bhwd.book.....S","esources":["PUB_HTML"]}]}}"#)
+        .create();
+    cmd()
+        .args(["download", "ads", "1983bhwd.book.....S"])
+        .env("FASTPAPER_ADS_URL", server.url())
+        .env("ADS_API_TOKEN", "t")
+        .assert()
+        .code(4)
+        .stderr(contains("lists no PDF"));
+}

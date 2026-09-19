@@ -48,7 +48,7 @@ fn route(id: &str) -> Result<Source, CommandError> {
         _ => Err(failed(format!(
             "Cannot tell what '{id}' is.\n\
              Citation edges need a DOI, an arXiv id or an S2 id, or name a \
-             source: fastpaper cite <semantic|openalex> <id>"
+             source: fastpaper cite <semantic|openalex|ads> <id>"
         ))),
     }
 }
@@ -56,7 +56,8 @@ fn route(id: &str) -> Result<Source, CommandError> {
 fn unsupported_cite(source: Source) -> CommandError {
     failed(format!(
         "'{}' exposes no citation edges.\n\
-         Sources that do: semantic (richest, needs SEMANTIC_SCHOLAR_API_KEY), openalex (no key needed).",
+         Sources that do: semantic (richest, needs SEMANTIC_SCHOLAR_API_KEY), openalex (no key needed), \
+         ads (astronomy and physics, takes a bibcode, needs ADS_API_TOKEN).",
         source.name()
     ))
 }

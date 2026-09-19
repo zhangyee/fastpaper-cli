@@ -104,7 +104,12 @@ fn papers(source: Source) -> Vec<Paper> {
             all
         }
         Source::Oapen => sources::oapen::parse_search_response(&f("oapen_search.json")).unwrap(),
-        Source::Ads => sources::ads::parse_search_response(&f("ads_search.json")).unwrap(),
+        Source::Ads => {
+            let mut all = sources::ads::parse_search_response(&f("ads_search.json")).unwrap();
+            all.extend(sources::ads::parse_search_response(&f("ads_citations.json")).unwrap());
+            all.extend(sources::ads::parse_search_response(&f("ads_references.json")).unwrap());
+            all
+        }
     }
 }
 

@@ -33,4 +33,5 @@ The sources fall into a few families: an open preprint server with free full tex
 | [openreview](openreview.md) | OpenReview | REST JSON (API v2) | none | search only — records and PDFs are behind a bot challenge; needs `source=forum`; ignores `sort` |
 | [jstage](jstage.md) | J-STAGE | REST, Atom/XML | none | Japanese society journals; zero hits is status `ERR_001`; no abstracts; years only |
 | [oapen](oapen.md) | OAPEN Library | DSpace REST JSON | none | open access books; the index also holds funder records, excluded; slow, `-n` ≤ 100 |
+| [ads](ads.md) | NASA ADS (SciX) | REST JSON (Solr) | **required** `ADS_API_TOKEN` | 5000 searches/day per token; citation edges; downloads via its link gateway |
 

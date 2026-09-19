@@ -504,6 +504,52 @@ pub fn pdf_bytes_oapen(base_url: &str, identifier: &str, limit: u64) -> Result<V
     fetch_pdf(&format!("{}{}", base, link), limit)
 }
 
+/// Fetch an ADS paper's PDF through its link gateway.
+///
+/// The record names which copies exist (`esources`), so only those are tried,
+/// best first — see `sources::ads::pdf_route`. The gateway needs no token, but
+/// reading the record does, and it lives on the API host, not the gateway's.
+/// ADS renders a scan on first request and answers 504 meanwhile (measured
+/// 2026-09-19: 63 s then 504; the retry got the PDF in 2.7 s), so a scan
+/// gets one more try after a pause.
+pub fn pdf_bytes_ads(gateway: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
+    let api = crate::registry::Source::Ads.base_url();
+    let (bibcode, esources) = sources::ads::file_sources(&api, identifier)?
+        .ok_or_else(|| FetchError::NotFound(format!("ADS has no record for {}", identifier)))?;
+    let route = sources::ads::pdf_route(&esources);
+    if route.is_empty() {
+        return Err(FetchError::NotFound(format!("ADS lists no PDF for {}", bibcode)));
+    }
+
+    let mut last = FetchError::NotFound(format!("ADS lists no PDF for {}", bibcode));
+    for kind in route {
+        let url = format!(
+            "{}/{}/{}",
+            gateway.trim_end_matches('/'),
+            bibcode.replace('&', "%26"),
+            kind
+        );
+        let attempts = if kind == "ADS_PDF" { 2 } else { 1 };
+        for attempt in 0..attempts {
+            if attempt > 0 {
+                std::thread::sleep(std::time::Duration::from_secs(10));
+            }
+            match fetch_pdf(&url, limit) {
+                Ok(bytes) => return Ok(bytes),
+                Err(e) => {
+                    let rendering = matches!(&e, FetchError::Failed(m)
+                        if m.contains("504") || m.contains("no data received"));
+                    last = e;
+                    if !rendering {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    Err(last)
+}
+
 // The identifier reaches these straight from the command line, so it has to be
 // encoded: a multi-word one used to produce an invalid URI rather than a query.
 

@@ -163,6 +163,69 @@ fn api_message(body: &str) -> String {
         .unwrap_or_default()
 }
 
+pub fn build_cite_url(
+    base_url: &str,
+    bibcode: &str,
+    direction: super::Direction,
+    limit: u32,
+) -> String {
+    let operator = match direction {
+        super::Direction::Incoming => "citations",
+        super::Direction::Outgoing => "references",
+    };
+    format!(
+        "{}/search/query?q={}&fl={}&rows={}&sort={}",
+        base_url.trim_end_matches('/'),
+        super::encode_query(&format!("{}(bibcode:{})", operator, bibcode.trim())),
+        FIELDS,
+        limit.min(1000),
+        super::encode_query("citation_count desc")
+    )
+}
+
+/// Citation edges: what cites a bibcode, or what it cites, most-cited first.
+pub fn cite(
+    base_url: &str,
+    bibcode: &str,
+    direction: super::Direction,
+    limit: u32,
+) -> Result<Vec<Paper>, String> {
+    let token = token()?;
+    parse_search_response(&http_get(&build_cite_url(base_url, bibcode, direction, limit), &token)?)
+}
+
+/// A record's bibcode and which copies of it exist (`esources`), for download.
+pub fn file_sources(base_url: &str, id: &str) -> Result<Option<(String, Vec<String>)>, String> {
+    let token = token()?;
+    let url = format!(
+        "{}/search/query?q={}&fl=bibcode,esources&rows=1",
+        base_url.trim_end_matches('/'),
+        super::encode_query(&format!("identifier:\"{}\"", identifier_for(id)))
+    );
+    let root: serde_json::Value = serde_json::from_str(&http_get(&url, &token)?)
+        .map_err(|e| format!("JSON parse error: {}", e))?;
+    let doc = &root["response"]["docs"][0];
+    let Some(bibcode) = doc["bibcode"].as_str() else {
+        return Ok(None);
+    };
+    let esources = doc["esources"]
+        .as_array()
+        .map(|arr| arr.iter().filter_map(|v| v.as_str()).map(str::to_string).collect())
+        .unwrap_or_default();
+    Ok(Some((bibcode.to_string(), esources)))
+}
+
+/// Which files to try, best first, among those the record says exist: the
+/// arXiv e-print, ADS's own scan of historical journals, then the publisher's
+/// copy. PMC_PDF is left out: through the gateway it lands on an HTML check
+/// page, not a PDF (measured 2026-09-19).
+pub fn pdf_route(esources: &[String]) -> Vec<&'static str> {
+    ["EPRINT_PDF", "ADS_PDF", "PUB_PDF"]
+        .into_iter()
+        .filter(|kind| esources.iter().any(|e| e == kind))
+        .collect()
+}
+
 pub fn parse_search_response(json: &str) -> Result<Vec<Paper>, String> {
     let root: serde_json::Value =
         serde_json::from_str(json).map_err(|e| format!("JSON parse error: {}", e))?;
@@ -316,5 +379,34 @@ mod tests {
         unsafe { std::env::remove_var("ADS_API_TOKEN") };
         let err = search("http://127.0.0.1:9", &SearchQuery::simple("x", 1)).unwrap_err();
         assert!(err.contains("ADS_API_TOKEN") && err.contains("scixplorer.org"), "{}", err);
+    }
+
+    #[test]
+    fn incoming_edges_are_citations_outgoing_are_references() {
+        let inc = build_cite_url("https://api.adsabs.harvard.edu/v1", "1929PNAS...15..168H", crate::sources::Direction::Incoming, 20);
+        assert!(inc.contains("q=citations%28bibcode%3A1929PNAS...15..168H%29"), "{}", inc);
+        assert!(inc.contains("&rows=20"), "{}", inc);
+        let out = build_cite_url("https://api.adsabs.harvard.edu/v1", "2022ApJ...930L..12E", crate::sources::Direction::Outgoing, 20);
+        assert!(out.contains("q=references%28bibcode%3A2022ApJ...930L..12E%29"), "{}", out);
+    }
+
+    #[test]
+    fn edge_fixtures_parse_with_only_bibcode_and_title() {
+        let cited = parse_search_response(include_str!("../../tests/fixtures/ads_citations.json")).unwrap();
+        assert_eq!(cited[0].id, "2003RvMP...75..559P");
+        assert_eq!(cited[0].open_access, None);
+        let refs = parse_search_response(include_str!("../../tests/fixtures/ads_references.json")).unwrap();
+        assert_eq!(refs[0].id, "2016PhRvL.116f1102A");
+    }
+
+    // PMC_PDF lands on an HTML check page, so it is never tried.
+    #[test]
+    fn files_are_tried_arxiv_then_scan_then_publisher() {
+        let es: Vec<String> = ["PUB_PDF", "PMC_PDF", "ADS_PDF", "EPRINT_PDF", "PUB_HTML"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        assert_eq!(pdf_route(&es), vec!["EPRINT_PDF", "ADS_PDF", "PUB_PDF"]);
+        assert!(pdf_route(&["PUB_HTML".to_string()]).is_empty());
     }
 }

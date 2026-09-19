@@ -1075,8 +1075,8 @@ static ADS: SourceEntry = SourceEntry {
             ..SearchCaps::BASIC
         }),
         get: true,
-        download: false,
-        cite: false,
+        download: true,
+        cite: true,
         // The API allows 2000 rows, but at ~4.8 KB a record that nears the
         // 10 MB response cap (measured 2026-09-19).
         max_limit: Some(1000),
@@ -1084,16 +1084,19 @@ static ADS: SourceEntry = SourceEntry {
         notes: "astronomy and physics; needs a free token in ADS_API_TOKEN (5000 searches a \
                 day, reset at 00:00 UTC). The query takes ADS syntax as is: title:, abs:, \
                 author:\"^Hubble\", property:refereed, pubdate:[2023-06 TO *]. --field takes a \
-                database: astronomy, physics or general. get takes a bibcode, DOI or arXiv id",
+                database: astronomy, physics or general. get takes a bibcode, DOI or arXiv id\
+                . download tries the arXiv copy, then ADS's scan of old journals (a first \
+                request for a scan can take a minute), then the publisher's. cite takes a \
+                bibcode, most-cited first",
     },
     env_var: "FASTPAPER_ADS_URL",
     default_base: "https://api.adsabs.harvard.edu/v1",
-    pdf_env_var: None,
-    pdf_default_base: None,
+    pdf_env_var: Some("FASTPAPER_ADS_PDF_URL"),
+    pdf_default_base: Some("https://ui.adsabs.harvard.edu/link_gateway"),
     search: Some(sources::ads::search),
     get: Some(sources::ads::get_by_id),
-    pdf: None,
-    cite: None,
+    pdf: Some(download::pdf_bytes_ads),
+    cite: Some(sources::ads::cite),
     figures: None,
 };
 
