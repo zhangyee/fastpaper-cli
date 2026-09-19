@@ -140,7 +140,7 @@ The source is required: a free-text query has no identifier shape to infer one
 from.
 
 ```
-fastpaper search <SOURCE> <QUERY> [OPTIONS]
+fastpaper search <SOURCE> [QUERY] [OPTIONS]
 
 Options:
   -n, --limit <N>        Max results [default: 10]
@@ -154,6 +154,8 @@ Options:
       --field <FIELD>    Field of study / category (e.g. cs.CL)
       --open-access      Only open access papers
       --patents          Patents only (europepmc)
+      --trending         Hugging Face's rolling "hot right now" list instead of a search
+      --top <PERIOD>     Hugging Face's list for one period, ranked by upvotes: a day (2026-09-18), an ISO week (2026-W38) or a month (2026-08)
   -f, --format <FMT>     table, json, jsonl, csv, bibtex [default: table]
   -o, --output <PATH>    Write results to file
 ```
@@ -242,9 +244,10 @@ fastpaper figures PMC7075534 -d papers/       # -> papers/PMC7075534/*.jpg
 ### `cite` -- Walk citation edges
 
 Same two forms as `get`. Returns the papers on the other end of a citation
-edge, in the usual result shape. Only `semantic` and `openalex` hold edges; a
-bare DOI routes to `openalex`, which needs no API key, while arXiv and `S2:`
-identifiers route to `semantic`.
+edge, in the usual result shape. Three sources hold edges: `semantic` and
+`openalex`, plus `ads` for astronomy and physics, which takes an ADS bibcode
+and needs `ADS_API_TOKEN`. A bare DOI routes to `openalex`, which needs no API
+key, while arXiv and `S2:` identifiers route to `semantic`.
 
 ```
 fastpaper cite <IDENTIFIER> [OPTIONS]

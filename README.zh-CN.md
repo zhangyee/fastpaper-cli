@@ -137,7 +137,7 @@ wait
 数据源必填：自由文本没有标识符形状可供推断。
 
 ```
-fastpaper search <SOURCE> <QUERY> [OPTIONS]
+fastpaper search <SOURCE> [QUERY] [OPTIONS]
 
 选项:
   -n, --limit <N>        最大结果数 [默认: 10]
@@ -151,6 +151,8 @@ fastpaper search <SOURCE> <QUERY> [OPTIONS]
       --field <FIELD>    学科领域 / 分类 (如 cs.CL)
       --open-access      仅开放获取论文
       --patents          仅专利(europepmc)
+      --trending         Hugging Face 的实时热门榜，代替检索
+      --top <PERIOD>     Hugging Face 某一时段的榜单，按票数排序：某天 (2026-09-18)、某 ISO 周 (2026-W38) 或某月 (2026-08)
   -f, --format <FMT>     table, json, jsonl, csv, bibtex [默认: table]
   -o, --output <PATH>    输出到文件
 ```
@@ -230,7 +232,8 @@ fastpaper figures PMC7075534 -d papers/       # -> papers/PMC7075534/*.jpg
 ### `cite` -- 遍历引用关系
 
 与 `get` 相同的两种形式。返回引用边另一端的论文,结果结构与其他命令一致。
-只有 `semantic` 和 `openalex` 提供引用边;裸 DOI 路由到 `openalex`(无需 API
+三个源提供引用边:`semantic`、`openalex`,以及天文与物理的 `ads`(取 ADS
+bibcode;需要 `ADS_API_TOKEN`)。裸 DOI 路由到 `openalex`(无需 API
 key),arXiv 与 `S2:` 标识符路由到 `semantic`。
 
 ```
