@@ -2585,3 +2585,53 @@ fn oapen_refuses_more_than_100() {
 fn real_oapen_search_works() {
     real_search_returns_results("oapen");
 }
+
+#[test]
+fn download_oapen_unknown_handle_is_exit_4() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", "/rest/handle/20.500.12657/0")
+        .match_query(mockito::Matcher::Any)
+        .with_status(404)
+        .with_body("")
+        .create();
+    cmd()
+        .args(["download", "oapen", "20.500.12657/0"])
+        .env("FASTPAPER_OAPEN_URL", server.url())
+        .assert()
+        .code(4)
+        .stderr(contains("OAPEN has no item"));
+}
+
+#[test]
+fn download_oapen_names_an_html_page() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", "/rest/handle/20.500.12657/98246")
+        .match_query(mockito::Matcher::Any)
+        .with_status(403)
+        .with_body("<!DOCTYPE html><html>challenge</html>")
+        .create();
+    cmd()
+        .args(["download", "oapen", "20.500.12657/98246"])
+        .env("FASTPAPER_OAPEN_URL", server.url())
+        .assert()
+        .code(1)
+        .stderr(contains("HTML page"));
+}
+
+#[test]
+fn search_oapen_names_an_html_page() {
+    let mut server = mockito::Server::new();
+    server
+        .mock("GET", mockito::Matcher::Any)
+        .with_status(200)
+        .with_body("<!DOCTYPE html><html>challenge</html>")
+        .create();
+    cmd()
+        .args(["search", "oapen", "history"])
+        .env("FASTPAPER_OAPEN_URL", server.url())
+        .assert()
+        .code(1)
+        .stderr(contains("HTML page"));
+}

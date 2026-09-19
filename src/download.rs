@@ -496,18 +496,9 @@ pub fn pdf_bytes_jstage(base_url: &str, identifier: &str, limit: u64) -> Result<
 pub fn pdf_bytes_oapen(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
     let base = base_url.trim_end_matches('/');
     // An unknown handle is "this source has no such book" (exit 4), not a failure.
-    let body = http_get_text(&format!(
-        "{}/rest/handle/{}?expand=bitstreams",
-        base,
-        identifier.trim()
-    ))
-    .map_err(|e| {
-        if e.contains("404") {
-            FetchError::NotFound(format!("OAPEN has no item {}", identifier))
-        } else {
-            FetchError::Failed(e)
-        }
-    })?;
+    let body = sources::oapen::fetch_item(base_url, identifier)
+        .map_err(|e| FetchError::Failed(e))?
+        .ok_or_else(|| FetchError::NotFound(format!("OAPEN has no item {}", identifier)))?;
     let link = sources::oapen::pdf_link(&body)?
         .ok_or_else(|| FetchError::NotFound(format!("OAPEN has no PDF for {}", identifier)))?;
     fetch_pdf(&format!("{}{}", base, link), limit)

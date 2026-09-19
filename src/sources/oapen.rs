@@ -48,17 +48,28 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
     parse_search_response(&http_get(&build_search_url(base_url, q))?)
 }
 
-/// Fetch one book or chapter by its handle, e.g. `20.500.12657/98246`.
-pub fn get_by_id(base_url: &str, handle: &str) -> Result<Option<Paper>, String> {
+/// Fetch an item's metadata and bitstreams by handle.
+///
+/// Returns `Ok(None)` if the handle does not exist (404), `Ok(Some(body))` if
+/// found, or `Err` if the request failed (including Cloudflare challenges).
+pub fn fetch_item(base_url: &str, handle: &str) -> Result<Option<String>, String> {
     let url = format!(
         "{}/rest/handle/{}?expand=metadata,bitstreams",
         base_url.trim_end_matches('/'),
         handle.trim()
     );
     match http_get(&url) {
-        Ok(body) => parse_item_response(&body),
-        Err(e) if e.contains("404") => Ok(None),
+        Ok(body) => Ok(Some(body)),
+        Err(e) if e.contains("oapen returned 404") => Ok(None),
         Err(e) => Err(e),
+    }
+}
+
+/// Fetch one book or chapter by its handle, e.g. `20.500.12657/98246`.
+pub fn get_by_id(base_url: &str, handle: &str) -> Result<Option<Paper>, String> {
+    match fetch_item(base_url, handle)? {
+        None => Ok(None),
+        Some(body) => parse_item_response(&body),
     }
 }
 
@@ -76,6 +87,11 @@ fn http_get(url: &str) -> Result<String, String> {
         .into_body()
         .read_to_string()
         .map_err(|e| format!("Failed to read response: {}", e))?;
+    // Check 404 first: a 404 means not found regardless of body.
+    if status == 404 {
+        return Err("oapen returned 404".to_string());
+    }
+    // Then sniff for HTML body (Cloudflare challenge or outage page).
     if body.trim_start().starts_with('<') {
         return Err(format!(
             "OAPEN answered HTTP {} with an HTML page instead of JSON (a Cloudflare challenge \
@@ -83,6 +99,7 @@ fn http_get(url: &str) -> Result<String, String> {
             status
         ));
     }
+    // Finally check if status is not 2xx.
     if !(200..300).contains(&status) {
         return Err(format!("oapen returned HTTP {}", status));
     }
