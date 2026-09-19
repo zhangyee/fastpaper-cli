@@ -109,7 +109,9 @@ pub fn parse_search_response(xml: &str) -> Result<Vec<Paper>, String> {
                 text.clear();
             }
             Ok(Event::Text(e)) => text.push_str(&e.decode().unwrap_or_default()),
-            Ok(Event::CData(e)) => text.push_str(&unescape(&String::from_utf8_lossy(&e.into_inner()))),
+            Ok(Event::CData(e)) => {
+                text.push_str(&unescape(&String::from_utf8_lossy(&e.into_inner())))
+            }
             Ok(Event::GeneralRef(e)) => {
                 if let Ok(Some(c)) = e.resolve_char_ref() {
                     text.push(c);
@@ -186,7 +188,11 @@ fn to_paper(e: Entry) -> Option<Paper> {
     if title.is_empty() {
         return None;
     }
-    let link = if e.link_en.is_empty() { &e.link_ja } else { &e.link_en };
+    let link = if e.link_en.is_empty() {
+        &e.link_ja
+    } else {
+        &e.link_en
+    };
     let (prefix, id) = article_path(link)?;
     let pdf_url = format!("{}{}/_pdf", prefix, id);
     let authors = if (ja && !e.authors_ja.is_empty()) || e.authors_en.is_empty() {
@@ -217,7 +223,11 @@ fn to_paper(e: Entry) -> Option<Paper> {
 
 /// The first non-empty of the preferred language and the other one.
 fn prefer(ja: bool, ja_value: String, en_value: String) -> String {
-    let (first, second) = if ja { (ja_value, en_value) } else { (en_value, ja_value) };
+    let (first, second) = if ja {
+        (ja_value, en_value)
+    } else {
+        (en_value, ja_value)
+    };
     if first.is_empty() { second } else { first }
 }
 
@@ -308,22 +318,36 @@ mod tests {
     fn escapes_inside_cdata_are_undone() {
         let entry = "<entry><article_title><en><![CDATA[I&apos;ve heard]]></en></article_title>\
                      <article_link><en>https://www.jstage.jst.go.jp/article/x/1/1/1_1/_article</en></article_link></entry>";
-        assert_eq!(parse_search_response(&wrap("0", entry)).unwrap()[0].title, "I've heard");
+        assert_eq!(
+            parse_search_response(&wrap("0", entry)).unwrap()[0].title,
+            "I've heard"
+        );
     }
 
     #[test]
     fn err_001_means_no_results_not_an_error() {
-        assert!(parse_search_response(&wrap("ERR_001", "")).unwrap().is_empty());
+        assert!(
+            parse_search_response(&wrap("ERR_001", ""))
+                .unwrap()
+                .is_empty()
+        );
     }
 
     #[test]
     fn err_003_is_the_rate_limit() {
-        assert_eq!(parse_search_response(&wrap("ERR_003", "")).unwrap_err(), RATE_LIMITED);
+        assert_eq!(
+            parse_search_response(&wrap("ERR_003", "")).unwrap_err(),
+            RATE_LIMITED
+        );
     }
 
     #[test]
     fn other_codes_are_errors_that_name_the_code() {
-        assert!(parse_search_response(&wrap("ERR_004", "")).unwrap_err().contains("ERR_004"));
+        assert!(
+            parse_search_response(&wrap("ERR_004", ""))
+                .unwrap_err()
+                .contains("ERR_004")
+        );
     }
 
     #[test]
@@ -333,7 +357,11 @@ mod tests {
         q.author = Some("Kondo".into());
         q.year = Some(2024);
         let url = build_search_url("https://api.jstage.jst.go.jp", &q);
-        assert!(url.starts_with("https://api.jstage.jst.go.jp/searchapi/do?service=3&text="), "{}", url);
+        assert!(
+            url.starts_with("https://api.jstage.jst.go.jp/searchapi/do?service=3&text="),
+            "{}",
+            url
+        );
         assert!(url.contains("&count=20&start=21"), "{}", url);
         assert!(url.contains("&author=Kondo"), "{}", url);
         assert!(url.contains("&pubyearfrom=2024&pubyearto=2024"), "{}", url);

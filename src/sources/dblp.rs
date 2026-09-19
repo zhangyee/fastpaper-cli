@@ -357,8 +357,14 @@ mod tests {
     fn url_is_the_publisher_landing_page_when_dblp_has_one() {
         let p = &papers()[0];
         assert_eq!(p.id, "conf/cvpr/HeZRS16");
-        assert_eq!(p.url.as_deref(), Some("https://doi.org/10.1109/CVPR.2016.90"));
-        assert_eq!(papers()[1].url.as_deref(), Some("http://arxiv.org/abs/1512.03385"));
+        assert_eq!(
+            p.url.as_deref(),
+            Some("https://doi.org/10.1109/CVPR.2016.90")
+        );
+        assert_eq!(
+            papers()[1].url.as_deref(),
+            Some("http://arxiv.org/abs/1512.03385")
+        );
     }
 
     #[test]
@@ -373,7 +379,11 @@ mod tests {
     fn the_query_asks_for_the_landing_page() {
         let q = build_query(&crate::sources::SearchQuery::simple("residual learning", 3)).unwrap();
         assert!(q.contains("?doi ?page ?ordinal"), "{}", q);
-        assert!(q.contains("OPTIONAL { ?pub dblp:primaryDocumentPage ?page }"), "{}", q);
+        assert!(
+            q.contains("OPTIONAL { ?pub dblp:primaryDocumentPage ?page }"),
+            "{}",
+            q
+        );
     }
 
     #[test]

@@ -15,8 +15,7 @@ const USER_AGENT: &str = concat!(
     " (+https://github.com/zhangyee/fastpaper-cli)"
 );
 
-pub(crate) const FIELDS: &str =
-    "bibcode,title,author,abstract,year,doi,pub,citation_count,identifier,property,esources,keyword";
+pub(crate) const FIELDS: &str = "bibcode,title,author,abstract,year,doi,pub,citation_count,identifier,property,esources,keyword";
 
 pub(crate) fn token() -> Result<String, String> {
     std::env::var("ADS_API_TOKEN")
@@ -64,7 +63,10 @@ pub fn build_search_url(base_url: &str, q: &super::SearchQuery) -> String {
             SortOrder::Asc => "asc",
             SortOrder::Desc => "desc",
         };
-        url.push_str(&format!("&sort={}", super::encode_query(&format!("{} {}", field, order))));
+        url.push_str(&format!(
+            "&sort={}",
+            super::encode_query(&format!("{} {}", field, order))
+        ));
     }
     url
 }
@@ -84,7 +86,9 @@ pub fn get_by_id(base_url: &str, id: &str) -> Result<Option<Paper>, String> {
         super::encode_query(&format!("identifier:\"{}\"", identifier_for(id))),
         FIELDS
     );
-    Ok(parse_search_response(&http_get(&url, &token)?)?.into_iter().next())
+    Ok(parse_search_response(&http_get(&url, &token)?)?
+        .into_iter()
+        .next())
 }
 
 /// ADS files arXiv ids as `arXiv:<id>`; bibcodes and DOIs go in as given.
@@ -132,9 +136,11 @@ pub(crate) fn http_get(url: &str, token: &str) -> Result<String, String> {
         )),
         429 => Err(quota_message(reset.as_deref())),
         _ if remaining.as_deref() == Some("0") => Err(quota_message(reset.as_deref())),
-        _ => Err(format!("ads returned HTTP {}: {}", status, api_message(&body))
-            .trim_end_matches([':', ' '])
-            .to_string()),
+        _ => Err(
+            format!("ads returned HTTP {}: {}", status, api_message(&body))
+                .trim_end_matches([':', ' '])
+                .to_string(),
+        ),
     }
 }
 
@@ -191,7 +197,10 @@ pub fn cite(
     limit: u32,
 ) -> Result<Vec<Paper>, String> {
     let token = token()?;
-    parse_search_response(&http_get(&build_cite_url(base_url, bibcode, direction, limit), &token)?)
+    parse_search_response(&http_get(
+        &build_cite_url(base_url, bibcode, direction, limit),
+        &token,
+    )?)
 }
 
 /// A record's bibcode and which copies of it exist (`esources`), for download.
@@ -210,7 +219,12 @@ pub fn file_sources(base_url: &str, id: &str) -> Result<Option<(String, Vec<Stri
     };
     let esources = doc["esources"]
         .as_array()
-        .map(|arr| arr.iter().filter_map(|v| v.as_str()).map(str::to_string).collect())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str())
+                .map(str::to_string)
+                .collect()
+        })
         .unwrap_or_default();
     Ok(Some((bibcode.to_string(), esources)))
 }
@@ -247,7 +261,12 @@ fn parse_doc(d: &serde_json::Value) -> Option<Paper> {
     let strings = |key: &str| -> Vec<String> {
         d[key]
             .as_array()
-            .map(|arr| arr.iter().filter_map(|v| v.as_str()).map(str::to_string).collect())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str())
+                    .map(str::to_string)
+                    .collect()
+            })
             .unwrap_or_default()
     };
     let doi = strings("doi")
@@ -299,12 +318,21 @@ mod tests {
     fn maps_a_journal_article() {
         let p = &papers()[0];
         assert_eq!(p.id, "2022ApJ...930L..12E");
-        assert!(p.title.starts_with("First Sagittarius A* Event Horizon Telescope Results"));
+        assert!(
+            p.title
+                .starts_with("First Sagittarius A* Event Horizon Telescope Results")
+        );
         assert_eq!(p.year, Some(2022));
-        assert_eq!(p.venue.as_deref(), Some("The Astrophysical Journal Letters"));
+        assert_eq!(
+            p.venue.as_deref(),
+            Some("The Astrophysical Journal Letters")
+        );
         assert_eq!(p.citations, Some(2224));
         assert_eq!(p.open_access, Some(true));
-        assert_eq!(p.url.as_deref(), Some("https://ui.adsabs.harvard.edu/abs/2022ApJ...930L..12E"));
+        assert_eq!(
+            p.url.as_deref(),
+            Some("https://ui.adsabs.harvard.edu/abs/2022ApJ...930L..12E")
+        );
         assert!(!p.fields.is_empty());
     }
 
@@ -318,7 +346,10 @@ mod tests {
 
     #[test]
     fn the_pdf_url_is_the_arxiv_copy_when_there_is_one() {
-        assert_eq!(papers()[0].pdf_url.as_deref(), Some("https://arxiv.org/pdf/2311.08680"));
+        assert_eq!(
+            papers()[0].pdf_url.as_deref(),
+            Some("https://arxiv.org/pdf/2311.08680")
+        );
         assert_eq!(papers()[1].pdf_url, None);
     }
 
@@ -330,9 +361,11 @@ mod tests {
 
     #[test]
     fn a_query_error_is_an_error() {
-        assert!(parse_search_response(r#"{"error":{"msg":"syntax error"}}"#)
-            .unwrap_err()
-            .contains("syntax error"));
+        assert!(
+            parse_search_response(r#"{"error":{"msg":"syntax error"}}"#)
+                .unwrap_err()
+                .contains("syntax error")
+        );
     }
 
     #[test]
@@ -344,9 +377,17 @@ mod tests {
         q.open_access = true;
         q.offset = 10;
         let url = build_search_url("https://api.adsabs.harvard.edu/v1", &q);
-        assert!(url.starts_with("https://api.adsabs.harvard.edu/v1/search/query?q=dark+energy&fl="), "{}", url);
+        assert!(
+            url.starts_with("https://api.adsabs.harvard.edu/v1/search/query?q=dark+energy&fl="),
+            "{}",
+            url
+        );
         assert!(url.contains("&rows=5&start=10"), "{}", url);
-        assert!(url.contains("&fq=author%3A%22Perlmutter%2C+S%22"), "{}", url);
+        assert!(
+            url.contains("&fq=author%3A%22Perlmutter%2C+S%22"),
+            "{}",
+            url
+        );
         assert!(url.contains("&fq=year%3A2020"), "{}", url);
         assert!(url.contains("&fq=database%3Aastronomy"), "{}", url);
         assert!(url.contains("&fq=property%3Aopenaccess"), "{}", url);
@@ -370,7 +411,10 @@ mod tests {
         assert_eq!(identifier_for("1805.00001"), "arXiv:1805.00001");
         assert_eq!(identifier_for("arXiv:1805.00001"), "arXiv:1805.00001");
         assert_eq!(identifier_for("2022ApJ...930L..12E"), "2022ApJ...930L..12E");
-        assert_eq!(identifier_for("10.3847/2041-8213/ac6674"), "10.3847/2041-8213/ac6674");
+        assert_eq!(
+            identifier_for("10.3847/2041-8213/ac6674"),
+            "10.3847/2041-8213/ac6674"
+        );
     }
 
     #[test]
@@ -378,24 +422,48 @@ mod tests {
     fn no_token_is_refused_before_any_request() {
         unsafe { std::env::remove_var("ADS_API_TOKEN") };
         let err = search("http://127.0.0.1:9", &SearchQuery::simple("x", 1)).unwrap_err();
-        assert!(err.contains("ADS_API_TOKEN") && err.contains("scixplorer.org"), "{}", err);
+        assert!(
+            err.contains("ADS_API_TOKEN") && err.contains("scixplorer.org"),
+            "{}",
+            err
+        );
     }
 
     #[test]
     fn incoming_edges_are_citations_outgoing_are_references() {
-        let inc = build_cite_url("https://api.adsabs.harvard.edu/v1", "1929PNAS...15..168H", crate::sources::Direction::Incoming, 20);
-        assert!(inc.contains("q=citations%28bibcode%3A1929PNAS...15..168H%29"), "{}", inc);
+        let inc = build_cite_url(
+            "https://api.adsabs.harvard.edu/v1",
+            "1929PNAS...15..168H",
+            crate::sources::Direction::Incoming,
+            20,
+        );
+        assert!(
+            inc.contains("q=citations%28bibcode%3A1929PNAS...15..168H%29"),
+            "{}",
+            inc
+        );
         assert!(inc.contains("&rows=20"), "{}", inc);
-        let out = build_cite_url("https://api.adsabs.harvard.edu/v1", "2022ApJ...930L..12E", crate::sources::Direction::Outgoing, 20);
-        assert!(out.contains("q=references%28bibcode%3A2022ApJ...930L..12E%29"), "{}", out);
+        let out = build_cite_url(
+            "https://api.adsabs.harvard.edu/v1",
+            "2022ApJ...930L..12E",
+            crate::sources::Direction::Outgoing,
+            20,
+        );
+        assert!(
+            out.contains("q=references%28bibcode%3A2022ApJ...930L..12E%29"),
+            "{}",
+            out
+        );
     }
 
     #[test]
     fn edge_fixtures_parse_with_only_bibcode_and_title() {
-        let cited = parse_search_response(include_str!("../../tests/fixtures/ads_citations.json")).unwrap();
+        let cited =
+            parse_search_response(include_str!("../../tests/fixtures/ads_citations.json")).unwrap();
         assert_eq!(cited[0].id, "2003RvMP...75..559P");
         assert_eq!(cited[0].open_access, None);
-        let refs = parse_search_response(include_str!("../../tests/fixtures/ads_references.json")).unwrap();
+        let refs = parse_search_response(include_str!("../../tests/fixtures/ads_references.json"))
+            .unwrap();
         assert_eq!(refs[0].id, "2016PhRvL.116f1102A");
     }
 

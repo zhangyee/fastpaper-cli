@@ -173,7 +173,11 @@ mod tests {
         for source in registry::ALL {
             let row = out.lines().find(|l| l.starts_with(source.name())).unwrap();
             let marks: Vec<&str> = row.split_whitespace().skip(1).collect();
-            let expected = if source.caps().fields.community { "\u{2713}" } else { "\u{2717}" };
+            let expected = if source.caps().fields.community {
+                "\u{2713}"
+            } else {
+                "\u{2717}"
+            };
             assert_eq!(marks[8], expected, "{}", source.name());
         }
     }

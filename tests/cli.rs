@@ -2296,11 +2296,24 @@ fn huggingface_top_month_keeps_the_upvote_ranking() {
         .with_body(include_str!("fixtures/huggingface_daily.json"))
         .create();
     let output = cmd()
-        .args(["search", "huggingface", "--top", "2026-08", "-n", "3", "--format", "json"])
+        .args([
+            "search",
+            "huggingface",
+            "--top",
+            "2026-08",
+            "-n",
+            "3",
+            "--format",
+            "json",
+        ])
         .env("FASTPAPER_HUGGINGFACE_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let v: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(v["results"][0]["id"], "2608.09888");
     assert_eq!(v["results"][0]["community"]["upvotes"], 781);
@@ -2334,11 +2347,24 @@ fn huggingface_listing_pages_until_n_is_met() {
         .expect(1)
         .create();
     let output = cmd()
-        .args(["search", "huggingface", "--top", "2026-08", "-n", "150", "--format", "json"])
+        .args([
+            "search",
+            "huggingface",
+            "--top",
+            "2026-08",
+            "-n",
+            "150",
+            "--format",
+            "json",
+        ])
         .env("FASTPAPER_HUGGINGFACE_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let v: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(v["results"].as_array().unwrap().len(), 150);
     first.assert();
@@ -2392,7 +2418,11 @@ fn get_huggingface_reports_linked_counts() {
         .env("FASTPAPER_HUGGINGFACE_URL", server.url())
         .output()
         .unwrap();
-    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let v: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(v["results"][0]["community"]["linked_datasets"], 1);
 }
@@ -2425,10 +2455,23 @@ fn real_huggingface_search_works() {
 #[ignore]
 fn real_huggingface_month_list_works() {
     let output = cmd()
-        .args(["search", "huggingface", "--top", "2026-08", "-n", "5", "--format", "json"])
+        .args([
+            "search",
+            "huggingface",
+            "--top",
+            "2026-08",
+            "-n",
+            "5",
+            "--format",
+            "json",
+        ])
         .output()
         .unwrap();
-    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let v: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     let votes: Vec<u64> = v["results"]
         .as_array()
@@ -2436,7 +2479,11 @@ fn real_huggingface_month_list_works() {
         .iter()
         .map(|p| p["community"]["upvotes"].as_u64().unwrap())
         .collect();
-    assert!(votes.windows(2).all(|w| w[0] >= w[1]), "not ranked: {:?}", votes);
+    assert!(
+        votes.windows(2).all(|w| w[0] >= w[1]),
+        "not ranked: {:?}",
+        votes
+    );
 }
 
 // ── openreview ──────────────────────────────────
@@ -2557,7 +2604,10 @@ fn download_oapen_follows_the_pdf_bitstream() {
         .with_body(include_str!("fixtures/oapen_item.json"))
         .create();
     server
-        .mock("GET", "/rest/bitstreams/7ed5481a-3418-4316-b28e-d092d0b8df20/retrieve")
+        .mock(
+            "GET",
+            "/rest/bitstreams/7ed5481a-3418-4316-b28e-d092d0b8df20/retrieve",
+        )
         .with_body("%PDF-1.7 test")
         .create();
     let dir = temp_dir();
@@ -2748,7 +2798,13 @@ fn cite_ads_walks_citations() {
         .with_body(include_str!("fixtures/ads_citations.json"))
         .create();
     cmd()
-        .args(["cite", "ads", "1929PNAS...15..168H", "--direction", "incoming"])
+        .args([
+            "cite",
+            "ads",
+            "1929PNAS...15..168H",
+            "--direction",
+            "incoming",
+        ])
         .env("FASTPAPER_ADS_URL", server.url())
         .env("ADS_API_TOKEN", "t")
         .assert()
@@ -2835,7 +2891,9 @@ fn download_ads_with_no_listed_pdf_is_exit_4() {
     server
         .mock("GET", "/search/query")
         .match_query(mockito::Matcher::Any)
-        .with_body(r#"{"response":{"docs":[{"bibcode":"1983bhwd.book.....S","esources":["PUB_HTML"]}]}}"#)
+        .with_body(
+            r#"{"response":{"docs":[{"bibcode":"1983bhwd.book.....S","esources":["PUB_HTML"]}]}}"#,
+        )
         .create();
     cmd()
         .args(["download", "ads", "1983bhwd.book.....S"])

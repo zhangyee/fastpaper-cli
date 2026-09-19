@@ -225,7 +225,10 @@ mod tests {
     fn keywords_become_fields_and_the_forum_is_the_url() {
         let p = &papers()[1];
         assert_eq!(p.fields[0], "graph neural network");
-        assert_eq!(p.url.as_deref(), Some("https://openreview.net/forum?id=IefMMX12yk"));
+        assert_eq!(
+            p.url.as_deref(),
+            Some("https://openreview.net/forum?id=IefMMX12yk")
+        );
         assert!(p.abstract_text.is_some());
         assert!(p.doi.is_none() && p.citations.is_none());
     }
@@ -233,12 +236,19 @@ mod tests {
     #[test]
     fn a_challenge_body_is_an_error() {
         let body = r#"{"name":"ChallengeRequiredError","message":"Challenge verification required","status":403}"#;
-        assert!(parse_search_response(body).unwrap_err().contains("ChallengeRequiredError"));
+        assert!(
+            parse_search_response(body)
+                .unwrap_err()
+                .contains("ChallengeRequiredError")
+        );
     }
 
     #[test]
     fn search_url_always_asks_for_forum_notes() {
-        let url = build_search_url("https://api2.openreview.net", &SearchQuery::simple("graph neural network", 5));
+        let url = build_search_url(
+            "https://api2.openreview.net",
+            &SearchQuery::simple("graph neural network", 5),
+        );
         assert_eq!(
             url,
             "https://api2.openreview.net/notes/search?term=graph+neural+network&source=forum&limit=5"
@@ -252,6 +262,10 @@ mod tests {
         q.offset = 10;
         let url = build_search_url("https://api2.openreview.net", &q);
         assert!(url.contains("&offset=10"), "{}", url);
-        assert!(url.contains("&group=ICLR.cc%2F2025%2FConference"), "{}", url);
+        assert!(
+            url.contains("&group=ICLR.cc%2F2025%2FConference"),
+            "{}",
+            url
+        );
     }
 }

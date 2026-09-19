@@ -132,7 +132,11 @@ fn http_get(url: &str) -> Result<String, String> {
         }
         let resp = req.call().map_err(|e| format!("HTTP error: {}", e))?;
         let status = resp.status().as_u16();
-        let reset = reset_seconds(resp.headers().get("ratelimit").and_then(|v| v.to_str().ok()));
+        let reset = reset_seconds(
+            resp.headers()
+                .get("ratelimit")
+                .and_then(|v| v.to_str().ok()),
+        );
         let body = resp
             .into_body()
             .read_to_string()
@@ -306,7 +310,9 @@ mod tests {
     const PAPER: &str = include_str!("../../tests/fixtures/huggingface_paper.json");
 
     fn community(p: &Paper) -> &Community {
-        p.community.as_ref().expect("huggingface always fills community")
+        p.community
+            .as_ref()
+            .expect("huggingface always fills community")
     }
 
     #[test]
@@ -347,10 +353,19 @@ mod tests {
         assert_eq!(p.authors.len(), 9);
         assert_eq!(p.authors[0], "Björn Engdahl");
         assert!(p.abstract_text.as_deref().is_some_and(|a| a.len() > 100));
-        assert_eq!(p.url.as_deref(), Some("https://huggingface.co/papers/2608.09888"));
-        assert_eq!(p.pdf_url.as_deref(), Some("https://arxiv.org/pdf/2608.09888"));
+        assert_eq!(
+            p.url.as_deref(),
+            Some("https://huggingface.co/papers/2608.09888")
+        );
+        assert_eq!(
+            p.pdf_url.as_deref(),
+            Some("https://arxiv.org/pdf/2608.09888")
+        );
         assert_eq!(p.open_access, Some(true));
-        assert_eq!((p.doi.clone(), p.venue.clone(), p.citations), (None, None, None));
+        assert_eq!(
+            (p.doi.clone(), p.venue.clone(), p.citations),
+            (None, None, None)
+        );
     }
 
     // A paper that is trending again years later was never on a daily list.
@@ -359,7 +374,10 @@ mod tests {
         let papers = parse_list_response(TRENDING).unwrap();
         assert_eq!(papers[0].id, "2412.20138");
         assert_eq!(community(&papers[0]).listed_on, None);
-        assert_eq!(community(&papers[1]).listed_on.as_deref(), Some("2025-03-12"));
+        assert_eq!(
+            community(&papers[1]).listed_on.as_deref(),
+            Some("2025-03-12")
+        );
     }
 
     #[test]
@@ -395,8 +413,10 @@ mod tests {
 
     #[test]
     fn an_api_error_is_an_error_not_an_empty_list() {
-        let err = parse_list_response(r#"{"error":"✖ Too big: expected number to be <=100\n  → at limit"}"#)
-            .unwrap_err();
+        let err = parse_list_response(
+            r#"{"error":"✖ Too big: expected number to be <=100\n  → at limit"}"#,
+        )
+        .unwrap_err();
         assert!(err.contains("Too big"), "got: {}", err);
     }
 
@@ -434,15 +454,28 @@ mod tests {
             build_listing_url(base, &Listing::Week("2026-W38".into()), 10, 0).unwrap(),
             "https://huggingface.co/api/daily_papers?week=2026-W38&limit=10&p=0"
         );
-        assert!(build_listing_url(base, &Listing::Trending, 10, 0).unwrap().contains("sort=trending"));
+        assert!(
+            build_listing_url(base, &Listing::Trending, 10, 0)
+                .unwrap()
+                .contains("sort=trending")
+        );
     }
 
     // The API's week pattern stops at W52 (measured: W53 -> 400).
     #[test]
     fn week_53_is_refused_before_asking() {
-        let err = build_listing_url("https://huggingface.co", &Listing::Week("2026-W53".into()), 10, 0)
-            .unwrap_err();
-        assert!(err.contains("W52") && err.contains("--top 2026-12-28"), "got: {}", err);
+        let err = build_listing_url(
+            "https://huggingface.co",
+            &Listing::Week("2026-W53".into()),
+            10,
+            0,
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("W52") && err.contains("--top 2026-12-28"),
+            "got: {}",
+            err
+        );
     }
 
     #[test]

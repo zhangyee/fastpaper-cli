@@ -24,7 +24,10 @@ fn build_query(q: &super::SearchQuery) -> String {
         query.push_str(&format!(" AND dc.date.issued:{}", year));
     }
     if let Some(ref author) = q.author {
-        query.push_str(&format!(" AND dc.contributor.author:\"{}\"", author.replace('"', "")));
+        query.push_str(&format!(
+            " AND dc.contributor.author:\"{}\"",
+            author.replace('"', "")
+        ));
     }
     query.push_str(" AND NOT dc.type:grantor");
     query
@@ -221,12 +224,22 @@ mod tests {
         assert_eq!(p.year, Some(2025));
         assert_eq!(p.doi.as_deref(), Some("10.1201/9781003486817"));
         assert_eq!(p.venue.as_deref(), Some("Taylor & Francis"));
-        assert_eq!(p.url.as_deref(), Some("https://library.oapen.org/handle/20.500.12657/98246"));
+        assert_eq!(
+            p.url.as_deref(),
+            Some("https://library.oapen.org/handle/20.500.12657/98246")
+        );
         assert_eq!(
             p.pdf_url.as_deref(),
-            Some("https://library.oapen.org/rest/bitstreams/7ed5481a-3418-4316-b28e-d092d0b8df20/retrieve")
+            Some(
+                "https://library.oapen.org/rest/bitstreams/7ed5481a-3418-4316-b28e-d092d0b8df20/retrieve"
+            )
         );
-        assert!(p.fields.contains(&"UYQ Artificial intelligence".to_string()), "{:?}", p.fields);
+        assert!(
+            p.fields
+                .contains(&"UYQ Artificial intelligence".to_string()),
+            "{:?}",
+            p.fields
+        );
         assert_eq!(p.open_access, Some(true));
         assert!(p.abstract_text.is_some());
     }
@@ -283,8 +296,16 @@ mod tests {
         let mut q = SearchQuery::simple("history", 5);
         q.offset = 5;
         let url = build_search_url("https://library.oapen.org", &q);
-        assert!(url.starts_with("https://library.oapen.org/rest/search?query="), "{}", url);
-        assert!(url.contains("&limit=5&offset=5&expand=metadata,bitstreams"), "{}", url);
+        assert!(
+            url.starts_with("https://library.oapen.org/rest/search?query="),
+            "{}",
+            url
+        );
+        assert!(
+            url.contains("&limit=5&offset=5&expand=metadata,bitstreams"),
+            "{}",
+            url
+        );
     }
 
     #[test]

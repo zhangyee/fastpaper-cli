@@ -483,7 +483,11 @@ pub fn pdf_bytes_osf(base_url: &str, identifier: &str, limit: u64) -> Result<Vec
 
 /// Fetch a J-STAGE PDF. It sits at the article path with `_pdf` where the
 /// landing page has `_article`; a subscription journal answers 403.
-pub fn pdf_bytes_jstage(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
+pub fn pdf_bytes_jstage(
+    base_url: &str,
+    identifier: &str,
+    limit: u64,
+) -> Result<Vec<u8>, FetchError> {
     let path = identifier.trim().trim_matches('/');
     fetch_pdf_named(
         &format!("{}/article/{}/_pdf", base_url.trim_end_matches('/'), path),
@@ -493,7 +497,11 @@ pub fn pdf_bytes_jstage(base_url: &str, identifier: &str, limit: u64) -> Result<
 }
 
 /// Fetch an OAPEN book's PDF: read the item's bitstreams, take the PDF one.
-pub fn pdf_bytes_oapen(base_url: &str, identifier: &str, limit: u64) -> Result<Vec<u8>, FetchError> {
+pub fn pdf_bytes_oapen(
+    base_url: &str,
+    identifier: &str,
+    limit: u64,
+) -> Result<Vec<u8>, FetchError> {
     let base = base_url.trim_end_matches('/');
     // An unknown handle is "this source has no such book" (exit 4), not a failure.
     let body = sources::oapen::fetch_item(base_url, identifier)
@@ -518,7 +526,10 @@ pub fn pdf_bytes_ads(gateway: &str, identifier: &str, limit: u64) -> Result<Vec<
         .ok_or_else(|| FetchError::NotFound(format!("ADS has no record for {}", identifier)))?;
     let route = sources::ads::pdf_route(&esources);
     if route.is_empty() {
-        return Err(FetchError::NotFound(format!("ADS lists no PDF for {}", bibcode)));
+        return Err(FetchError::NotFound(format!(
+            "ADS lists no PDF for {}",
+            bibcode
+        )));
     }
     fetch_ads_route(
         gateway,
