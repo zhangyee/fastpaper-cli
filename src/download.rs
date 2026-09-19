@@ -505,7 +505,7 @@ pub fn pdf_bytes_oapen(
     let base = base_url.trim_end_matches('/');
     // An unknown handle is "this source has no such book" (exit 4), not a failure.
     let body = sources::oapen::fetch_item(base_url, identifier)
-        .map_err(|e| FetchError::Failed(e))?
+        .map_err(FetchError::Failed)?
         .ok_or_else(|| FetchError::NotFound(format!("OAPEN has no item {}", identifier)))?;
     let link = sources::oapen::pdf_link(&body)?
         .ok_or_else(|| FetchError::NotFound(format!("OAPEN has no PDF for {}", identifier)))?;
