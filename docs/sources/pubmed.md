@@ -32,7 +32,8 @@
 
 ## 注意
 
-- HTTP 429 退避重试(最多 3 次);5xx 直接报错。
+- HTTP 429、502、503、504 指数退避重试(共最多 3 次);其余 5xx 直接报错。
+- `esearch` / `efetch` 的 HTTP 2xx 响应若缺少正常成功结构或无法解析也会重试;三次仍失败会注明阶段并报告截断后的响应摘要。合法空 `idlist` / `PubmedArticleSet` 仍按零结果处理。
 - PubMed 仅元数据,无 PDF;正文需转 PMC(`download pmc <PMCID>`)。
 
 ## CLI 过滤参数映射

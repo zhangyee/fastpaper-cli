@@ -5,6 +5,7 @@ use super::Paper;
 
 const ESEARCH_URL: &str = "/entrez/eutils/esearch.fcgi";
 const EFETCH_URL: &str = "/entrez/eutils/efetch.fcgi";
+const MAX_ATTEMPTS: usize = 3;
 
 /// Build the esearch URL for a full query.
 ///
@@ -95,14 +96,18 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
     // Step 1: esearch to get PMID list
     let esearch_url = build_esearch_url_q(base_url, q, api_key.as_deref(), email.as_deref())?;
 
-    let esearch_body = http_get(&esearch_url)?;
-    let esearch_json: serde_json::Value =
-        serde_json::from_str(&esearch_body).map_err(|e| format!("JSON parse error: {}", e))?;
-
-    let ids: Vec<&str> = esearch_json["esearchresult"]["idlist"]
-        .as_array()
-        .map(|arr| arr.iter().filter_map(|v| v.as_str()).collect())
-        .unwrap_or_default();
+    let ids = send(
+        "PubMed esearch",
+        || {
+            crate::http::api()
+                .get(&esearch_url)
+                .config()
+                .http_status_as_error(false)
+                .build()
+                .call()
+        },
+        parse_esearch_response,
+    )?;
 
     if ids.is_empty() {
         return Ok(vec![]);
@@ -113,12 +118,34 @@ pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, Stri
     let mut papers = Vec::new();
     for batch in ids.chunks(EFETCH_BATCH) {
         let form = efetch_form(batch, api_key.as_deref(), email.as_deref());
-        let body = send(|| crate::http::api().post(&url).send_form(form.clone()))?;
-        papers.extend(parse_efetch_response(&body)?);
+        papers.extend(send(
+            "PubMed efetch",
+            || {
+                crate::http::api()
+                    .post(&url)
+                    .config()
+                    .http_status_as_error(false)
+                    .build()
+                    .send_form(form.clone())
+            },
+            parse_efetch_response,
+        )?);
     }
     // Keep esearch's ranking whatever order efetch answers in.
     papers.sort_by_key(|p| ids.iter().position(|id| *id == p.id).unwrap_or(usize::MAX));
     Ok(papers)
+}
+
+fn parse_esearch_response(json: &str) -> Result<Vec<String>, String> {
+    let root: serde_json::Value =
+        serde_json::from_str(json).map_err(|e| format!("JSON parse error: {}", e))?;
+    let ids = root["esearchresult"]["idlist"]
+        .as_array()
+        .ok_or("missing 'esearchresult.idlist' array")?;
+    Ok(ids
+        .iter()
+        .filter_map(|value| value.as_str().map(str::to_string))
+        .collect())
 }
 
 /// PMIDs per efetch request.
@@ -132,7 +159,7 @@ const EFETCH_BATCH: usize = 200;
 
 /// Form fields for one efetch POST.
 fn efetch_form(
-    ids: &[&str],
+    ids: &[String],
     api_key: Option<&str>,
     email: Option<&str>,
 ) -> Vec<(&'static str, String)> {
@@ -151,39 +178,110 @@ fn efetch_form(
     form
 }
 
-fn http_get(url: &str) -> Result<String, String> {
-    send(|| crate::http::api().get(url).call())
-}
-
-/// Send a request, backing off on 429.
-fn send(
+/// Send and validate a request, backing off on transient gateway responses and
+/// syntactically invalid or structurally incomplete 2xx bodies.
+fn send<T>(
+    stage: &str,
     request: impl Fn() -> Result<ureq::http::Response<ureq::Body>, ureq::Error>,
-) -> Result<String, String> {
-    let mut last_err = String::new();
-    for attempt in 0..3 {
-        if attempt > 0 {
-            std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
+    parse: impl Fn(&str) -> Result<T, String>,
+) -> Result<T, String> {
+    let mut last_retryable = None;
+    for attempt in 0..MAX_ATTEMPTS {
+        let resp = request().map_err(|e| format!("{} HTTP error: {}", stage, e))?;
+        let status = resp.status().as_u16();
+        let body = match resp.into_body().read_to_string() {
+            Ok(body) => body,
+            Err(e) if retryable_status(status) => {
+                last_retryable = Some(format!(
+                    "{} returned HTTP {} but its response could not be read: {}",
+                    stage, status, e
+                ));
+                if attempt + 1 < MAX_ATTEMPTS {
+                    retry_pause(attempt);
+                    continue;
+                }
+                break;
+            }
+            Err(e) => return Err(format!("{} failed to read response: {}", stage, e)),
+        };
+
+        match status {
+            200..=299 => match parse(&body) {
+                Ok(value) => return Ok(value),
+                Err(err) => {
+                    last_retryable = Some(format!(
+                        "{} returned HTTP {} without a valid success response: {}; response: {}",
+                        stage,
+                        status,
+                        err,
+                        diagnostic_summary(&body)
+                    ));
+                }
+            },
+            429 => {
+                last_retryable = Some(format!(
+                    "{} was rate limited (429); response: {}",
+                    stage,
+                    diagnostic_summary(&body)
+                ));
+            }
+            502..=504 => {
+                last_retryable = Some(format!(
+                    "{} returned HTTP {}; response: {}",
+                    stage,
+                    status,
+                    diagnostic_summary(&body)
+                ));
+            }
+            500..=599 => {
+                return Err(format!(
+                    "{} server error {}; response: {}",
+                    stage,
+                    status,
+                    diagnostic_summary(&body)
+                ));
+            }
+            _ => {
+                return Err(format!(
+                    "{} HTTP error {}; response: {}",
+                    stage,
+                    status,
+                    diagnostic_summary(&body)
+                ));
+            }
         }
-        match request() {
-            Ok(resp) => {
-                return resp
-                    .into_body()
-                    .read_to_string()
-                    .map_err(|e| format!("Failed to read response: {}", e));
-            }
-            Err(ureq::Error::StatusCode(429)) => {
-                last_err = "rate limited (429)".to_string();
-                continue;
-            }
-            Err(ureq::Error::StatusCode(code)) if code >= 500 => {
-                return Err(format!("Server error: {}", code));
-            }
-            Err(e) => {
-                return Err(format!("HTTP error: {}", e));
-            }
+
+        if attempt + 1 < MAX_ATTEMPTS {
+            retry_pause(attempt);
         }
     }
-    Err(last_err)
+
+    Err(format!(
+        "{} after {} attempts",
+        last_retryable.unwrap_or_else(|| format!("{} failed", stage)),
+        MAX_ATTEMPTS
+    ))
+}
+
+fn retryable_status(status: u16) -> bool {
+    matches!(status, 429 | 502..=504)
+}
+
+fn retry_pause(attempt: usize) {
+    std::thread::sleep(std::time::Duration::from_millis(200 * (1_u64 << attempt)));
+}
+
+fn diagnostic_summary(body: &str) -> String {
+    const LIMIT: usize = 512;
+    let head: String = body.chars().take(LIMIT).collect();
+    let mut summary = head.split_whitespace().collect::<Vec<_>>().join(" ");
+    if summary.is_empty() {
+        summary.push_str("<empty body>");
+    }
+    if body.chars().nth(LIMIT).is_some() {
+        summary.push('…');
+    }
+    summary
 }
 
 /// Fetch a single paper by PMID.
@@ -191,8 +289,18 @@ pub fn get_by_pmid(base_url: &str, pmid: &str) -> Result<Option<Paper>, String> 
     let api_key = std::env::var("NCBI_API_KEY").ok();
     let email = super::contact_email();
     let url = build_efetch_url(base_url, pmid, api_key.as_deref(), email.as_deref());
-    let body = http_get(&url)?;
-    let papers = parse_efetch_response(&body)?;
+    let papers = send(
+        "PubMed efetch",
+        || {
+            crate::http::api()
+                .get(&url)
+                .config()
+                .http_status_as_error(false)
+                .build()
+                .call()
+        },
+        parse_efetch_response,
+    )?;
     Ok(papers.into_iter().next())
 }
 
@@ -201,6 +309,7 @@ pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
     let mut reader = Reader::from_str(xml);
     let mut buf = Vec::new();
     let mut papers = Vec::new();
+    let mut saw_article_set = false;
 
     // State
     let mut in_article = false;
@@ -221,6 +330,7 @@ pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
                 let name = e.name();
                 let local = local_name(name.as_ref());
                 match local {
+                    "PubmedArticleSet" => saw_article_set = true,
                     "PubmedArticle" => {
                         in_article = true;
                         pmid.clear();
@@ -336,6 +446,9 @@ pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
                 }
                 tag_stack.pop();
             }
+            Ok(Event::Empty(ref e)) if local_name(e.name().as_ref()) == "PubmedArticleSet" => {
+                saw_article_set = true;
+            }
             Ok(Event::Eof) => break,
             Err(e) => return Err(format!("XML parse error: {}", e)),
             _ => {}
@@ -343,6 +456,9 @@ pub fn parse_efetch_response(xml: &str) -> Result<Vec<Paper>, String> {
         buf.clear();
     }
 
+    if !saw_article_set {
+        return Err("missing 'PubmedArticleSet' root element".to_string());
+    }
     Ok(papers)
 }
 
@@ -453,6 +569,26 @@ mod tests {
         }
     }
 
+    #[test]
+    fn empty_success_envelopes_are_valid_empty_results() {
+        assert!(
+            parse_esearch_response(r#"{"esearchresult":{"idlist":[]}}"#)
+                .unwrap()
+                .is_empty()
+        );
+        assert!(
+            parse_efetch_response("<PubmedArticleSet/>")
+                .unwrap()
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn missing_success_envelopes_are_errors() {
+        assert!(parse_esearch_response(r#"{"version":"0.3"}"#).is_err());
+        assert!(parse_efetch_response("<ERROR>temporary failure</ERROR>").is_err());
+    }
+
     const ESEARCH_FIXTURE: &str = include_str!("../../tests/fixtures/pubmed_esearch.json");
 
     #[test]
@@ -476,6 +612,129 @@ mod tests {
         assert!(!papers.is_empty());
         esearch_mock.assert();
         efetch_mock.assert();
+    }
+
+    #[test]
+    fn search_retries_a_502_from_esearch_then_succeeds() {
+        let mut server = mockito::Server::new();
+        let gateway = server
+            .mock("GET", mockito::Matcher::Regex("esearch".to_string()))
+            .with_status(502)
+            .with_body("temporary NCBI gateway failure")
+            .expect(1)
+            .create();
+        let esearch = server
+            .mock("GET", mockito::Matcher::Regex("esearch".to_string()))
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .expect(1)
+            .create();
+        let efetch = server
+            .mock("POST", EFETCH_URL)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .expect(1)
+            .create();
+
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
+
+        assert!(!papers.is_empty());
+        gateway.assert();
+        esearch.assert();
+        efetch.assert();
+    }
+
+    #[test]
+    fn search_retries_an_incomplete_esearch_2xx_then_succeeds() {
+        let mut server = mockito::Server::new();
+        let incomplete = server
+            .mock("GET", mockito::Matcher::Regex("esearch".to_string()))
+            .with_status(200)
+            .with_body(r#"{"version":"0.3","trace":"ncbi-incomplete"}"#)
+            .expect(1)
+            .create();
+        let esearch = server
+            .mock("GET", mockito::Matcher::Regex("esearch".to_string()))
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .expect(1)
+            .create();
+        server
+            .mock("POST", EFETCH_URL)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .expect(1)
+            .create();
+
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
+
+        assert!(!papers.is_empty());
+        incomplete.assert();
+        esearch.assert();
+    }
+
+    #[test]
+    fn search_retries_a_504_from_efetch_then_succeeds() {
+        let mut server = mockito::Server::new();
+        server
+            .mock("GET", mockito::Matcher::Regex("esearch".to_string()))
+            .with_status(200)
+            .with_body(ESEARCH_FIXTURE)
+            .expect(1)
+            .create();
+        let gateway = server
+            .mock("POST", EFETCH_URL)
+            .with_status(504)
+            .with_body("NCBI efetch timed out")
+            .expect(1)
+            .create();
+        let efetch = server
+            .mock("POST", EFETCH_URL)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .expect(1)
+            .create();
+
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
+
+        assert!(!papers.is_empty());
+        gateway.assert();
+        efetch.assert();
+    }
+
+    #[test]
+    fn exhausted_gateway_retries_name_the_stage_and_keep_the_summary() {
+        let mut server = mockito::Server::new();
+        let gateway = server
+            .mock("GET", mockito::Matcher::Regex("esearch".to_string()))
+            .with_status(503)
+            .with_body("NCBI trace ncbi-503-xyz")
+            .expect(MAX_ATTEMPTS)
+            .create();
+
+        let err = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap_err();
+
+        assert!(err.contains("PubMed esearch"), "got: {err}");
+        assert!(err.contains("HTTP 503"), "got: {err}");
+        assert!(err.contains("ncbi-503-xyz"), "got: {err}");
+        assert!(err.contains("after 3 attempts"), "got: {err}");
+        gateway.assert();
     }
 
     #[test]

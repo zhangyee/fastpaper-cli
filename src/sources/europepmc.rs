@@ -5,6 +5,7 @@ use super::Paper;
 /// Europe PMC's REST service lives under this path on the EBI host; `base_url`
 /// is the bare host, matching the convention used by the other sources.
 const SEARCH_PATH: &str = "/europepmc/webservices/rest/search";
+const MAX_ATTEMPTS: usize = 3;
 
 /// Build the search URL.
 ///
@@ -103,46 +104,127 @@ pub fn get_by_id(base_url: &str, id: &str) -> Result<Option<Paper>, String> {
         SEARCH_PATH,
         id_query(id)
     );
-    let body = crate::http::api()
-        .get(&url)
-        .call()
-        .map_err(|e| format!("HTTP error: {}", e))?
-        .into_body()
-        .read_to_string()
-        .map_err(|e| format!("Failed to read response: {}", e))?;
-    Ok(parse_search_response(&body)?.into_iter().next())
+    Ok(fetch_search_response("Europe PMC lookup", &url)?
+        .into_iter()
+        .next())
 }
 
 /// Search Europe PMC API.
 pub fn search(base_url: &str, q: &super::SearchQuery) -> Result<Vec<Paper>, String> {
     let url = build_search_url(base_url, q)?;
+    fetch_search_response("Europe PMC search", &url)
+}
 
-    let mut last_err = String::new();
-    for attempt in 0..3 {
-        if attempt > 0 {
-            std::thread::sleep(std::time::Duration::from_millis(100 * (1 << attempt)));
+/// Fetch and validate one Europe PMC search response.
+///
+/// The service can transiently answer with syntactically valid JSON that lacks
+/// the normal `resultList.result` envelope. Treat that the same way as the
+/// gateway statuses that are safe to retry; a real zero-hit response still has
+/// `resultList.result: []` and succeeds immediately.
+fn fetch_search_response(stage: &str, url: &str) -> Result<Vec<Paper>, String> {
+    let mut last_retryable = None;
+    for attempt in 0..MAX_ATTEMPTS {
+        let resp = crate::http::api()
+            .get(url)
+            .config()
+            .http_status_as_error(false)
+            .build()
+            .call()
+            .map_err(|e| format!("{} HTTP error: {}", stage, e))?;
+        let status = resp.status().as_u16();
+        let body = match resp.into_body().read_to_string() {
+            Ok(body) => body,
+            Err(e) if retryable_status(status) => {
+                last_retryable = Some(format!(
+                    "{} returned HTTP {} but its response could not be read: {}",
+                    stage, status, e
+                ));
+                if attempt + 1 < MAX_ATTEMPTS {
+                    retry_pause(attempt);
+                    continue;
+                }
+                break;
+            }
+            Err(e) => return Err(format!("{} failed to read response: {}", stage, e)),
+        };
+
+        match status {
+            200..=299 => match parse_search_response(&body) {
+                Ok(papers) => return Ok(papers),
+                Err(err) => {
+                    last_retryable = Some(format!(
+                        "{} returned HTTP {} without a valid success response: {}; response: {}",
+                        stage,
+                        status,
+                        err,
+                        diagnostic_summary(&body)
+                    ));
+                }
+            },
+            429 => {
+                last_retryable = Some(format!(
+                    "{} was rate limited (429); response: {}",
+                    stage,
+                    diagnostic_summary(&body)
+                ));
+            }
+            502..=504 => {
+                last_retryable = Some(format!(
+                    "{} returned HTTP {}; response: {}",
+                    stage,
+                    status,
+                    diagnostic_summary(&body)
+                ));
+            }
+            500..=599 => {
+                return Err(format!(
+                    "{} server error {}; response: {}",
+                    stage,
+                    status,
+                    diagnostic_summary(&body)
+                ));
+            }
+            _ => {
+                return Err(format!(
+                    "{} HTTP error {}; response: {}",
+                    stage,
+                    status,
+                    diagnostic_summary(&body)
+                ));
+            }
         }
-        match crate::http::api().get(&url).call() {
-            Ok(resp) => {
-                let body = resp
-                    .into_body()
-                    .read_to_string()
-                    .map_err(|e| format!("Failed to read response: {}", e))?;
-                return parse_search_response(&body);
-            }
-            Err(ureq::Error::StatusCode(429)) => {
-                last_err = "rate limited (429)".to_string();
-                continue;
-            }
-            Err(ureq::Error::StatusCode(code)) if code >= 500 => {
-                return Err(format!("Server error: {}", code));
-            }
-            Err(e) => {
-                return Err(format!("HTTP error: {}", e));
-            }
+
+        if attempt + 1 < MAX_ATTEMPTS {
+            retry_pause(attempt);
         }
     }
-    Err(last_err)
+
+    Err(format!(
+        "{} after {} attempts",
+        last_retryable.unwrap_or_else(|| format!("{} failed", stage)),
+        MAX_ATTEMPTS
+    ))
+}
+
+fn retryable_status(status: u16) -> bool {
+    matches!(status, 429 | 502..=504)
+}
+
+fn retry_pause(attempt: usize) {
+    std::thread::sleep(std::time::Duration::from_millis(200 * (1_u64 << attempt)));
+}
+
+fn diagnostic_summary(body: &str) -> String {
+    const LIMIT: usize = 512;
+    let head: String = body.chars().take(LIMIT).collect();
+    let mut summary = head.split_whitespace().collect::<Vec<_>>().join(" ");
+    if summary.is_empty() {
+        summary.push_str("<empty body>");
+    }
+    if body.chars().nth(LIMIT).is_some() {
+        summary.push('…');
+    }
+    summary
 }
 
 /// Parse Europe PMC JSON search response into a list of Papers.
@@ -386,6 +468,107 @@ mod tests {
         .unwrap();
         assert!(!papers.is_empty());
         mock.assert();
+    }
+
+    #[test]
+    fn search_retries_a_502_then_succeeds() {
+        let mut server = mockito::Server::new();
+        let gateway = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(502)
+            .with_body("temporary gateway failure")
+            .expect(1)
+            .create();
+        let success = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .expect(1)
+            .create();
+
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
+
+        assert!(!papers.is_empty());
+        gateway.assert();
+        success.assert();
+    }
+
+    #[test]
+    fn search_retries_an_incomplete_2xx_then_succeeds() {
+        let mut server = mockito::Server::new();
+        let incomplete = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(r#"{"version":"6.9","request":{"queryString":"test"}}"#)
+            .expect(1)
+            .create();
+        let success = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(FIXTURE)
+            .expect(1)
+            .create();
+
+        let papers = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap();
+
+        assert!(!papers.is_empty());
+        incomplete.assert();
+        success.assert();
+    }
+
+    #[test]
+    fn exhausted_gateway_retries_keep_the_response_summary() {
+        let mut server = mockito::Server::new();
+        let gateway = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(503)
+            .with_body("edge request epmc-123 temporarily unavailable")
+            .expect(MAX_ATTEMPTS)
+            .create();
+
+        let err = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap_err();
+
+        assert!(err.contains("HTTP 503"), "got: {err}");
+        assert!(err.contains("edge request epmc-123"), "got: {err}");
+        assert!(err.contains("after 3 attempts"), "got: {err}");
+        gateway.assert();
+    }
+
+    #[test]
+    fn exhausted_incomplete_2xx_retries_keep_the_response_summary() {
+        let mut server = mockito::Server::new();
+        let incomplete = server
+            .mock("GET", mockito::Matcher::Any)
+            .with_status(200)
+            .with_body(r#"{"version":"6.9","trace":"epmc-bad-shape"}"#)
+            .expect(MAX_ATTEMPTS)
+            .create();
+
+        let err = search(
+            &server.url(),
+            &crate::sources::SearchQuery::simple("test", 3),
+        )
+        .unwrap_err();
+
+        assert!(
+            err.contains("missing 'resultList.result' array"),
+            "got: {err}"
+        );
+        assert!(err.contains("epmc-bad-shape"), "got: {err}");
+        assert!(err.contains("after 3 attempts"), "got: {err}");
+        incomplete.assert();
     }
 
     #[test]

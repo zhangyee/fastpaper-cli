@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9.1
+
+### Fixes
+
+- Europe PMC and PubMed now retry transient HTTP 502, 503 and 504 responses with bounded exponential backoff, in addition to HTTP 429.
+- Successful HTTP responses with malformed or incomplete result structures are retried instead of failing immediately. Final errors retain the request stage, status, parser error and a bounded response-body summary for diagnosis; valid empty result sets remain successful.
+
 ## v0.9.0
 
 ### Breaking changes
